@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "validation_result.schema.json",
+  "title": "Feature Validation Result",
+  "description": "Validation evidence for a proposed Scout feature, threshold, weight, interaction, composite, or guardrail change.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "proposal_id",
+    "trainer_version",
+    "validation_date",
+    "validation_status",
+    "independent_occurrence_count",
+    "regime_distribution",
+    "in_sample_result",
+    "out_of_sample_result",
+    "dependency_redundancy_checks",
+    "risk_degradation_checks",
+    "blind_holdout_result",
+    "promotion_eligibility"
+  ],
+
+  "properties": {
+    "proposal_id": {
+      "type": "string"
+    },
+
+    "trainer_version": {
+      "type": "string"
+    },
+
+    "validation_date": {
+      "type": "string",
+      "format": "date"
+    },
+
+    "validation_status": {
+      "type": "string",
+      "enum": [
+        "INSUFFICIENT_EVIDENCE",
+        "FAILED",
+        "PASSED",
+        "ELIGIBLE_FOR_CHALLENGER"
+      ]
+    },
+
+    "independent_occurrence_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+
+    "minimum_required_occurrences": {
+      "type": "integer",
+      "const": 30
+    },
+
+    "minimum_occurrence_requirement_met": {
+      "type": "boolean"
+    },
+
+    "regime_distribution": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/regimeEvidence"
+      }
+    },
+
+    "in_sample_result": {
+      "$ref": "#/$defs/performanceComparison"
+    },
+
+    "out_of_sample_result": {
+      "$ref": "#/$defs/performanceComparison"
+    },
+
+    "dependency_redundancy_checks": {
+      "$ref": "#/$defs/dependencyChecks"
+    },
+
+    "risk_degradation_checks": {
+      "$ref": "#/$defs/riskChecks"
+    },
+
+    "live_data_available": {
+      "type": "boolean"
+    },
+
+    "deterministic_definition_confirmed": {
+      "type": "boolean"
+    },
+
+    "blind_holdout_result": {
+      "$ref": "#/$defs/blindHoldout"
+    },
+
+    "promotion_eligibility": {
+      "$ref": "#/$defs/promotionEligibility"
+    }
+  },
+
+  "$defs": {
+    "regimeEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "regime",
+        "occurrence_count"
+      ],
+      "properties": {
+        "regime": {
+          "type": "string"
+        },
+        "occurrence_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "first_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "last_date": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        }
+      }
+    },
+
+    "performanceComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline_return_pct",
+        "challenger_return_pct",
+        "return_lift_pct",
+        "baseline_drawdown_pct",
+        "challenger_drawdown_pct",
+        "candidate_count_change"
+      ],
+      "properties": {
+        "baseline_return_pct": {
+          "type": "number"
+        },
+        "challenger_return_pct": {
+          "type": "number"
+        },
+        "return_lift_pct": {
+          "type": "number"
+        },
+        "baseline_pnl_usd": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "challenger_pnl_usd": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "baseline_drawdown_pct": {
+          "type": "number"
+        },
+        "challenger_drawdown_pct": {
+          "type": "number"
+        },
+        "candidate_count_change": {
+          "type": "integer"
+        },
+        "stability_improved": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "dependencyChecks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "correlation_checked",
+        "double_counting_checked",
+        "cancellation_checked",
+        "redundancy_checked",
+        "material_redundancy_found"
+      ],
+      "properties": {
+        "correlation_checked": {
+          "type": "boolean"
+        },
+        "double_counting_checked": {
+          "type": "boolean"
+        },
+        "cancellation_checked": {
+          "type": "boolean"
+        },
+        "redundancy_checked": {
+          "type": "boolean"
+        },
+        "material_redundancy_found": {
+          "type": "boolean"
+        },
+        "related_feature_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "riskChecks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "drawdown_degradation_acceptable",
+        "liquidity_degradation_acceptable",
+        "execution_feasibility_acceptable",
+        "stability_degradation_acceptable"
+      ],
+      "properties": {
+        "drawdown_degradation_acceptable": {
+          "type": "boolean"
+        },
+        "liquidity_degradation_acceptable": {
+          "type": "boolean"
+        },
+        "execution_feasibility_acceptable": {
+          "type": "boolean"
+        },
+        "stability_degradation_acceptable": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "blindHoldout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completed",
+        "passed"
+      ],
+      "properties": {
+        "completed": {
+          "type": "boolean"
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "holdout_set_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "champion_return_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "challenger_return_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "champion_drawdown_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "challenger_drawdown_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "promotionEligibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eligible",
+        "reason_codes"
+      ],
+      "properties": {
+        "eligible": {
+          "type": "boolean"
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  }
+}
