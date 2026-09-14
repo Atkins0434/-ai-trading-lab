@@ -92,7 +92,7 @@ def generate_audit_json(
         )
 
     return {
-        "audit_version": "audit_v1.0",
+        "audit_version": "scout_audit_v1.0",
         "replay_id": scout_result["replay_id"],
         "scout_version": scout_result["scout_version"],
         "snapshot_timestamp":
@@ -134,7 +134,7 @@ def generate_audit_pdf(
 
     story.append(
         Paragraph(
-            "Deterministic Scout Audit",
+            "Scout Audit",
             styles["Title"],
         )
     )
@@ -481,15 +481,15 @@ def save_audit_reports(
         scout_result
     )
 
-    json_path = (
-        report_dir
-        / "deterministic_audit.json"
-    )
+   json_path = (
+    report_dir
+    / "scout_audit.json"
+)
 
-    pdf_path = (
-        report_dir
-        / "deterministic_audit.pdf"
-    )
+pdf_path = (
+    report_dir
+    / "scout_audit.pdf"
+)
 
     json_path.write_text(
         json.dumps(
