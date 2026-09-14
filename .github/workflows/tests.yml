@@ -31,5 +31,7 @@ jobs:
           python trainer/validate_contracts.py
 
       - name: Run automated tests
+        env:
+          PYTHONPATH: .
         run: |
-          pytest -v
+          python -m pytest -v
