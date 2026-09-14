@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "historical_snapshot.schema.json",
+  "title": "Historical Snapshot",
+  "description": "Point-in-time input supplied to Scout during historical replay. No information created or published after the freeze timestamp is permitted.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "replay_id",
+    "trading_date",
+    "freeze_timestamp",
+    "timezone",
+    "universe_version",
+    "scout_version",
+    "execution_policy_version",
+    "feature_registry_version",
+    "data_source",
+    "securities"
+  ],
+
+  "properties": {
+    "replay_id": {
+      "type": "string"
+    },
+
+    "trading_date": {
+      "type": "string",
+      "format": "date"
+    },
+
+    "freeze_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "timezone": {
+      "const": "America/New_York"
+    },
+
+    "universe_version": {
+      "type": "string"
+    },
+
+    "scout_version": {
+      "type": "string"
+    },
+
+    "execution_policy_version": {
+      "type": "string"
+    },
+
+    "feature_registry_version": {
+      "type": "string"
+    },
+
+    "data_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "feed_version"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "feed_version": {
+          "type": "string"
+        }
+      }
+    },
+
+    "securities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/securitySnapshot"
+      }
+    }
+  },
+
+  "$defs": {
+    "securitySnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+
+      "required": [
+        "ticker",
+        "exchange",
+        "eligible",
+        "market_data"
+      ],
+
+      "properties": {
+        "ticker": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "exchange": {
+          "type": "string"
+        },
+
+        "eligible": {
+          "type": "boolean"
+        },
+
+        "eligibility_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+
+        "market_cap_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+
+        "market_data": {
+          "type": "object",
+          "additionalProperties": false,
+
+          "properties": {
+            "last_price": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+
+            "bid": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+
+            "ask": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+
+            "premarket_volume": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+
+            "premarket_dollar_volume": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+
+            "average_daily_dollar_volume": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            },
+
+            "relative_volume": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0
+            }
+          }
+        },
+
+        "news": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/informationEvent"
+          }
+        },
+
+        "filings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/informationEvent"
+          }
+        },
+
+        "analyst_actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/informationEvent"
+          }
+        },
+
+        "social_observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/informationEvent"
+          }
+        }
+      }
+    },
+
+    "informationEvent": {
+      "type": "object",
+      "additionalProperties": false,
+
+      "required": [
+        "source",
+        "published_timestamp"
+      ],
+
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+
+        "published_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+
+        "reference_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "category": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
