@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from trainer.audit_report import save_audit_reports
+from trainer.scout_audit import save_audit_reports
 from trainer.replay_engine import load_historical_snapshot
 from trainer.report_generator import save_scout_reports
 from trainer.scout_engine import run_scout
@@ -49,11 +49,11 @@ def main() -> None:
         f"{scout_paths['pdf']}"
     )
     print(
-        f"Audit JSON: "
+        f"Scout Audit JSON: "
         f"{audit_paths['json']}"
     )
     print(
-        f"Audit PDF: "
+        f"Scout Audit PDF: "
         f"{audit_paths['pdf']}"
     )
 
