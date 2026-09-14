@@ -1,0 +1,212 @@
+{
+  "scout_id": "scout_v1.0",
+  "version": "1.0",
+  "status": "baseline",
+  "description": "Baseline deterministic Production Scout configuration used by Scout Trainer for historical replay.",
+
+  "session": {
+    "timezone": "America/New_York",
+    "morning_freeze_time": "07:00:00",
+    "use_point_in_time_data_only": true
+  },
+
+  "universe": {
+    "country": "US",
+    "security_type": "common_stock",
+    "exchanges": [
+      "NYSE",
+      "NASDAQ",
+      "NYSE_AMERICAN"
+    ],
+    "exclude_otc": true,
+    "exclude_shells": true,
+    "market_cap_min_usd": 300000000,
+    "market_cap_max_usd": 15000000000,
+    "market_cap_bounds_are_tunable": true
+  },
+
+  "candidate_output": {
+    "target_min_candidates": 5,
+    "target_max_candidates": 10,
+    "force_minimum_candidates": false,
+    "promotion_thresholds_pct": [
+      85,
+      90,
+      95,
+      96,
+      97,
+      98
+    ]
+  },
+
+  "scoring": {
+    "metric_min_score": 0,
+    "metric_max_score": 4,
+    "dynamic_denominator": true,
+    "llm_discretion_allowed": false
+  },
+
+  "premarket_price_volume_composite": {
+    "enabled": true,
+    "store_price_component_separately": true,
+    "store_volume_component_separately": true,
+    "relative_volume_multiplier": {
+      "below_normal": 0.0,
+      "normal": 1.0,
+      "at_or_above_1_5x_normal": 2.0
+    },
+    "blend_price_and_volume": true,
+    "double_counting_allowed": false
+  },
+
+  "price_momentum": {
+    "enabled": true,
+    "method": "linear_regression_normalized_slope",
+    "windows_minutes": [
+      15,
+      30,
+      60
+    ],
+    "require_positive_60m_context_for_standard_scoring": true,
+
+    "score_thresholds_pct_per_minute": {
+      "0": 0.0,
+      "1": 0.015,
+      "2": 0.030,
+      "3": 0.050,
+      "4": 0.075
+    },
+
+    "acceleration_override": {
+      "enabled": true,
+      "require_all_slopes_positive": true,
+      "min_15m_vs_60m_multiple": 2.0,
+      "min_30m_vs_60m_multiple": 2.0,
+      "override_score": 4
+    }
+  },
+
+  "volume_acceleration": {
+    "enabled": true,
+    "method": "linear_regression_normalized_slope",
+    "windows_minutes": [
+      15,
+      30,
+      60
+    ],
+    "require_positive_acceleration": true
+  },
+
+  "relative_market_strength": {
+    "enabled": true,
+    "mapping_method": "deterministic",
+    "benchmarks": {
+      "SP500_MEMBER": "SPY",
+      "NASDAQ100_MEMBER": "QQQ",
+      "DEFAULT": "IWM"
+    }
+  },
+
+  "sector_strength_and_leadership": {
+    "enabled": true,
+    "combine_sector_strength_and_stock_leadership": true,
+    "double_counting_allowed": false
+  },
+
+  "liquidity": {
+    "enabled": true,
+    "minimum_average_daily_dollar_volume_usd": 5000000,
+    "minimum_premarket_dollar_volume_usd": 250000,
+    "hard_reject_below_minimum": true
+  },
+
+  "spread": {
+    "enabled": true,
+    "penalty_starts_pct": 0.20,
+    "hard_reject_pct": 0.40
+  },
+
+  "order_book_depth": {
+    "enabled": true,
+    "full_credit_multiple": 4.0,
+    "half_credit_min_multiple": 2.0,
+    "hard_reject_below_multiple": 2.0,
+    "check_entry_side": true,
+    "check_exit_side": true
+  },
+
+  "catalyst": {
+    "enabled": true,
+    "verified_sources_only": true,
+    "deduplicate_syndicated_stories": true,
+    "one_story_per_source": true,
+    "sec_filing_weight_multiplier": 2.0,
+    "earnings_release_weight_multiplier": 2.0,
+    "must_exist_before_freeze_time": true
+  },
+
+  "options_flow": {
+    "enabled": true,
+    "calls_are_confirmation_only": true,
+    "puts_are_defensive_gate": true,
+    "abnormal_buy_side_put_multiple_reject": 4.0,
+    "use_put_call_ratio_for_rejection": false
+  },
+
+  "volatility": {
+    "enabled": true,
+    "track_atr_pct": true,
+    "track_intraday_range_pct": true,
+    "volatility_is_opportunity_signal": true,
+    "over_penalize_volatility": false
+  },
+
+  "price_continuity": {
+    "enabled": true,
+    "chop_penalty_weight": "low"
+  },
+
+  "analyst_revisions": {
+    "enabled": true,
+    "weight": "low",
+    "upward_revision": "small_positive",
+    "flat_revision": "neutral",
+    "downward_revision": "small_negative"
+  },
+
+  "dilution_risk": {
+    "enabled": true,
+    "fresh_offering_can_reject": true,
+    "active_atm_can_reject": true
+  },
+
+  "social_attention": {
+    "enabled": true,
+    "role": "confirmation_only",
+    "negative_sentiment_score": 0,
+    "neutral_sentiment_score": 0,
+    "positive_accelerating_attention_can_score": true,
+    "may_overpower_price_volume": false,
+    "trainer_may_discover_new_social_features": true
+  },
+
+  "halt_distortion_risk": {
+    "enabled": true,
+    "repeated_halts_can_reject": true,
+    "abnormal_prints_can_reject": true,
+    "extreme_range_can_penalize": true
+  },
+
+  "context_only": {
+    "float": true,
+    "short_interest": true
+  },
+
+  "trainer_controls": {
+    "trainer_can_modify_this_file_directly": false,
+    "trainer_may_propose_changes": true,
+    "promotion_required_for_changes": true,
+    "minimum_independent_occurrences_for_feature_promotion": 30,
+    "blind_holdout_required": true
+  }
+}
