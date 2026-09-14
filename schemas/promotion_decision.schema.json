@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "promotion_decision.schema.json",
+  "title": "Scout Promotion Decision",
+  "description": "Formal Champion/Challenger promotion decision produced after validation and blind holdout testing.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "decision_id",
+    "decision_timestamp",
+    "champion_version",
+    "challenger_version",
+    "trainer_version",
+    "execution_policy_version",
+    "holdout_set_id",
+    "comparison_metrics",
+    "decision",
+    "reason_codes"
+  ],
+
+  "properties": {
+    "decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+
+    "decision_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "champion_version": {
+      "type": "string"
+    },
+
+    "challenger_version": {
+      "type": "string"
+    },
+
+    "trainer_version": {
+      "type": "string"
+    },
+
+    "execution_policy_version": {
+      "type": "string"
+    },
+
+    "holdout_set_id": {
+      "type": "string"
+    },
+
+    "comparison_metrics": {
+      "$ref": "#/$defs/comparisonMetrics"
+    },
+
+    "decision": {
+      "type": "string",
+      "enum": [
+        "PROMOTE_CHALLENGER",
+        "RETAIN_CHAMPION",
+        "REJECT_CHALLENGER",
+        "REQUIRE_MORE_EVIDENCE"
+      ]
+    },
+
+    "reason_codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+
+    "rollback_supported": {
+      "type": "boolean",
+      "const": true
+    },
+
+    "automatic_promotion_allowed": {
+      "type": "boolean",
+      "const": false
+    }
+  },
+
+  "$defs": {
+    "comparisonMetrics": {
+      "type": "object",
+      "additionalProperties": false,
+
+      "required": [
+        "champion_realized_return_pct",
+        "challenger_realized_return_pct",
+        "champion_realized_pnl_usd",
+        "challenger_realized_pnl_usd",
+        "champion_max_drawdown_pct",
+        "challenger_max_drawdown_pct",
+        "champion_candidate_availability",
+        "challenger_candidate_availability",
+        "champion_benchmark_win_rate_pct",
+        "challenger_benchmark_win_rate_pct",
+        "meaningful_improvement"
+      ],
+
+      "properties": {
+        "champion_realized_return_pct": {
+          "type": "number"
+        },
+
+        "challenger_realized_return_pct": {
+          "type": "number"
+        },
+
+        "return_difference_pct": {
+          "type": "number"
+        },
+
+        "champion_realized_pnl_usd": {
+          "type": "number"
+        },
+
+        "challenger_realized_pnl_usd": {
+          "type": "number"
+        },
+
+        "pnl_difference_usd": {
+          "type": "number"
+        },
+
+        "champion_max_drawdown_pct": {
+          "type": "number"
+        },
+
+        "challenger_max_drawdown_pct": {
+          "type": "number"
+        },
+
+        "champion_candidate_availability": {
+          "type": "number",
+          "minimum": 0
+        },
+
+        "challenger_candidate_availability": {
+          "type": "number",
+          "minimum": 0
+        },
+
+        "champion_benchmark_win_rate_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+
+        "challenger_benchmark_win_rate_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+
+        "champion_average_capture_ratio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "challenger_average_capture_ratio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "champion_profit_factor": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "challenger_profit_factor": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "stability_comparison": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "outlier_dependency_detected": {
+          "type": "boolean"
+        },
+
+        "meaningful_improvement": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
