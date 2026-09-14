@@ -1,0 +1,75 @@
+{
+  "policy_id": "execution_policy_v1.0",
+  "version": "1.0",
+  "status": "baseline",
+  "description": "Deterministic execution policy used by Scout Trainer for historical grading and later by the production execution layer.",
+
+  "capital": {
+    "max_position_pct": 0.20,
+    "max_positions": 5,
+    "minimum_positions": 0,
+    "allow_unused_cash": true
+  },
+
+  "entry": {
+    "require_scout_eligibility": true,
+    "require_tradable": true,
+    "require_buying_power": true,
+    "require_liquidity_check": true,
+    "require_spread_check": true,
+    "require_depth_check": true,
+    "max_spread_pct": 0.40,
+    "spread_penalty_starts_pct": 0.20,
+    "depth_full_credit_multiple": 4.0,
+    "depth_half_credit_min_multiple": 2.0,
+    "depth_reject_below_multiple": 2.0
+  },
+
+  "position_management": {
+    "trailing_stop_pct": 1.0,
+    "profit_take_pct": 20.0,
+    "profit_take_action": "LIQUIDATE_FULL_POSITION"
+  },
+
+  "options_risk": {
+    "abnormal_put_volume_multiple": 4.0,
+    "pre_entry_action": "REJECT",
+    "held_position_action": "LIQUIDATE_FULL_POSITION"
+  },
+
+  "session": {
+    "timezone": "America/New_York",
+    "mandatory_end_of_session_liquidation": true,
+    "allow_overnight_positions": false
+  },
+
+  "two_session_test": {
+    "enabled_for_historical_testing": true,
+    "midday_liquidation_time": null,
+    "afternoon_freeze_time": null,
+    "note": "Exact midday liquidation and afternoon freeze times must be defined before two-session grading is activated."
+  },
+
+  "exit_priority": [
+    "ABNORMAL_PUT_VOLUME",
+    "TRAILING_STOP",
+    "PROFIT_TARGET",
+    "SESSION_END"
+  ],
+
+  "behavior": {
+    "deterministic": true,
+    "human_approval_required_for_exit": false,
+    "notify_after_execution": true,
+    "llm_discretion_allowed": false
+  },
+
+  "historical_simulation": {
+    "use_intraday_path": true,
+    "closing_price_only_grading": false,
+    "calculate_mfe": true,
+    "calculate_mae": true,
+    "calculate_capture_ratio": true,
+    "record_exit_reason": true
+  }
+}
