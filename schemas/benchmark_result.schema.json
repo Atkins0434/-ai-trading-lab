@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "benchmark_result.schema.json",
+  "title": "Benchmark Result",
+  "description": "Same-universe benchmark used to compare Scout performance against the strongest historical opportunities under the same deterministic execution policy.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "replay_id",
+    "trading_date",
+    "universe_version",
+    "execution_policy_version",
+    "benchmark_method",
+    "benchmark_candidates",
+    "scout_summary",
+    "benchmark_summary",
+    "comparison"
+  ],
+
+  "properties": {
+    "replay_id": {
+      "type": "string"
+    },
+
+    "trading_date": {
+      "type": "string",
+      "format": "date"
+    },
+
+    "universe_version": {
+      "type": "string"
+    },
+
+    "execution_policy_version": {
+      "type": "string"
+    },
+
+    "benchmark_method": {
+      "type": "string",
+      "enum": [
+        "TOP_10_MOVERS_SAME_UNIVERSE"
+      ]
+    },
+
+    "benchmark_candidates": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/benchmarkCandidate"
+      }
+    },
+
+    "scout_summary": {
+      "$ref": "#/$defs/performanceSummary"
+    },
+
+    "benchmark_summary": {
+      "$ref": "#/$defs/performanceSummary"
+    },
+
+    "comparison": {
+      "$ref": "#/$defs/comparison"
+    }
+  },
+
+  "$defs": {
+    "benchmarkCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+
+      "required": [
+        "ticker",
+        "benchmark_rank",
+        "raw_move_pct",
+        "fair_simulation_possible"
+      ],
+
+      "properties": {
+        "ticker": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "benchmark_rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
+
+        "raw_move_pct": {
+          "type": "number"
+        },
+
+        "fair_simulation_possible": {
+          "type": "boolean"
+        },
+
+        "simulation_exclusion_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+
+        "trade_executed": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+
+        "realized_return_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "realized_pnl_usd": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "capture_ratio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "exit_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "performanceSummary": {
+      "type": "object",
+      "additionalProperties": false,
+
+      "required": [
+        "candidate_count",
+        "trades_executed",
+        "realized_return_pct",
+        "realized_pnl_usd"
+      ],
+
+      "properties": {
+        "candidate_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+
+        "trades_executed": {
+          "type": "integer",
+          "minimum": 0
+        },
+
+        "realized_return_pct": {
+          "type": "number"
+        },
+
+        "realized_pnl_usd": {
+          "type": "number"
+        },
+
+        "win_rate_pct": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+
+        "profit_factor": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+
+        "max_drawdown_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "average_capture_ratio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+
+      "required": [
+        "scout_won",
+        "return_difference_pct",
+        "pnl_difference_usd",
+        "top_10_capture_rate_pct",
+        "target_driver_capture_met",
+        "result_code"
+      ],
+
+      "properties": {
+        "scout_won": {
+          "type": "boolean"
+        },
+
+        "return_difference_pct": {
+          "type": "number"
+        },
+
+        "pnl_difference_usd": {
+          "type": "number"
+        },
+
+        "top_10_capture_rate_pct": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+
+        "target_driver_capture_pct": {
+          "type": "number",
+          "const": 70
+        },
+
+        "target_driver_capture_met": {
+          "type": "boolean"
+        },
+
+        "result_code": {
+          "type": "string",
+          "enum": [
+            "SCOUT_OUTPERFORMED",
+            "SCOUT_TIED",
+            "SCOUT_UNDERPERFORMED"
+          ]
+        }
+      }
+    }
+  }
+}
