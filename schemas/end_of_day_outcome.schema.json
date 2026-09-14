@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "end_of_day_outcome.schema.json",
+  "title": "End of Day Outcome",
+  "description": "Observed intraday outcome and deterministic execution result for a Scout candidate during historical replay.",
+  "type": "object",
+  "additionalProperties": false,
+
+  "required": [
+    "replay_id",
+    "trading_date",
+    "scout_version",
+    "execution_policy_version",
+    "outcomes"
+  ],
+
+  "properties": {
+    "replay_id": {
+      "type": "string"
+    },
+
+    "trading_date": {
+      "type": "string",
+      "format": "date"
+    },
+
+    "scout_version": {
+      "type": "string"
+    },
+
+    "execution_policy_version": {
+      "type": "string"
+    },
+
+    "outcomes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/securityOutcome"
+      }
+    }
+  },
+
+  "$defs": {
+    "securityOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+
+      "required": [
+        "ticker",
+        "selected",
+        "intraday_path",
+        "mfe_pct",
+        "mae_pct",
+        "execution_result"
+      ],
+
+      "properties": {
+        "ticker": {
+          "type": "string",
+          "minLength": 1
+        },
+
+        "selected": {
+          "type": "boolean"
+        },
+
+        "scout_rank": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        },
+
+        "scout_score_pct": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+
+        "intraday_path": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bar"
+          }
+        },
+
+        "mfe_pct": {
+          "type": "number"
+        },
+
+        "mae_pct": {
+          "type": "number"
+        },
+
+        "maximum_capturable_move_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "execution_result": {
+          "$ref": "#/$defs/executionResult"
+        }
+      }
+    },
+
+    "bar": {
+      "type": "object",
+      "additionalProperties": false,
+
+      "required": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume"
+      ],
+
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+
+        "open": {
+          "type": "number",
+          "minimum": 0
+        },
+
+        "high": {
+          "type": "number",
+          "minimum": 0
+        },
+
+        "low": {
+          "type": "number",
+          "minimum": 0
+        },
+
+        "close": {
+          "type": "number",
+          "minimum": 0
+        },
+
+        "volume": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+
+    "executionResult": {
+      "type": "object",
+      "additionalProperties": false,
+
+      "required": [
+        "trade_executed",
+        "realized_return_pct"
+      ],
+
+      "properties": {
+        "trade_executed": {
+          "type": "boolean"
+        },
+
+        "entry_timestamp": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+
+        "entry_price": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+
+        "position_size_shares": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+
+        "position_value_usd": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+
+        "exit_timestamp": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+
+        "exit_price": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+
+        "exit_reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "ABNORMAL_PUT_VOLUME",
+            "TRAILING_STOP",
+            "PROFIT_TARGET",
+            "MIDDAY_LIQUIDATION",
+            "SESSION_END",
+            "ENTRY_REJECTED",
+            null
+          ]
+        },
+
+        "realized_pnl_usd": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "realized_return_pct": {
+          "type": "number"
+        },
+
+        "capture_ratio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+
+        "maximum_position_drawdown_pct": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    }
+  }
+}
