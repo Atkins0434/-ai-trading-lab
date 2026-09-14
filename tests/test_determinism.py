@@ -1,9 +1,11 @@
+from pathlib import Path
+
 from trainer.replay_engine import load_historical_snapshot
 from trainer.scout_audit import generate_audit_json
 from trainer.scout_engine import run_scout
 
 
-FIXTURE_PATH = (
+FIXTURE_PATH = Path(
     "fixtures/2018-01-02/historical_snapshot.json"
 )
 
