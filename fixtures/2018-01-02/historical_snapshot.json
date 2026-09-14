@@ -11,5 +11,128 @@
     "provider": "TEST_FIXTURE",
     "feed_version": "synthetic_v1"
   },
-  "securities": []
+  "securities": [
+    {
+      "ticker": "WINR",
+      "exchange": "NASDAQ",
+      "eligible": true,
+      "eligibility_reasons": [],
+      "market_cap_usd": 2500000000,
+      "market_data": {
+        "last_price": 12.5,
+        "bid": 12.49,
+        "ask": 12.51,
+        "premarket_volume": 400000,
+        "premarket_dollar_volume": 5000000,
+        "average_daily_dollar_volume": 40000000,
+        "relative_volume": 2.2
+      },
+      "news": [
+        {
+          "source": "TEST_NEWS",
+          "published_timestamp": "2018-01-02T06:15:00-05:00",
+          "reference_id": "WINR-NEWS-001",
+          "category": "CORPORATE_NEWS"
+        }
+      ],
+      "filings": [
+        {
+          "source": "SEC_TEST",
+          "published_timestamp": "2018-01-02T06:30:00-05:00",
+          "reference_id": "WINR-SEC-001",
+          "category": "SEC_FILING"
+        }
+      ],
+      "analyst_actions": [],
+      "social_observations": []
+    },
+    {
+      "ticker": "WIDE",
+      "exchange": "NASDAQ",
+      "eligible": true,
+      "eligibility_reasons": [],
+      "market_cap_usd": 1800000000,
+      "market_data": {
+        "last_price": 10.0,
+        "bid": 9.9775,
+        "ask": 10.0225,
+        "premarket_volume": 600000,
+        "premarket_dollar_volume": 6000000,
+        "average_daily_dollar_volume": 50000000,
+        "relative_volume": 2.5
+      },
+      "news": [
+        {
+          "source": "TEST_NEWS",
+          "published_timestamp": "2018-01-02T06:10:00-05:00",
+          "reference_id": "WIDE-NEWS-001",
+          "category": "CORPORATE_NEWS"
+        }
+      ],
+      "filings": [
+        {
+          "source": "SEC_TEST",
+          "published_timestamp": "2018-01-02T06:20:00-05:00",
+          "reference_id": "WIDE-SEC-001",
+          "category": "SEC_FILING"
+        }
+      ],
+      "analyst_actions": [],
+      "social_observations": []
+    },
+    {
+      "ticker": "THIN",
+      "exchange": "NYSE",
+      "eligible": true,
+      "eligibility_reasons": [],
+      "market_cap_usd": 900000000,
+      "market_data": {
+        "last_price": 8.0,
+        "bid": 7.995,
+        "ask": 8.005,
+        "premarket_volume": 10000,
+        "premarket_dollar_volume": 80000,
+        "average_daily_dollar_volume": 2000000,
+        "relative_volume": 3.0
+      },
+      "news": [
+        {
+          "source": "TEST_NEWS",
+          "published_timestamp": "2018-01-02T06:25:00-05:00",
+          "reference_id": "THIN-NEWS-001",
+          "category": "CORPORATE_NEWS"
+        }
+      ],
+      "filings": [
+        {
+          "source": "SEC_TEST",
+          "published_timestamp": "2018-01-02T06:35:00-05:00",
+          "reference_id": "THIN-SEC-001",
+          "category": "SEC_FILING"
+        }
+      ],
+      "analyst_actions": [],
+      "social_observations": []
+    },
+    {
+      "ticker": "MEH",
+      "exchange": "NYSE",
+      "eligible": true,
+      "eligibility_reasons": [],
+      "market_cap_usd": 4200000000,
+      "market_data": {
+        "last_price": 20.0,
+        "bid": 19.99,
+        "ask": 20.01,
+        "premarket_volume": 300000,
+        "premarket_dollar_volume": 6000000,
+        "average_daily_dollar_volume": 30000000,
+        "relative_volume": 1.1
+      },
+      "news": [],
+      "filings": [],
+      "analyst_actions": [],
+      "social_observations": []
+    }
+  ]
 }
