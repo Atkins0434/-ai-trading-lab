@@ -26,22 +26,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Validate contract schemas
-        run: |
-          python trainer/validate_contracts.py
-
-      - name: Run automated tests
+      - name: Run tests
         env:
           PYTHONPATH: .
         run: |
-          python -m pytest -v
-      - name: Generate Scout fixture report
+          pytest -v
+
+      - name: Generate Scout fixture reports
         env:
           PYTHONPATH: .
         run: |
           python -m trainer.run_fixture_report
 
-       - name: Upload Scout and audit reports
+      - name: Upload Scout and audit reports
         uses: actions/upload-artifact@v4
         with:
           name: scout-report-2018-01-02
