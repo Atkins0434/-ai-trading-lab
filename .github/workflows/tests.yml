@@ -45,5 +45,5 @@ jobs:
           path: |
             reports/2018-01-02/scout_report.pdf
             reports/2018-01-02/scout_report.md
-            reports/2018-01-02/deterministic_audit.pdf
-            reports/2018-01-02/deterministic_audit.json
+            reports/2018-01-02/scout_audit.pdf
+            reports/2018-01-02/scout_audit.json
