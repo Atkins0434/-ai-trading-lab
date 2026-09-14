@@ -481,15 +481,15 @@ def save_audit_reports(
         scout_result
     )
 
-   json_path = (
-    report_dir
-    / "scout_audit.json"
-)
+    json_path = (
+        report_dir
+        / "scout_audit.json"
+    )
 
-pdf_path = (
-    report_dir
-    / "scout_audit.pdf"
-)
+    pdf_path = (
+        report_dir
+        / "scout_audit.pdf"
+    )
 
     json_path.write_text(
         json.dumps(
