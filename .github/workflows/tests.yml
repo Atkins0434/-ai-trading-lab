@@ -45,4 +45,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: scout-report-2018-01-02
-          path: reports/2018-01-02/scout_report.md
+          path: |
+            reports/2018-01-02/scout_report.pdf
+            reports/2018-01-02/scout_report.md
