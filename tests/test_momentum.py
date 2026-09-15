@@ -74,6 +74,15 @@ def test_momentum_detects_rising_price_and_volume():
     assert result.volume_15.slope > 0
     assert result.volume_30.slope > 0
     assert result.volume_60.slope > 0
+    assert result.price_15.raw_slope == pytest.approx(0.05)
+    assert result.price_15.slope == pytest.approx(
+        result.price_15.raw_slope
+        / (
+            sum(closes[-15:])
+            / 15
+        )
+        * 100
+    )
 
 
 def test_momentum_detects_falling_price():

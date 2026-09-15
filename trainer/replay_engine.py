@@ -37,6 +37,7 @@ def load_historical_snapshot(path: Path) -> dict[str, Any]:
         ) from exc
 
     validate_freeze_timestamp(snapshot)
+    validate_point_in_time_inputs(snapshot)
 
     return snapshot
 
@@ -120,6 +121,60 @@ def assert_no_future_data(
             f"Future-data violation: observation at {observed_timestamp} "
             f"occurs after freeze at {freeze_timestamp}."
         )
+
+
+def validate_point_in_time_inputs(snapshot: dict[str, Any]) -> None:
+    """Validate every selection input against the replay freeze.
+
+    Schema validation proves timestamps exist. This traversal proves none of
+    them contains information that was unavailable at the decision boundary.
+    """
+    freeze_timestamp = snapshot["freeze_timestamp"]
+
+    for security in snapshot["securities"]:
+        ticker = security["ticker"]
+        timestamped_inputs: list[tuple[str, str]] = [
+            (
+                "eligibility_as_of_timestamp",
+                security["eligibility_as_of_timestamp"],
+            )
+        ]
+
+        market_cap = security.get("market_cap_usd")
+        if market_cap is not None:
+            timestamped_inputs.append(
+                ("market_cap_usd", market_cap["as_of_timestamp"])
+            )
+
+        for field, observation in security["market_data"].items():
+            timestamped_inputs.append(
+                (f"market_data.{field}", observation["as_of_timestamp"])
+            )
+
+        for collection in (
+            "news",
+            "filings",
+            "analyst_actions",
+            "social_observations",
+        ):
+            for index, event in enumerate(security.get(collection, [])):
+                timestamped_inputs.append(
+                    (
+                        f"{collection}[{index}]",
+                        event["published_timestamp"],
+                    )
+                )
+
+        for field, observed_timestamp in timestamped_inputs:
+            try:
+                assert_no_future_data(
+                    observed_timestamp,
+                    freeze_timestamp,
+                )
+            except ReplayError as exc:
+                raise ReplayError(
+                    f"{ticker}.{field}: {exc}"
+                ) from exc
 
 
 def run_contract_test() -> dict[str, Any]:

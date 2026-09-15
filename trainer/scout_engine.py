@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from math import ceil
 from typing import Any
 
 from trainer.validate_contracts import (
@@ -12,6 +13,8 @@ from trainer.validate_contracts import (
 
 ROOT = Path(__file__).resolve().parent.parent
 SCOUT_CONFIG_PATH = ROOT / "config" / "scout_v1.json"
+FEATURE_REGISTRY_PATH = ROOT / "config" / "feature_registry_v1.json"
+FIXED_MAXIMUM_POINTS = 120
 
 
 class ScoutError(Exception):
@@ -24,6 +27,79 @@ def load_scout_config() -> dict[str, Any]:
         return load_json(SCOUT_CONFIG_PATH)
     except ContractError as exc:
         raise ScoutError(f"Unable to load Scout configuration: {exc}") from exc
+
+
+def load_feature_registry() -> dict[str, Any]:
+    """Load and validate the immutable Scout V1 metric registry."""
+    try:
+        registry = load_json(FEATURE_REGISTRY_PATH)
+    except ContractError as exc:
+        raise ScoutError(f"Unable to load feature registry: {exc}") from exc
+
+    metrics = registry.get("metrics", [])
+    ids = [metric.get("id") for metric in metrics]
+    numbers = [metric.get("number") for metric in metrics]
+
+    if (
+        registry.get("metric_count") != 30
+        or registry.get("maximum_points") != FIXED_MAXIMUM_POINTS
+        or len(metrics) != 30
+        or len(set(ids)) != 30
+        or numbers != list(range(1, 31))
+    ):
+        raise ScoutError(
+            "Feature registry must contain exactly 30 uniquely named, "
+            "ordered metrics and a fixed 120-point maximum."
+        )
+
+    return registry
+
+
+def observed_value(observation: dict[str, Any] | None) -> float | None:
+    """Return a point-in-time observation value without erasing provenance."""
+    if observation is None:
+        return None
+    return observation.get("value")
+
+
+def minimum_points_for_threshold(threshold_pct: float) -> int:
+    """Convert a percentage threshold to attainable integer Scout points."""
+    if threshold_pct < 0 or threshold_pct > 100:
+        raise ScoutError("Selection threshold must be between 0 and 100.")
+    return ceil((threshold_pct / 100) * FIXED_MAXIMUM_POINTS)
+
+
+def missing_component(metric: dict[str, Any]) -> dict[str, Any]:
+    """Represent missing data explicitly; missing is never observed zero."""
+    return {
+        "status": "MISSING",
+        "score": None,
+        "maximum_score": 4,
+        "raw_value": None,
+        "as_of_timestamp": None,
+        "reason_code": "METRIC_NOT_IMPLEMENTED",
+        "calculation_version": "unimplemented",
+    }
+
+
+def observed_component(
+    score: int,
+    raw_value: Any,
+    as_of_timestamp: str | None,
+    reason_code: str,
+    calculation_version: str,
+) -> dict[str, Any]:
+    if score not in range(5):
+        raise ScoutError("Component scores must be integers from 0 through 4.")
+    return {
+        "status": "OBSERVED",
+        "score": score,
+        "maximum_score": 4,
+        "raw_value": raw_value,
+        "as_of_timestamp": as_of_timestamp,
+        "reason_code": reason_code,
+        "calculation_version": calculation_version,
+    }
 
 
 def calculate_spread_pct(
@@ -45,30 +121,30 @@ def calculate_spread_pct(
     return ((ask - bid) / midpoint) * 100
 
 
-def score_relative_volume(relative_volume: float | None) -> float:
+def score_relative_volume(relative_volume: float | None) -> int:
     """
     Score relative volume on the Scout 0-4 scale.
 
     This is intentionally conservative and deterministic.
     """
     if relative_volume is None:
-        return 0.0
+        return 0
 
     if relative_volume < 1.0:
-        return 0.0
+        return 0
     if relative_volume < 1.25:
-        return 1.0
+        return 1
     if relative_volume < 1.5:
-        return 2.0
+        return 2
     if relative_volume < 2.0:
-        return 3.0
+        return 3
 
-    return 4.0
+    return 4
 
 
 def score_catalyst(
     security: dict[str, Any],
-) -> float:
+) -> int:
     """
     Score currently available verified information events.
 
@@ -84,15 +160,15 @@ def score_catalyst(
     weighted_events = news_count + (filing_count * 2)
 
     if weighted_events <= 0:
-        return 0.0
+        return 0
     if weighted_events == 1:
-        return 1.0
+        return 1
     if weighted_events == 2:
-        return 2.0
+        return 2
     if weighted_events == 3:
-        return 3.0
+        return 3
 
-    return 4.0
+    return 4
 
 
 def evaluate_liquidity_guardrail(
@@ -102,11 +178,11 @@ def evaluate_liquidity_guardrail(
     """Evaluate Scout's deterministic liquidity floor."""
     rules = config["liquidity"]
 
-    avg_dollar_volume = market_data.get(
-        "average_daily_dollar_volume"
+    avg_dollar_volume = observed_value(
+        market_data.get("average_daily_dollar_volume")
     )
-    premarket_dollar_volume = market_data.get(
-        "premarket_dollar_volume"
+    premarket_dollar_volume = observed_value(
+        market_data.get("premarket_dollar_volume")
     )
 
     minimum_avg = rules[
@@ -158,8 +234,8 @@ def evaluate_spread_guardrail(
 ) -> dict[str, Any]:
     """Apply Scout's 0.20% penalty and 0.40% rejection rules."""
     spread_pct = calculate_spread_pct(
-        market_data.get("bid"),
-        market_data.get("ask"),
+        observed_value(market_data.get("bid")),
+        observed_value(market_data.get("ask")),
     )
 
     penalty_start = config["spread"]["penalty_starts_pct"]
@@ -206,6 +282,7 @@ def score_security(
     config: dict[str, Any],
     threshold_pct: float,
     timestamp: str,
+    registry: dict[str, Any],
 ) -> dict[str, Any]:
     """Score one security using currently implemented V1 features."""
     ticker = security["ticker"]
@@ -235,53 +312,51 @@ def score_security(
             rejection_reasons.append(reason_code)
 
     component_scores = {
-        "relative_volume": {
-            "score": score_relative_volume(
-                market_data.get("relative_volume")
-            ),
-            "maximum_score": 4.0,
-            "reason_code": "RELATIVE_VOLUME_SCORE",
-        },
-        "catalyst": {
-            "score": score_catalyst(security),
-            "maximum_score": 4.0,
-            "reason_code": "CATALYST_SCORE",
-        },
+        metric["id"]: missing_component(metric)
+        for metric in registry["metrics"]
     }
 
-    # Spread between 0.20% and 0.40% receives a small,
-    # deterministic scoring penalty without becoming a third
-    # independent score component.
-    spread_result = guardrails["spread"]
-
-    if spread_result["action"] == "PENALIZE":
-        component_scores["relative_volume"]["score"] = max(
-            0.0,
-            component_scores["relative_volume"]["score"] - 1.0,
+    relative_volume_observation = market_data.get("relative_volume")
+    relative_volume = observed_value(relative_volume_observation)
+    if relative_volume_observation is not None and relative_volume is not None:
+        component_scores["relative_volume"] = observed_component(
+            score=score_relative_volume(relative_volume),
+            raw_value=relative_volume,
+            as_of_timestamp=relative_volume_observation["as_of_timestamp"],
+            reason_code="RELATIVE_VOLUME_SCORE",
+            calculation_version="relative_volume_v1.0",
         )
 
+    catalyst_events = security.get("news", []) + security.get("filings", [])
+    component_scores["catalyst_quality"] = observed_component(
+        score=score_catalyst(security),
+        raw_value={
+            "news_count": len(security.get("news", [])),
+            "filing_count": len(security.get("filings", [])),
+        },
+        as_of_timestamp=max(
+            (event["published_timestamp"] for event in catalyst_events),
+            default=timestamp,
+        ),
+        reason_code="CATALYST_QUALITY_SCORE",
+        calculation_version="catalyst_quality_v1.0",
+    )
+
     total_score = sum(
-        item["score"]
+        item["score"] or 0
         for item in component_scores.values()
     )
 
-    maximum_possible_score = sum(
-        item["maximum_score"]
-        for item in component_scores.values()
-    )
-
-    score_pct = (
-        (total_score / maximum_possible_score) * 100
-        if maximum_possible_score
-        else 0.0
-    )
+    maximum_possible_score = FIXED_MAXIMUM_POINTS
+    score_pct = (total_score / FIXED_MAXIMUM_POINTS) * 100
+    threshold_points = minimum_points_for_threshold(threshold_pct)
 
     eligible = (
         security["eligible"]
         and not rejection_reasons
     )
 
-    selected = eligible and score_pct >= threshold_pct
+    selected = eligible and total_score >= threshold_points
 
     if selected:
         reason_codes.append("SCOUT_SELECTED")
@@ -299,21 +374,22 @@ def score_security(
         "total_score": total_score,
         "maximum_possible_score": maximum_possible_score,
         "score_pct": score_pct,
+        "threshold_points": threshold_points,
         "component_scores": component_scores,
         "raw_values": {
-            "last_price": market_data.get("last_price"),
-            "bid": market_data.get("bid"),
-            "ask": market_data.get("ask"),
+            "last_price": observed_value(market_data.get("last_price")),
+            "bid": observed_value(market_data.get("bid")),
+            "ask": observed_value(market_data.get("ask")),
             "spread_pct": calculate_spread_pct(
-                market_data.get("bid"),
-                market_data.get("ask"),
+                observed_value(market_data.get("bid")),
+                observed_value(market_data.get("ask")),
             ),
-            "relative_volume": market_data.get("relative_volume"),
-            "premarket_dollar_volume": market_data.get(
-                "premarket_dollar_volume"
+            "relative_volume": relative_volume,
+            "premarket_dollar_volume": observed_value(
+                market_data.get("premarket_dollar_volume")
             ),
-            "average_daily_dollar_volume": market_data.get(
-                "average_daily_dollar_volume"
+            "average_daily_dollar_volume": observed_value(
+                market_data.get("average_daily_dollar_volume")
             ),
         },
         "guardrails": guardrails,
@@ -365,6 +441,7 @@ def run_scout(
         ) from exc
 
     config = load_scout_config()
+    registry = load_feature_registry()
 
     candidates = [
         score_security(
@@ -372,6 +449,7 @@ def run_scout(
             config=config,
             threshold_pct=threshold_pct,
             timestamp=snapshot["freeze_timestamp"],
+            registry=registry,
         )
         for security in snapshot["securities"]
     ]

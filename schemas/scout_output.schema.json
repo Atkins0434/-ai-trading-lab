@@ -5,7 +5,6 @@
   "description": "Deterministic output produced by Scout for a point-in-time market snapshot.",
   "type": "object",
   "additionalProperties": false,
-
   "required": [
     "replay_id",
     "scout_version",
@@ -13,37 +12,30 @@
     "scoring_threshold_pct",
     "candidates"
   ],
-
   "properties": {
     "replay_id": {
       "type": "string"
     },
-
     "scout_version": {
       "type": "string"
     },
-
     "snapshot_timestamp": {
       "type": "string",
       "format": "date-time"
     },
-
     "scoring_threshold_pct": {
       "type": "number",
       "minimum": 0,
       "maximum": 100
     },
-
     "eligible_universe_count": {
       "type": "integer",
       "minimum": 0
     },
-
     "qualifying_candidate_count": {
       "type": "integer",
       "minimum": 0
     },
-
     "candidates": {
       "type": "array",
       "items": {
@@ -51,12 +43,10 @@
       }
     }
   },
-
   "$defs": {
     "candidate": {
       "type": "object",
       "additionalProperties": false,
-
       "required": [
         "ticker",
         "timestamp",
@@ -65,32 +55,28 @@
         "total_score",
         "maximum_possible_score",
         "score_pct",
+        "threshold_points",
         "component_scores",
         "raw_values",
         "guardrails",
         "reason_codes",
         "rejection_reasons"
       ],
-
       "properties": {
         "ticker": {
           "type": "string",
           "minLength": 1
         },
-
         "timestamp": {
           "type": "string",
           "format": "date-time"
         },
-
         "eligible": {
           "type": "boolean"
         },
-
         "selected": {
           "type": "boolean"
         },
-
         "rank": {
           "type": [
             "integer",
@@ -98,30 +84,61 @@
           ],
           "minimum": 1
         },
-
         "total_score": {
-          "type": "number",
-          "minimum": 0
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 120
         },
-
         "maximum_possible_score": {
-          "type": "number",
-          "exclusiveMinimum": 0
+          "const": 120
         },
-
         "score_pct": {
           "type": "number",
           "minimum": 0,
           "maximum": 100
         },
-
         "component_scores": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/$defs/componentScore"
+          },
+          "minProperties": 30,
+          "maxProperties": 30,
+          "propertyNames": {
+            "enum": [
+              "relative_volume",
+              "price_slope_15m",
+              "price_slope_30m",
+              "price_slope_60m",
+              "volume_slope_15m",
+              "volume_slope_30m",
+              "volume_slope_60m",
+              "premarket_gap_strength",
+              "price_vs_premarket_vwap",
+              "premarket_trend_consistency",
+              "price_volume_confirmation",
+              "premarket_range_expansion",
+              "relative_strength_index_15m",
+              "relative_strength_index_30m",
+              "relative_strength_index_60m",
+              "sector_strength",
+              "stock_leadership_vs_sector",
+              "broad_market_regime_alignment",
+              "catalyst_quality",
+              "catalyst_verification_confidence",
+              "catalyst_freshness_relevance",
+              "call_options_confirmation",
+              "analyst_revision_strength",
+              "positive_social_attention_acceleration",
+              "atr_pct_opportunity",
+              "current_range_pct_opportunity",
+              "spread_quality",
+              "order_book_depth_quality",
+              "average_daily_dollar_volume_quality",
+              "premarket_dollar_volume_quality"
+            ]
           }
         },
-
         "raw_values": {
           "type": "object",
           "additionalProperties": {
@@ -134,21 +151,18 @@
             ]
           }
         },
-
         "guardrails": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/$defs/guardrailResult"
           }
         },
-
         "catalysts": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/catalyst"
           }
         },
-
         "reason_codes": {
           "type": "array",
           "items": {
@@ -156,60 +170,92 @@
           },
           "uniqueItems": true
         },
-
         "rejection_reasons": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "uniqueItems": true
+        },
+        "threshold_points": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 120
         }
       }
     },
-
     "componentScore": {
       "type": "object",
       "additionalProperties": false,
-
       "required": [
+        "status",
         "score",
-        "maximum_score"
+        "maximum_score",
+        "raw_value",
+        "as_of_timestamp",
+        "reason_code",
+        "calculation_version"
       ],
-
       "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "OBSERVED",
+            "MISSING"
+          ]
+        },
         "score": {
-          "type": "number",
-          "minimum": 0
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4
         },
-
         "maximum_score": {
-          "type": "number",
-          "minimum": 0
+          "const": 4
         },
-
+        "raw_value": {
+          "type": [
+            "number",
+            "integer",
+            "string",
+            "boolean",
+            "object",
+            "array",
+            "null"
+          ]
+        },
+        "as_of_timestamp": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
         "reason_code": {
           "type": [
             "string",
             "null"
           ]
+        },
+        "calculation_version": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
-
     "guardrailResult": {
       "type": "object",
       "additionalProperties": false,
-
       "required": [
         "passed",
         "action"
       ],
-
       "properties": {
         "passed": {
           "type": "boolean"
         },
-
         "action": {
           "type": "string",
           "enum": [
@@ -218,7 +264,6 @@
             "REJECT"
           ]
         },
-
         "observed_value": {
           "type": [
             "number",
@@ -228,7 +273,6 @@
             "null"
           ]
         },
-
         "threshold": {
           "type": [
             "number",
@@ -237,7 +281,6 @@
             "null"
           ]
         },
-
         "reason_code": {
           "type": [
             "string",
@@ -246,38 +289,31 @@
         }
       }
     },
-
     "catalyst": {
       "type": "object",
       "additionalProperties": false,
-
       "required": [
         "source",
         "published_timestamp",
         "category"
       ],
-
       "properties": {
         "source": {
           "type": "string"
         },
-
         "published_timestamp": {
           "type": "string",
           "format": "date-time"
         },
-
         "category": {
           "type": "string"
         },
-
         "reference_id": {
           "type": [
             "string",
             "null"
           ]
         },
-
         "weight_multiplier": {
           "type": "number",
           "minimum": 0

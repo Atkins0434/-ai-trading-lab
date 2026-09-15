@@ -11,6 +11,7 @@ class MomentumError(Exception):
 @dataclass(frozen=True)
 class WindowSlope:
     window_minutes: int
+    raw_slope: float
     slope: float
     first_value: float
     last_value: float
@@ -94,9 +95,22 @@ def calculate_window_slope(
 
     window = values[-window_minutes:]
 
+    raw_slope = linear_regression_slope(window)
+    baseline = sum(window) / len(window)
+
+    if baseline == 0 and raw_slope == 0:
+        normalized_slope = 0.0
+    elif baseline <= 0:
+        raise MomentumError(
+            "Normalized slope requires a positive window mean."
+        )
+    else:
+        normalized_slope = (raw_slope / baseline) * 100
+
     return WindowSlope(
         window_minutes=window_minutes,
-        slope=linear_regression_slope(window),
+        raw_slope=raw_slope,
+        slope=normalized_slope,
         first_value=window[0],
         last_value=window[-1],
         observation_count=len(window),
@@ -174,8 +188,8 @@ def calculate_momentum(
     override_multiple: float = 2.0,
 ) -> MomentumResult:
     """
-    Calculate Scout's 15/30/60 minute price momentum
-    and volume acceleration slopes.
+    Calculate Scout's normalized 15/30/60 minute price momentum
+    and volume acceleration slopes as percent change per minute.
 
     Bars must be one-minute bars ordered oldest to newest.
     """

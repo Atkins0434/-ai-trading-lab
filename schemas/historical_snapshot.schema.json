@@ -88,6 +88,7 @@
         "ticker",
         "exchange",
         "eligible",
+        "eligibility_as_of_timestamp",
         "market_data"
       ],
 
@@ -105,6 +106,11 @@
           "type": "boolean"
         },
 
+        "eligibility_as_of_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+
         "eligibility_reasons": {
           "type": "array",
           "items": {
@@ -113,11 +119,7 @@
         },
 
         "market_cap_usd": {
-          "type": [
-            "number",
-            "null"
-          ],
-          "minimum": 0
+          "$ref": "#/$defs/marketObservation"
         },
 
         "market_data": {
@@ -126,59 +128,31 @@
 
           "properties": {
             "last_price": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
+              "$ref": "#/$defs/marketObservation"
             },
 
             "bid": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
+              "$ref": "#/$defs/marketObservation"
             },
 
             "ask": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
+              "$ref": "#/$defs/marketObservation"
             },
 
             "premarket_volume": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
+              "$ref": "#/$defs/marketObservation"
             },
 
             "premarket_dollar_volume": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
+              "$ref": "#/$defs/marketObservation"
             },
 
             "average_daily_dollar_volume": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
+              "$ref": "#/$defs/marketObservation"
             },
 
             "relative_volume": {
-              "type": [
-                "number",
-                "null"
-              ],
-              "minimum": 0
+              "$ref": "#/$defs/marketObservation"
             }
           }
         },
@@ -209,6 +183,39 @@
           "items": {
             "$ref": "#/$defs/informationEvent"
           }
+        }
+      }
+    },
+
+    "marketObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "as_of_timestamp",
+        "source"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "as_of_timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "provider_field": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },
