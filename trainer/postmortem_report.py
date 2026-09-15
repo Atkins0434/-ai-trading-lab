@@ -48,7 +48,35 @@ def generate_postmortem_pdf(
     ]
     kpi = Table([[Paragraph(f"<b>{label}</b><br/><font size='14'>{value}</font>", small) for label, value in kpis]], colWidths=[10.1 * inch / 6] * 6, rowHeights=[0.60 * inch])
     kpi.setStyle(TableStyle([("BACKGROUND", (0, 0), (0, 0), result_color), ("BACKGROUND", (1, 0), (-1, -1), pale), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BFDBFE")), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
-    story.append(kpi)
+    comparison_rows = [
+        ["Performance", "Scout", "Benchmark"],
+        ["Trades executed", scout["trades_executed"], bench["trades_executed"]],
+        ["Realized P&L", f"${scout['realized_pnl_usd']:.2f}", f"${bench['realized_pnl_usd']:.2f}"],
+        ["Win rate", _pct(scout["win_rate_pct"]), _pct(bench["win_rate_pct"])],
+        ["Average capture ratio", "N/A" if scout["average_capture_ratio"] is None else f"{scout['average_capture_ratio']:.2f}x", "N/A" if bench["average_capture_ratio"] is None else f"{bench['average_capture_ratio']:.2f}x"],
+        ["Maximum drawdown", _pct(scout["max_drawdown_pct"]), _pct(bench["max_drawdown_pct"])],
+    ]
+    comparison_table = Table(comparison_rows, colWidths=[4.1*inch,3.0*inch,3.0*inch], repeatRows=1)
+    comparison_table.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,0),navy),
+        ("TEXTCOLOR",(0,0),(-1,0),colors.white),
+        ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),
+        ("FONTSIZE",(0,0),(-1,-1),8),
+        ("GRID",(0,0),(-1,-1),0.35,colors.HexColor("#D1D5DB")),
+        ("ROWBACKGROUNDS",(0,1),(-1,-1),[colors.white,colors.HexColor("#F9FAFB")]),
+        ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+    ]))
+    story.extend([
+        kpi,
+        Paragraph("Execution comparison", section),
+        comparison_table,
+        Spacer(1, 8),
+        Paragraph(
+            "Research-only grading. The benchmark uses the same pre-entry guardrails, position limit, and deterministic exit policy as Scout.",
+            small,
+        ),
+        PageBreak(),
+    ])
     rows = [
         ["Same-universe top movers", "", "", "", "", "", "", ""],
         ["Rank", "Ticker", "MFE", "Simulated", "Return", "P&L", "Capture", "Exit"],
