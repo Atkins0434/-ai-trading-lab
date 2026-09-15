@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "catalyst_snapshot.schema.json",
+  "title": "Point-in-Time Catalyst Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "replay_id", "trading_date", "freeze_timestamp", "timezone", "policy_version", "shadow_mode", "events", "summary", "determinism_hash"],
+  "properties": {
+    "contract_version": {"const": "catalyst_snapshot_v1.0"},
+    "replay_id": {"type": "string", "minLength": 1},
+    "trading_date": {"type": "string", "format": "date"},
+    "freeze_timestamp": {"type": "string", "format": "date-time"},
+    "timezone": {"const": "America/New_York"},
+    "policy_version": {"type": "string", "minLength": 1},
+    "shadow_mode": {"const": true},
+    "events": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/event"}
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["received", "admitted", "excluded"],
+      "properties": {
+        "received": {"type": "integer", "minimum": 0},
+        "admitted": {"type": "integer", "minimum": 0},
+        "excluded": {"type": "integer", "minimum": 0}
+      }
+    },
+    "determinism_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "$defs": {
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "ticker", "source_provider", "feed_version", "source_name", "source_reference", "headline", "event_type", "published_timestamp", "provider_available_timestamp", "ingested_timestamp", "source_tier", "verification_status", "sentiment", "relevance_confidence", "duplicate_group_id", "admission_status", "admission_reason", "duplicate_of"],
+      "properties": {
+        "event_id": {"type": "string", "pattern": "^evt_[a-f0-9]{24}$"},
+        "ticker": {"type": "string", "pattern": "^[A-Z][A-Z0-9.-]{0,14}$"},
+        "source_provider": {"type": "string", "minLength": 1},
+        "feed_version": {"type": "string", "minLength": 1},
+        "source_name": {"type": "string", "minLength": 1},
+        "source_reference": {"type": ["string", "null"]},
+        "headline": {"type": "string", "minLength": 1},
+        "event_type": {"enum": ["EARNINGS", "GUIDANCE", "SEC_FILING", "FDA_REGULATORY", "MERGER_ACQUISITION", "CONTRACT_AWARD", "PRODUCT", "ANALYST_ACTION", "OFFERING_DILUTION", "MANAGEMENT", "LEGAL_REGULATORY", "MACRO_SECTOR", "OTHER"]},
+        "published_timestamp": {"type": "string", "format": "date-time"},
+        "provider_available_timestamp": {"type": ["string", "null"], "format": "date-time"},
+        "ingested_timestamp": {"type": "string", "format": "date-time"},
+        "source_tier": {"enum": ["PRIMARY", "HIGH_QUALITY_WIRE", "OTHER"]},
+        "verification_status": {"enum": ["VERIFIED_PRIMARY", "VERIFIED_MULTI_SOURCE", "SINGLE_SOURCE", "UNVERIFIED"]},
+        "sentiment": {"enum": ["POSITIVE", "NEGATIVE", "NEUTRAL", "MIXED", "UNKNOWN"]},
+        "relevance_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "duplicate_group_id": {"type": ["string", "null"]},
+        "admission_status": {"enum": ["ADMITTED", "EXCLUDED"]},
+        "admission_reason": {"enum": ["KNOWN_BY_FREEZE", "PUBLISHED_AFTER_FREEZE", "UNKNOWN_PROVIDER_AVAILABILITY", "AVAILABILITY_PRECEDES_PUBLICATION", "AVAILABLE_AFTER_FREEZE", "SYNDICATED_DUPLICATE"]},
+        "duplicate_of": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

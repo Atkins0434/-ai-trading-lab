@@ -1,0 +1,44 @@
+{
+  "policy_version": "catalyst_alpha_v1.0",
+  "mode": "SHADOW_ONLY",
+  "freeze_timezone": "America/New_York",
+  "freeze_time": "07:00:00",
+  "admission": {
+    "published_by_freeze_required": true,
+    "provider_available_by_freeze_required": true,
+    "unknown_provider_availability_action": "EXCLUDE",
+    "syndicated_duplicate_action": "COUNT_ONCE"
+  },
+  "positive_relevance_minimum": 0.5,
+  "metrics": [
+    {
+      "metric_id": "catalyst_quality",
+      "production_metric_number": 19,
+      "max_points": 4,
+      "included_in_alpha_score": false
+    },
+    {
+      "metric_id": "catalyst_verification_confidence",
+      "production_metric_number": 20,
+      "max_points": 4,
+      "included_in_alpha_score": false
+    },
+    {
+      "metric_id": "catalyst_freshness_relevance",
+      "production_metric_number": 21,
+      "max_points": 4,
+      "included_in_alpha_score": false
+    }
+  ],
+  "freshness_hours": {
+    "4_points_max": 2,
+    "3_points_max": 6,
+    "2_points_max": 12,
+    "1_point_max": 24
+  },
+  "safety": {
+    "production_score_changes": false,
+    "execution_authority": false,
+    "dilution_enforcement": "OBSERVE_ONLY"
+  }
+}

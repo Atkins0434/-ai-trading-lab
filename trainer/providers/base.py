@@ -37,3 +37,23 @@ class MarketDataProvider(Protocol):
         end_date: str,
     ) -> list[dict[str, Any]]:
         ...
+
+
+class CatalystDataProvider(Protocol):
+    """Provider-neutral boundary for point-in-time catalyst evidence.
+
+    Implementations must preserve provider availability separately from the
+    publisher timestamp. A publication timestamp may not be substituted when
+    the provider cannot prove when an event entered its historical feed.
+    """
+
+    provider_name: str
+    feed_version: str
+
+    def get_catalyst_events(
+        self,
+        tickers: list[str],
+        start_timestamp: str,
+        end_timestamp: str,
+    ) -> list[dict[str, Any]]:
+        ...
