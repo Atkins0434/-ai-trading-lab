@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "research_alpha_batch.schema.json",
+  "title": "Research Scout Alpha Batch Run Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "trading_date", "status", "mode", "source",
+    "requested_tickers", "universe_eligible_tickers", "scored_tickers",
+    "universe_rejections", "skipped", "artifacts"
+  ],
+  "properties": {
+    "version": {"const": "research_alpha_batch_v1.0"},
+    "trading_date": {"type": "string", "format": "date"},
+    "status": {"enum": ["COMPLETE", "PARTIAL", "FAILED"]},
+    "mode": {"const": "RESEARCH_ONLY"},
+    "source": {"const": "MASSIVE"},
+    "requested_tickers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "universe_eligible_tickers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "scored_tickers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "universe_rejections": {"type": "object", "additionalProperties": {"type": "string"}},
+    "skipped": {"type": "object", "additionalProperties": {"type": "string"}},
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["universe", "scout_output", "pdf_report"],
+      "properties": {
+        "universe": {"type": "string"},
+        "scout_output": {"type": "string"},
+        "pdf_report": {"type": "string"}
+      }
+    }
+  }
+}

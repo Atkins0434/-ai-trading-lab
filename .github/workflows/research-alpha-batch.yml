@@ -1,0 +1,51 @@
+name: Research Scout Alpha Batch
+
+concurrency:
+  group: massive-api-${{ github.repository }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      trading_date:
+        description: Completed trading date (YYYY-MM-DD)
+        required: true
+        default: "2026-09-14"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/research-alpha-batch.yml"
+      - "trainer/research_alpha_batch.py"
+      - "trainer/run_research_alpha_batch.py"
+      - "trainer/universe_collector.py"
+      - "trainer/massive_alpha_snapshot.py"
+      - "trainer/report_generator.py"
+      - "schemas/research_alpha_batch.schema.json"
+      - "schemas/research_universe.schema.json"
+
+jobs:
+  run-batch:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run bounded mid-cap Alpha batch
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+          TRADING_DATE: ${{ inputs.trading_date || '2026-09-14' }}
+        run: >-
+          python -m trainer.run_research_alpha_batch
+          --date "$TRADING_DATE"
+          --tickers AA AAL BBAI CHWY CLOV ETSY FUBO JOBY LUNR UPST
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-alpha-batch-${{ inputs.trading_date || '2026-09-14' }}
+          path: reports/${{ inputs.trading_date || '2026-09-14' }}/

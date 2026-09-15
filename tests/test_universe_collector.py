@@ -45,6 +45,12 @@ def test_collection_resumes_from_atomic_checkpoint(tmp_path: Path):
     )
     assert complete["status"] == "COMPLETE"
     assert complete["eligible_tickers"] == ["GOOD"]
+    assert complete["eligible_securities"] == [{
+        "ticker": "GOOD",
+        "primary_exchange": "XNAS",
+        "market_cap_usd": 2_000_000_000,
+        "as_of_date": "2026-09-14",
+    }]
     assert complete["rejected"] == {"BIG": "MARKET_CAP_OUT_OF_RANGE"}
     assert client.calls == ["BIG", "GOOD"]
 

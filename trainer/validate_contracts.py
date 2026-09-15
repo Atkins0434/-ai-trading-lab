@@ -15,6 +15,7 @@ SCHEMA_FILES = {
     "scout_output": "scout_output.schema.json",
     "research_scout_output": "research_scout_output.schema.json",
     "research_universe": "research_universe.schema.json",
+    "research_alpha_batch": "research_alpha_batch.schema.json",
     "end_of_day_outcome": "end_of_day_outcome.schema.json",
     "benchmark_result": "benchmark_result.schema.json",
     "postmortem": "postmortem.schema.json",
