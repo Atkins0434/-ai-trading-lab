@@ -1,0 +1,198 @@
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any
+
+from trainer.trade_engine import (
+    ExecutionError,
+    load_execution_policy,
+    simulate_trade,
+)
+from trainer.validate_contracts import ContractError, validate_contract
+
+
+class OutcomeError(Exception):
+    """Raised when an end-of-day path cannot be graded deterministically."""
+
+
+def _parse_timestamp(raw: str) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except (TypeError, ValueError) as exc:
+        raise OutcomeError(f"Invalid outcome timestamp: {raw}") from exc
+    if parsed.tzinfo is None:
+        raise OutcomeError("Outcome timestamps require a timezone.")
+    return parsed
+
+
+def validate_outcome_bars(bars: list[dict[str, Any]]) -> None:
+    if not bars:
+        raise OutcomeError("At least one regular-session bar is required.")
+    previous: datetime | None = None
+    for index, bar in enumerate(bars):
+        required = {"timestamp", "open", "high", "low", "close", "volume"}
+        missing = required - set(bar)
+        if missing:
+            raise OutcomeError(f"Outcome bar {index} is missing {sorted(missing)}.")
+        timestamp = _parse_timestamp(bar["timestamp"])
+        if previous is not None and timestamp <= previous:
+            raise OutcomeError("Outcome bars must be strictly chronological.")
+        previous = timestamp
+        prices = [bar["open"], bar["high"], bar["low"], bar["close"]]
+        if any(not isinstance(value, (int, float)) or value <= 0 for value in prices):
+            raise OutcomeError(f"Outcome bar {index} has an invalid price.")
+        if bar["high"] < max(prices) or bar["low"] > min(prices):
+            raise OutcomeError(f"Outcome bar {index} has inconsistent OHLC.")
+        if not isinstance(bar["volume"], (int, float)) or bar["volume"] < 0:
+            raise OutcomeError(f"Outcome bar {index} has invalid volume.")
+
+
+def path_statistics(
+    bars: list[dict[str, Any]],
+    reference_price: float,
+) -> dict[str, float]:
+    """Calculate MFE, MAE, and the best chronological low-to-high move."""
+    validate_outcome_bars(bars)
+    if reference_price <= 0:
+        raise OutcomeError("Reference price must be positive.")
+
+    mfe_pct = (max(bar["high"] for bar in bars) / reference_price - 1) * 100
+    mae_pct = (min(bar["low"] for bar in bars) / reference_price - 1) * 100
+
+    running_low = float(bars[0]["low"])
+    maximum_move_pct = 0.0
+    for bar in bars:
+        running_low = min(running_low, float(bar["low"]))
+        move_pct = (float(bar["high"]) / running_low - 1) * 100
+        maximum_move_pct = max(maximum_move_pct, move_pct)
+
+    return {
+        "mfe_pct": mfe_pct,
+        "mae_pct": mae_pct,
+        "maximum_capturable_move_pct": maximum_move_pct,
+    }
+
+
+def _execution_contract(
+    execution: dict[str, Any],
+    entry_timestamp: str,
+    maximum_move_pct: float,
+    mae_pct: float,
+) -> dict[str, Any]:
+    realized_return = float(execution["realized_return_pct"])
+    capture_ratio = (
+        realized_return / maximum_move_pct
+        if maximum_move_pct > 0
+        else None
+    )
+    return {
+        "trade_executed": execution["trade_executed"],
+        "entry_timestamp": (
+            entry_timestamp if execution["trade_executed"] else None
+        ),
+        "entry_price": execution.get("entry_price"),
+        "position_size_shares": execution.get("position_size_shares"),
+        "position_value_usd": execution.get("position_value_usd"),
+        "exit_timestamp": execution.get("exit_timestamp"),
+        "exit_price": execution.get("exit_price"),
+        "exit_reason": execution.get("exit_reason"),
+        "realized_pnl_usd": execution.get("realized_pnl_usd"),
+        "realized_return_pct": realized_return,
+        "capture_ratio": capture_ratio,
+        "maximum_position_drawdown_pct": mae_pct,
+    }
+
+
+def _no_trade_contract(reason: str | None = None) -> dict[str, Any]:
+    return {
+        "trade_executed": False,
+        "entry_timestamp": None,
+        "entry_price": None,
+        "position_size_shares": 0,
+        "position_value_usd": 0.0,
+        "exit_timestamp": None,
+        "exit_price": None,
+        "exit_reason": reason,
+        "realized_pnl_usd": 0.0,
+        "realized_return_pct": 0.0,
+        "capture_ratio": None,
+        "maximum_position_drawdown_pct": None,
+    }
+
+
+def grade_replay_outcomes(
+    snapshot: dict[str, Any],
+    scout_result: dict[str, Any],
+    bars_by_ticker: dict[str, list[dict[str, Any]]],
+    strategy_capital: float,
+) -> dict[str, Any]:
+    """Grade every Scout candidate and execute only selected candidates."""
+    policy = load_execution_policy()
+    selected_in_rank_order = sorted(
+        (
+            candidate
+            for candidate in scout_result["candidates"]
+            if candidate["selected"]
+        ),
+        key=lambda candidate: candidate["rank"],
+    )
+    executable_tickers = {
+        candidate["ticker"]
+        for candidate in selected_in_rank_order[: policy.max_positions]
+    }
+
+    outcomes = []
+    for candidate in scout_result["candidates"]:
+        ticker = candidate["ticker"]
+        bars = bars_by_ticker.get(ticker)
+        if not bars:
+            raise OutcomeError(f"Missing regular-session path for {ticker}.")
+        validate_outcome_bars(bars)
+        entry_price = float(bars[0]["open"])
+        stats = path_statistics(bars, entry_price)
+
+        if candidate["selected"] and ticker in executable_tickers:
+            try:
+                raw_execution = simulate_trade(
+                    ticker=ticker,
+                    entry_price=entry_price,
+                    intraday_bars=bars,
+                    strategy_capital=strategy_capital,
+                )
+            except ExecutionError as exc:
+                raise OutcomeError(f"Execution failed for {ticker}: {exc}") from exc
+            execution = _execution_contract(
+                raw_execution,
+                bars[0]["timestamp"],
+                stats["maximum_capturable_move_pct"],
+                stats["mae_pct"],
+            )
+        elif candidate["selected"]:
+            execution = _no_trade_contract("ENTRY_REJECTED")
+        else:
+            execution = _no_trade_contract()
+
+        outcomes.append(
+            {
+                "ticker": ticker,
+                "selected": candidate["selected"],
+                "scout_rank": candidate["rank"],
+                "scout_score_pct": candidate["score_pct"],
+                "intraday_path": bars,
+                **stats,
+                "execution_result": execution,
+            }
+        )
+
+    result = {
+        "replay_id": snapshot["replay_id"],
+        "trading_date": snapshot["trading_date"],
+        "scout_version": snapshot["scout_version"],
+        "execution_policy_version": snapshot["execution_policy_version"],
+        "outcomes": outcomes,
+    }
+    try:
+        validate_contract("end_of_day_outcome", result)
+    except ContractError as exc:
+        raise OutcomeError(f"Outcome contract validation failed: {exc}") from exc
+    return result
