@@ -30,3 +30,15 @@ def test_scout_config_uses_fixed_denominator():
     assert config["scoring"]["maximum_points"] == 120
     assert config["scoring"]["denominator_policy"] == "FIXED_120"
     assert "dynamic_denominator" not in config["scoring"]
+
+
+def test_all_twelve_price_volume_metrics_are_implemented():
+    registry = load_feature_registry()
+    price_volume = [
+        metric
+        for metric in registry["metrics"]
+        if metric["family"] == "PRICE_VOLUME_DYNAMICS"
+    ]
+
+    assert len(price_volume) == 12
+    assert all(metric["implemented"] for metric in price_volume)
