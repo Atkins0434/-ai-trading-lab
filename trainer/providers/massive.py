@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 import os
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import urlparse
 
 import requests
@@ -22,29 +22,35 @@ class MassiveClient:
         api_key: str,
         session: requests.Session | None = None,
         timeout_seconds: float = 30.0,
+        before_request: Callable[[], None] | None = None,
     ) -> None:
         if not api_key.strip():
             raise ProviderError("Massive API key is required.")
         self._api_key = api_key
         self._session = session or requests.Session()
         self._timeout_seconds = timeout_seconds
+        self._before_request = before_request or (lambda: None)
 
     @classmethod
     def from_environment(
         cls,
         variable_name: str = "MASSIVE_API_KEY",
+        *,
+        before_request: Callable[[], None] | None = None,
     ) -> "MassiveClient":
         api_key = os.getenv(variable_name, "")
         if not api_key:
             raise ProviderError(
                 f"Missing required environment variable: {variable_name}"
             )
-        return cls(api_key)
+        return cls(api_key, before_request=before_request)
 
     def _get_page(
         self,
         path_or_url: str,
         params: dict[str, Any] | None = None,
+        *,
+        results_type: str = "array",
     ) -> dict[str, Any]:
         if path_or_url.startswith("http"):
             parsed = urlparse(path_or_url)
@@ -58,6 +64,7 @@ class MassiveClient:
             "Authorization": f"Bearer {self._api_key}",
             "Accept": "application/json",
         }
+        self._before_request()
         try:
             response = self._session.get(
                 url,
@@ -75,11 +82,17 @@ class MassiveClient:
         if payload.get("status") not in {"OK", "DELAYED"}:
             message = payload.get("error") or payload.get("message") or "unknown"
             raise ProviderError(f"Massive returned an error: {message}")
-        results = payload.get("results", [])
-        if not isinstance(results, list) or not all(
-            isinstance(item, dict) for item in results
-        ):
-            raise ProviderError("Massive results must be an array of objects.")
+        results = payload.get("results", [] if results_type == "array" else None)
+        if results_type == "array":
+            if not isinstance(results, list) or not all(
+                isinstance(item, dict) for item in results
+            ):
+                raise ProviderError("Massive results must be an array of objects.")
+        elif results_type == "object":
+            if not isinstance(results, dict):
+                raise ProviderError("Massive results must be an object.")
+        else:
+            raise ProviderError(f"Unsupported Massive results type: {results_type}")
         return payload
 
     def _get(
@@ -184,6 +197,34 @@ class MassiveClient:
                 "limit": 1000,
             },
         )
+
+    def get_tickers(self, as_of_date: str) -> list[dict[str, Any]]:
+        """Return active US common stocks as they existed on a date."""
+        date.fromisoformat(as_of_date)
+        return self._get(
+            "/v3/reference/tickers",
+            {
+                "market": "stocks",
+                "type": "CS",
+                "active": "true",
+                "date": as_of_date,
+                "order": "asc",
+                "sort": "ticker",
+                "limit": 1000,
+            },
+        )
+
+    def get_ticker_overview(
+        self, ticker: str, as_of_date: str
+    ) -> dict[str, Any]:
+        """Return one point-in-time ticker details object."""
+        date.fromisoformat(as_of_date)
+        payload = self._get_page(
+            f"/v3/reference/tickers/{ticker.upper()}",
+            {"date": as_of_date},
+            results_type="object",
+        )
+        return payload["results"]
 
 
 def parse_massive_timestamp(record: dict[str, Any]) -> str:

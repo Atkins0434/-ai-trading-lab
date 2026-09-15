@@ -1,5 +1,9 @@
 name: Massive Capability Check
 
+concurrency:
+  group: massive-api-${{ github.repository }}
+  cancel-in-progress: false
+
 on:
   workflow_dispatch:
   push:

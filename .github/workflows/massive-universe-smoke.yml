@@ -1,0 +1,41 @@
+name: Massive Universe Collector Check
+
+concurrency:
+  group: massive-api-${{ github.repository }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/massive-universe-smoke.yml"
+      - "trainer/providers/massive.py"
+      - "trainer/universe_collector.py"
+      - "trainer/run_universe_collection.py"
+
+jobs:
+  collect:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Collect bounded historical universe sample
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+        run: >-
+          python -m trainer.run_universe_collection
+          --date 2026-09-14
+          --tickers AAPL MSFT NVDA
+          --max-new 3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: massive-research-universe
+          path: reports/massive/research_universe.json
