@@ -103,6 +103,34 @@ Passing on a recent day proves the adapter and premarket feed shape. It does
 not make January 2, 2018 available on the two-year free plan; that historical
 milestone remains a later paid-data gate.
 
+## Research Scout Alpha
+
+Research Scout Alpha is isolated from Production Scout. It scores only the
+twelve implemented Price & Volume Dynamics metrics against a fixed 48-point
+denominator. It cannot authorize execution, and historical spread and order
+book depth remain explicitly unevaluated on Massive Free.
+
+Run the real-data pipeline probe with:
+
+```bash
+python -m trainer.run_massive_alpha --ticker SPY --date 2026-09-14
+```
+
+The universe collector supports dated common-stock discovery, point-in-time
+market-cap filtering, free-plan request pacing, and an atomic checkpoint after
+every ticker. A stopped collection resumes from the checkpoint:
+
+```bash
+python -m trainer.run_universe_collection \
+  --date 2026-09-14 \
+  --discover \
+  --max-new 25
+```
+
+At five calls per minute, a full universe collection is intentionally slow.
+The manifest reports remaining symbols and estimated minutes so a paid-plan
+decision can be based on measured workload rather than guesswork.
+
 ## Authoritative specifications
 
 - `SCOUT_TRAINER.md`
