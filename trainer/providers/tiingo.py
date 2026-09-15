@@ -145,3 +145,27 @@ def market_observation(
         "source": TiingoClient.provider_name,
         "provider_field": provider_field,
     }
+
+
+def canonical_price_bar(
+    record: dict[str, Any],
+    *,
+    include_source: bool = False,
+) -> dict[str, Any]:
+    """Convert one Tiingo OHLCV row to the provider-neutral bar shape."""
+    required = ("open", "high", "low", "close", "volume")
+    missing = [field for field in required if record.get(field) is None]
+    if missing:
+        raise ProviderError(f"Tiingo price record is missing fields: {missing}")
+
+    bar = {
+        "timestamp": parse_tiingo_timestamp(record),
+        "open": record["open"],
+        "high": record["high"],
+        "low": record["low"],
+        "close": record["close"],
+        "volume": record["volume"],
+    }
+    if include_source:
+        bar["source"] = TiingoClient.provider_name
+    return bar
