@@ -101,6 +101,40 @@
     "require_positive_acceleration": true
   },
 
+  "price_volume_metric_thresholds": {
+    "status": "trainer_baseline_not_promoted",
+    "volume_slope": {
+      "1": 0.25,
+      "2": 0.50,
+      "3": 1.00,
+      "4": 2.00
+    },
+    "premarket_gap_pct": {
+      "1": 1.0,
+      "2": 2.0,
+      "3": 4.0,
+      "4": 6.0
+    },
+    "price_vs_vwap_pct": {
+      "1": 0.25,
+      "2": 0.50,
+      "3": 1.00,
+      "4": 2.00
+    },
+    "trend_consistency_pct": {
+      "1": 50.0,
+      "2": 60.0,
+      "3": 70.0,
+      "4": 80.0
+    },
+    "range_expansion_ratio": {
+      "1": 1.00,
+      "2": 1.25,
+      "3": 1.50,
+      "4": 2.00
+    }
+  },
+
   "relative_market_strength": {
     "enabled": true,
     "mapping_method": "deterministic",
