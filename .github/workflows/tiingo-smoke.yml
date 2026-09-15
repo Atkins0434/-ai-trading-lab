@@ -1,0 +1,28 @@
+name: Tiingo Capability Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/tiingo-smoke.yml"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Probe January 2 2018 capabilities
+        env:
+          TIINGO_API_TOKEN: ${{ secrets.TIINGO_API_TOKEN }}
+        run: python -m trainer.tiingo_capability_report
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tiingo-capability-report
+          path: reports/tiingo/capability_report.json
