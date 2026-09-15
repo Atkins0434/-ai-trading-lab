@@ -122,10 +122,14 @@ class FakeCapabilityClient:
 
     def get_intraday_prices(self, ticker, start, end, frequency="1min"):
         start_time = datetime(2026, 9, 14, 8, 0, tzinfo=timezone.utc)
-        return [
+        correct_day = [
             aggregate(start_time.replace(minute=index), 10 + index / 100)
             for index in range(60)
         ]
+        wrong_day = aggregate(
+            datetime(2026, 9, 15, 8, 0, tzinfo=timezone.utc)
+        )
+        return correct_day + [wrong_day]
 
     def get_daily_prices(self, ticker, start, end):
         return [
