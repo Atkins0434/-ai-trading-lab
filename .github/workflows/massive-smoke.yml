@@ -1,7 +1,7 @@
 name: Massive Capability Check
 
 concurrency:
-  group: massive-api-${{ github.repository }}
+  group: massive-capability-${{ github.repository }}
   cancel-in-progress: false
 
 on:
