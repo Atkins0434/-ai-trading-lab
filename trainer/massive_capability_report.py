@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 from trainer.providers.base import ProviderError
 from trainer.providers.massive import MassiveClient, parse_massive_timestamp
+from trainer.universe_collector import RequestRateLimiter
 
 
 MARKET_TIMEZONE = ZoneInfo("America/New_York")
@@ -133,7 +134,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    client = MassiveClient.from_environment()
+    limiter = RequestRateLimiter()
+    client = MassiveClient.from_environment(before_request=limiter.wait)
     report = build_report(client, args.ticker, args.date)
     write_report(report, args.report)
     print(json.dumps(report, indent=2, sort_keys=True))
