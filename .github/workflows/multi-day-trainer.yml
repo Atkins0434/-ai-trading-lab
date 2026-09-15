@@ -1,0 +1,84 @@
+name: Multi-Day Research Trainer
+
+concurrency:
+  group: multi-day-trainer-${{ github.repository }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      trading_dates:
+        description: Comma-separated completed trading dates (YYYY-MM-DD)
+        required: true
+        default: "2026-09-10,2026-09-11,2026-09-14"
+  schedule:
+    - cron: "30 23 * * 1-5"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/multi-day-trainer.yml"
+      - "trainer/multi_day_trainer.py"
+      - "trainer/trainer_summary_report.py"
+      - "trainer/run_multi_day_trainer.py"
+      - "schemas/multi_day_trainer_run.schema.json"
+      - "tests/test_multi_day_trainer.py"
+
+jobs:
+  trainer:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Stagger provider workflows on pull requests and pushes
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        run: sleep 900
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            data/cache
+            reports/trainer
+          key: trainer-state-${{ github.ref }}-${{ github.run_id }}
+          restore-keys: trainer-state-${{ github.ref }}-
+      - name: Resolve bounded historical dates
+        id: dates
+        shell: bash
+        env:
+          DISPATCH_DATES: ${{ inputs.trading_dates }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "value=2026-09-10,2026-09-11,2026-09-14" >> "$GITHUB_OUTPUT"
+          elif [ -n "$DISPATCH_DATES" ]; then
+            echo "value=$DISPATCH_DATES" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run resumable research trainer
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+        run: >-
+          python -m trainer.run_multi_day_trainer
+          --dates-csv "${{ steps.dates.outputs.value }}"
+          --exploration-top-k 3
+          --tickers AA AAL BBAI CHWY CLOV ETSY FUBO JOBY LUNR UPST
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            data/cache
+            reports/trainer
+          key: trainer-state-${{ github.ref }}-${{ github.run_id }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: multi-day-research-trainer-${{ github.run_id }}
+          path: reports/trainer/

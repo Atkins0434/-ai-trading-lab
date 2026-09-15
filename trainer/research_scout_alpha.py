@@ -120,7 +120,9 @@ def _score_security(
         "ticker": security["ticker"],
         "timestamp": timestamp,
         "research_eligible": research_eligible,
+        "qualification_selected": research_selected,
         "research_selected": research_selected,
+        "selection_basis": "QUALIFYING_THRESHOLD" if research_selected else "NOT_SELECTED",
         "execution_eligible": False,
         "rank": None,
         "total_score": total_score,
@@ -136,7 +138,9 @@ def _score_security(
 
 
 def run_research_scout_alpha(
-    snapshot: dict[str, Any], threshold_pct: float | None = None
+    snapshot: dict[str, Any],
+    threshold_pct: float | None = None,
+    exploration_top_k: int = 0,
 ) -> dict[str, Any]:
     """Run the isolated 48-point Alpha; it can never authorize execution."""
     try:
@@ -152,10 +156,30 @@ def run_research_scout_alpha(
     )
     if not 0 <= threshold <= 100:
         raise ResearchScoutError("Alpha threshold must be between 0 and 100.")
+    if exploration_top_k < 0 or exploration_top_k > 5:
+        raise ResearchScoutError("Alpha exploration_top_k must be between 0 and 5.")
     candidates = [
         _score_security(security, config, registry, threshold, snapshot["freeze_timestamp"])
         for security in snapshot["securities"]
     ]
+    exploration_pool = sorted(
+        (candidate for candidate in candidates if candidate["research_eligible"]),
+        key=lambda candidate: (-candidate["score_pct"], candidate["ticker"]),
+    )[:exploration_top_k]
+    for candidate in exploration_pool:
+        if candidate["qualification_selected"]:
+            continue
+        candidate["research_selected"] = True
+        candidate["selection_basis"] = "EXPLORATION_TOP_K"
+        candidate["reason_codes"] = [
+            "RESEARCH_ALPHA_EXPLORATION_SELECTED",
+            "EXECUTION_DISABLED_RESEARCH_ONLY",
+        ]
+        candidate["rejection_reasons"] = [
+            reason for reason in candidate["rejection_reasons"]
+            if reason != "BELOW_RESEARCH_THRESHOLD"
+        ]
+
     selected = sorted(
         (candidate for candidate in candidates if candidate["research_selected"]),
         key=lambda candidate: (-candidate["score_pct"], candidate["ticker"]),
@@ -170,7 +194,10 @@ def run_research_scout_alpha(
         "snapshot_timestamp": snapshot["freeze_timestamp"],
         "scoring_threshold_pct": threshold,
         "eligible_universe_count": sum(c["research_eligible"] for c in candidates),
-        "qualifying_candidate_count": len(selected),
+        "qualifying_candidate_count": sum(c["qualification_selected"] for c in candidates),
+        "exploration_top_k": exploration_top_k,
+        "exploration_candidate_count": sum(c["selection_basis"] == "EXPLORATION_TOP_K" for c in candidates),
+        "selected_candidate_count": len(selected),
         "candidates": candidates,
     }
     try:

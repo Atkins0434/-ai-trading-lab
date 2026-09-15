@@ -87,3 +87,25 @@ def test_pipeline_validation_symbol_can_be_scored_without_becoming_candidate():
     assert candidate["total_score"] >= 0
     assert candidate["research_selected"] is False
     assert "DATA_PIPELINE_VALIDATION_SYMBOL" in candidate["rejection_reasons"]
+
+
+def test_exploration_selects_top_eligible_candidate_without_lowering_threshold():
+    daily, intraday = alpha_inputs()
+    snapshot = build_massive_alpha_snapshot(
+        "TEST", "2026-09-14", daily, intraday, exchange="NASDAQ"
+    )
+    result = run_research_scout_alpha(
+        snapshot,
+        threshold_pct=100,
+        exploration_top_k=1,
+    )
+    candidate = result["candidates"][0]
+
+    assert result["scoring_threshold_pct"] == 100
+    assert result["qualifying_candidate_count"] == 0
+    assert result["exploration_candidate_count"] == 1
+    assert result["selected_candidate_count"] == 1
+    assert candidate["qualification_selected"] is False
+    assert candidate["research_selected"] is True
+    assert candidate["selection_basis"] == "EXPLORATION_TOP_K"
+    assert "BELOW_RESEARCH_THRESHOLD" not in candidate["rejection_reasons"]

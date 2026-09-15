@@ -4,42 +4,40 @@ import argparse
 import json
 from pathlib import Path
 
+from trainer.multi_day_trainer import run_multi_day_trainer
 from trainer.providers.massive import MassiveClient
-from trainer.research_alpha_batch import run_massive_alpha_batch
+from trainer.run_research_alpha_batch import DEFAULT_TICKERS
 from trainer.universe_collector import RequestRateLimiter
 
 
-DEFAULT_TICKERS = ["AA", "AAL", "BBAI", "CHWY", "CLOV", "ETSY", "FUBO", "JOBY", "LUNR", "UPST"]
-
-
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Run one bounded Massive Free Research Scout Alpha batch."
-    )
-    parser.add_argument("--date", default="2026-09-14")
+    parser = argparse.ArgumentParser(description="Run resumable multi-day Research Scout Trainer replays.")
+    parser.add_argument("--dates-csv", required=True, help="Comma-separated historical trading dates.")
     parser.add_argument("--tickers", nargs="+", default=DEFAULT_TICKERS)
     parser.add_argument("--threshold-pct", type=float)
     parser.add_argument("--exploration-top-k", type=int, default=0)
     parser.add_argument("--cache", type=Path, default=Path("data/cache"))
-    parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--output-root", type=Path, default=Path("reports/trainer"))
+    parser.add_argument("--no-resume", action="store_true")
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    output_dir = args.output_dir or Path("reports") / args.date
+    dates = [value.strip() for value in args.dates_csv.split(",") if value.strip()]
     limiter = RequestRateLimiter()
     client = MassiveClient.from_environment(before_request=limiter.wait)
-    manifest = run_massive_alpha_batch(
+    result = run_multi_day_trainer(
         client,
         args.tickers,
-        args.date,
+        dates,
         cache_root=args.cache,
-        output_dir=output_dir,
+        output_root=args.output_root,
         threshold_pct=args.threshold_pct,
         exploration_top_k=args.exploration_top_k,
+        resume=not args.no_resume,
     )
-    print(json.dumps(manifest, indent=2, sort_keys=True))
+    print(json.dumps(result, indent=2, sort_keys=True))
 
 
 if __name__ == "__main__":

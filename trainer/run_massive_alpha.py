@@ -9,6 +9,7 @@ from trainer.historical_cache import HistoricalCache
 from trainer.massive_alpha_snapshot import build_massive_alpha_snapshot
 from trainer.providers.massive import MassiveClient
 from trainer.research_scout_alpha import run_research_scout_alpha
+from trainer.universe_collector import RequestRateLimiter
 
 
 def parse_args() -> argparse.Namespace:
@@ -24,7 +25,8 @@ def main() -> None:
     args = parse_args()
     target = date.fromisoformat(args.date)
     start = (target - timedelta(days=45)).isoformat()
-    client = MassiveClient.from_environment()
+    limiter = RequestRateLimiter()
+    client = MassiveClient.from_environment(before_request=limiter.wait)
     cache = HistoricalCache(args.cache)
     daily = cache.get_daily_prices(client, args.ticker, start, args.date)["records"]
     intraday = cache.get_intraday_prices(
