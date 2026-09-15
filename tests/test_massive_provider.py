@@ -154,3 +154,16 @@ def test_capability_report_requires_sixty_premarket_bars():
 def test_massive_api_key_is_required():
     with pytest.raises(ProviderError, match="API key is required"):
         MassiveClient("")
+
+
+def test_massive_reference_endpoints_support_arrays_and_objects():
+    session = FakeSession([
+        {"status": "OK", "results": [{"ticker": "A", "type": "CS"}]},
+        {"status": "OK", "results": {"ticker": "A", "market_cap": 1_000_000_000}},
+    ])
+    client = MassiveClient("secret-key", session=session)
+
+    assert client.get_tickers("2026-09-14")[0]["ticker"] == "A"
+    assert client.get_ticker_overview("a", "2026-09-14")["market_cap"] == 1_000_000_000
+    assert session.calls[0][1]["params"]["type"] == "CS"
+    assert session.calls[1][0].endswith("/v3/reference/tickers/A")
