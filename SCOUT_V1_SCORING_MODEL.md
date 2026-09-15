@@ -62,6 +62,31 @@ information. Non-positive slopes are strongly disfavored.
 Volume acceleration uses the same 15/30/60-minute framework and remains
 independently auditable.
 
+## Versioned V1 Baseline Thresholds
+
+These are deterministic Trainer-baseline parameters, not promoted claims of
+predictive value. Scout Trainer must challenge them against historical and
+blind holdout results before Production promotion.
+
+| Metric input | 1 point | 2 points | 3 points | 4 points |
+|---|---:|---:|---:|---:|
+| Price slope (%/minute) | 0.015 | 0.030 | 0.050 | 0.075 |
+| Volume slope (%/minute) | 0.25 | 0.50 | 1.00 | 2.00 |
+| Premarket gap (%) | 1.00 | 2.00 | 4.00 | 6.00 |
+| Price above premarket VWAP (%) | 0.25 | 0.50 | 1.00 | 2.00 |
+| Positive one-minute closes (%) | 50 | 60 | 70 | 80 |
+| Premarket range / average daily range | 1.00x | 1.25x | 1.50x | 2.00x |
+
+Price/volume confirmation scores the count of 15/30/60-minute windows in
+which both normalized price and volume slopes are positive. All three aligned
+windows score 3; all three plus the versioned acceleration override score 4.
+
+Premarket VWAP uses the typical price `(high + low + close) / 3`, weighted by
+each one-minute bar's volume. Trend consistency is the percentage of positive
+close-to-close one-minute changes. Premarket range expansion compares the
+observed premarket high-low range as a percentage of the prior close with the
+historical average daily range percentage.
+
 ## Short-Term Acceleration Override
 
 The override is a rule inside the price-momentum family, not a 31st
@@ -320,9 +345,9 @@ behavior, or feature formulas require versioned changes.
 
 # Current Implementation Status
 
-The repository currently contains a partial Scout used to validate
-architecture and plumbing. The synthetic January 2, 2018 fixture
-currently demonstrates:
+The repository contains a Trainer baseline used to validate architecture and
+plumbing. The synthetic January 2, 2018 fixture and enriched metric tests
+currently demonstrate:
 
 -   Relative-volume scoring
 -   Catalyst scoring
@@ -333,6 +358,10 @@ currently demonstrates:
 -   Determinism hashing
 -   15/30/60-minute price and volume slope calculations
 -   Short-term acceleration override calculation
+-   All twelve Price & Volume Dynamics calculations and component scores
+-   Checksum-protected historical provider caching
+-   A Scout-to-Trade-Engine single-day outcome path with MFE, MAE,
+    maximum capturable move, and capture ratio
 
 The existing synthetic `7 / 8 = 87.5%` score is a partial-development
 score, not completed Production Scout V1.
