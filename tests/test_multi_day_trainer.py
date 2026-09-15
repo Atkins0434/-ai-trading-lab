@@ -6,7 +6,16 @@ from pathlib import Path
 from trainer.multi_day_trainer import run_multi_day_trainer
 
 
-def fake_day_runner(client, tickers, trading_date, *, cache_root, output_dir, threshold_pct):
+def fake_day_runner(
+    client,
+    tickers,
+    trading_date,
+    *,
+    cache_root,
+    output_dir,
+    threshold_pct,
+    exploration_top_k,
+):
     output_dir.mkdir(parents=True, exist_ok=True)
     benchmark = {
         "scout_summary": {"realized_return_pct": 1.0, "realized_pnl_usd": 25.0},
@@ -35,6 +44,7 @@ def test_multi_day_trainer_persists_evidence_and_never_promotes(tmp_path: Path):
     assert state["hypotheses"][0]["status"] == "COLLECTING_EVIDENCE"
     assert state["controls"]["production_mutation_allowed"] is False
     assert state["controls"]["automatic_promotion_allowed"] is False
+    assert state["selection_policy"]["exploration_top_k"] == 0
     assert (tmp_path / "reports" / "trainer" / "trainer_summary_report.pdf").read_bytes().startswith(b"%PDF")
 
 
@@ -59,3 +69,18 @@ def test_multi_day_trainer_carries_prior_dates_into_next_run(tmp_path: Path):
     assert state["requested_dates"] == ["2026-09-11", "2026-09-14"]
     assert state["completed_dates"] == ["2026-09-11", "2026-09-14"]
     assert state["hypotheses"][0]["independent_occurrence_count"] == 2
+
+
+def test_selection_policy_change_invalidates_prior_day_results(tmp_path: Path):
+    calls = []
+
+    def recording_runner(*args, **kwargs):
+        calls.append((args[2], kwargs["exploration_top_k"]))
+        return fake_day_runner(*args, **kwargs)
+
+    root = tmp_path / "trainer"
+    common = dict(client=object(), tickers=["MISS"], trading_dates=["2026-09-14"], cache_root=tmp_path / "cache", output_root=root, day_runner=recording_runner)
+    run_multi_day_trainer(**common, exploration_top_k=0)
+    run_multi_day_trainer(**common, exploration_top_k=3)
+
+    assert calls == [("2026-09-14", 0), ("2026-09-14", 3)]
