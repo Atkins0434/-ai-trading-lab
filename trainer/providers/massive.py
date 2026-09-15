@@ -35,13 +35,15 @@ class MassiveClient:
     def from_environment(
         cls,
         variable_name: str = "MASSIVE_API_KEY",
+        *,
+        before_request: Callable[[], None] | None = None,
     ) -> "MassiveClient":
         api_key = os.getenv(variable_name, "")
         if not api_key:
             raise ProviderError(
                 f"Missing required environment variable: {variable_name}"
             )
-        return cls(api_key)
+        return cls(api_key, before_request=before_request)
 
     def _get_page(
         self,
