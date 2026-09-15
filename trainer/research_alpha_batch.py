@@ -7,7 +7,11 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from trainer.historical_cache import CacheError, HistoricalCache
-from trainer.massive_alpha_snapshot import build_massive_alpha_snapshot
+from trainer.benchmark import build_same_universe_benchmark
+from trainer.massive_alpha_snapshot import build_massive_alpha_snapshot, regular_session_bars
+from trainer.outcome_grader import grade_replay_outcomes
+from trainer.postmortem import build_postmortem
+from trainer.postmortem_report import generate_postmortem_pdf
 from trainer.providers.base import ProviderError
 from trainer.providers.massive import MassiveClient
 from trainer.report_generator import generate_scout_pdf_report
@@ -66,6 +70,10 @@ def run_massive_alpha_batch(
     universe_path = output_dir / "research_universe.json"
     scout_output_path = output_dir / "research_alpha_output.json"
     pdf_path = output_dir / "research_alpha_report.pdf"
+    outcome_path = output_dir / "end_of_day_outcome.json"
+    benchmark_path = output_dir / "benchmark_result.json"
+    postmortem_path = output_dir / "postmortem.json"
+    postmortem_pdf_path = output_dir / "postmortem_report.pdf"
     manifest_path = output_dir / "research_alpha_batch_manifest.json"
 
     universe = collect_ticker_overviews(
@@ -79,6 +87,7 @@ def run_massive_alpha_batch(
     start = (target - timedelta(days=45)).isoformat()
     snapshot = _empty_snapshot(trading_date)
     skipped: dict[str, str] = {}
+    outcome_bars: dict[str, list[dict[str, Any]]] = {}
 
     for security in universe.get("eligible_securities", []):
         ticker = security["ticker"]
@@ -100,6 +109,7 @@ def run_massive_alpha_batch(
                 intraday,
                 exchange=security["primary_exchange"],
             )
+            outcome_bars[ticker] = regular_session_bars(intraday, trading_date)
         except (ProviderError, CacheError, ResearchScoutError) as exc:
             skipped[ticker] = f"{type(exc).__name__}: {exc}"
             continue
@@ -108,6 +118,22 @@ def run_massive_alpha_batch(
     result = run_research_scout_alpha(snapshot, threshold_pct=threshold_pct)
     _write_json(scout_output_path, result)
     generate_scout_pdf_report(result, pdf_path)
+
+    outcome_snapshot = {
+        **snapshot,
+        "execution_policy_version": "execution_policy_v1.0_hypothetical",
+    }
+    outcome = grade_replay_outcomes(
+        outcome_snapshot, result, outcome_bars, strategy_capital=2500.0
+    )
+    benchmark = build_same_universe_benchmark(
+        outcome_snapshot, result, outcome, strategy_capital=2500.0
+    )
+    postmortem = build_postmortem(outcome_snapshot, result, benchmark)
+    _write_json(outcome_path, outcome)
+    _write_json(benchmark_path, benchmark)
+    _write_json(postmortem_path, postmortem)
+    generate_postmortem_pdf(benchmark, postmortem, postmortem_pdf_path)
 
     scored = sorted(candidate["ticker"] for candidate in result["candidates"])
     if not scored:
@@ -131,6 +157,10 @@ def run_massive_alpha_batch(
             "universe": universe_path.name,
             "scout_output": scout_output_path.name,
             "pdf_report": pdf_path.name,
+            "end_of_day_outcome": outcome_path.name,
+            "benchmark_result": benchmark_path.name,
+            "postmortem": postmortem_path.name,
+            "postmortem_report": postmortem_pdf_path.name,
         },
     }
     validate_contract("research_alpha_batch", manifest)

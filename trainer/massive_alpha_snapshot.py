@@ -70,6 +70,24 @@ def regularize_last_premarket_hour(
     return bars
 
 
+def regular_session_bars(
+    records: list[dict[str, Any]], trading_date: str
+) -> list[dict[str, Any]]:
+    """Return chronological 09:30-15:59 ET bars for outcome grading."""
+    day = date.fromisoformat(trading_date)
+    result = []
+    for record in records:
+        observed = datetime.fromisoformat(
+            parse_massive_timestamp(record)
+        ).astimezone(MARKET_TIMEZONE)
+        if observed.date() == day and time(9, 30) <= observed.time() < time(16, 0):
+            result.append(canonical_price_bar(record))
+    result.sort(key=lambda bar: bar["timestamp"])
+    if not result:
+        raise ProviderError("Alpha target day has no regular-session records.")
+    return result
+
+
 def build_massive_alpha_snapshot(
     ticker: str,
     trading_date: str,

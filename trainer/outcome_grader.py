@@ -128,13 +128,16 @@ def grade_replay_outcomes(
 ) -> dict[str, Any]:
     """Grade every Scout candidate and execute only selected candidates."""
     policy = load_execution_policy()
+    def is_selected(candidate: dict[str, Any]) -> bool:
+        return bool(candidate.get("selected", candidate.get("research_selected", False)))
+
     selected_in_rank_order = sorted(
         (
             candidate
             for candidate in scout_result["candidates"]
-            if candidate["selected"]
+            if is_selected(candidate)
         ),
-        key=lambda candidate: candidate["rank"],
+        key=lambda candidate: candidate["rank"] or 999999,
     )
     executable_tickers = {
         candidate["ticker"]
@@ -151,7 +154,8 @@ def grade_replay_outcomes(
         entry_price = float(bars[0]["open"])
         stats = path_statistics(bars, entry_price)
 
-        if candidate["selected"] and ticker in executable_tickers:
+        selected = is_selected(candidate)
+        if selected and ticker in executable_tickers:
             try:
                 raw_execution = simulate_trade(
                     ticker=ticker,
@@ -167,7 +171,7 @@ def grade_replay_outcomes(
                 stats["maximum_capturable_move_pct"],
                 stats["mae_pct"],
             )
-        elif candidate["selected"]:
+        elif selected:
             execution = _no_trade_contract("ENTRY_REJECTED")
         else:
             execution = _no_trade_contract()
@@ -175,7 +179,7 @@ def grade_replay_outcomes(
         outcomes.append(
             {
                 "ticker": ticker,
-                "selected": candidate["selected"],
+                "selected": selected,
                 "scout_rank": candidate["rank"],
                 "scout_score_pct": candidate["score_pct"],
                 "intraday_path": bars,
