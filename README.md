@@ -82,6 +82,9 @@ validation.
 Massive is the provider candidate for consolidated U.S. premarket aggregates.
 Store its credential as `MASSIVE_API_KEY`; never commit or print the key. The
 free Stocks Basic plan is tested first against a recent completed trading day:
+See the official
+[Massive custom-bars documentation](https://massive.com/docs/rest/stocks/aggregates/custom-bars)
+for the upstream aggregate contract.
 
 ```bash
 python -m trainer.massive_capability_report \
