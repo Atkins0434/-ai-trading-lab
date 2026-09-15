@@ -7,6 +7,8 @@ on:
       - main
     paths:
       - ".github/workflows/tiingo-smoke.yml"
+      - "trainer/tiingo_capability_report.py"
+      - "trainer/providers/tiingo.py"
 
 jobs:
   probe:

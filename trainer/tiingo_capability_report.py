@@ -1,10 +1,33 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, time
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from trainer.providers.base import ProviderError
 from trainer.providers.tiingo import TiingoClient, parse_tiingo_timestamp
+
+
+MARKET_TIMEZONE = ZoneInfo("America/New_York")
+
+
+def intraday_window(client, start_time: time, end_time: time):
+    rows = client.get_intraday_prices(
+        "SPY", "2018-01-02", "2018-01-03"
+    )
+    selected = []
+    for row in rows:
+        stamp = parse_tiingo_timestamp(row)
+        observed = datetime.fromisoformat(
+            stamp.replace("Z", "+00:00")
+        ).astimezone(MARKET_TIMEZONE)
+        if (
+            observed.date().isoformat() == "2018-01-02"
+            and start_time <= observed.time() <= end_time
+        ):
+            selected.append(row)
+    return selected
 
 
 def probe(name, operation):
@@ -36,18 +59,14 @@ def build_report(client: TiingoClient) -> dict:
             )),
             "premarket_intraday": probe(
                 "premarket_intraday",
-                lambda: client.get_intraday_prices(
-                    "SPY",
-                    "2018-01-02T04:00:00-05:00",
-                    "2018-01-02T07:00:00-05:00",
+                lambda: intraday_window(
+                    client, time(4, 0), time(7, 0)
                 ),
             ),
             "regular_session_intraday": probe(
                 "regular_session_intraday",
-                lambda: client.get_intraday_prices(
-                    "SPY",
-                    "2018-01-02T09:30:00-05:00",
-                    "2018-01-02T16:00:00-05:00",
+                lambda: intraday_window(
+                    client, time(9, 30), time(16, 0)
                 ),
             ),
             "news": probe("news", lambda: client.get_news(
