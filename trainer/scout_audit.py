@@ -80,6 +80,7 @@ def generate_audit_json(
                 "total_score": candidate["total_score"],
                 "maximum_possible_score":
                     candidate["maximum_possible_score"],
+                "threshold_points": candidate["threshold_points"],
                 "component_scores":
                     candidate["component_scores"],
                 "guardrails":
@@ -283,8 +284,9 @@ def generate_audit_pdf(
             story.append(
                 Paragraph(
                     f"{name}: "
-                    f"{component['score']:.2f} / "
-                    f"{component['maximum_score']:.2f}",
+                    f"{component['score'] if component['score'] is not None else 'MISSING'} / "
+                    f"{component['maximum_score']} "
+                    f"({component['status']})",
                     styles["BodyText"],
                 )
             )

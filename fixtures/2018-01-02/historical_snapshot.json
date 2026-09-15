@@ -17,15 +17,55 @@
       "exchange": "NASDAQ",
       "eligible": true,
       "eligibility_reasons": [],
-      "market_cap_usd": 2500000000,
+      "market_cap_usd": {
+        "value": 2500000000,
+        "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+        "source": "TEST_FIXTURE",
+        "provider_field": "market_cap_usd"
+      },
       "market_data": {
-        "last_price": 12.5,
-        "bid": 12.49,
-        "ask": 12.51,
-        "premarket_volume": 400000,
-        "premarket_dollar_volume": 5000000,
-        "average_daily_dollar_volume": 40000000,
-        "relative_volume": 2.2
+        "last_price": {
+          "value": 12.5,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "last_price"
+        },
+        "bid": {
+          "value": 12.49,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "bid"
+        },
+        "ask": {
+          "value": 12.51,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "ask"
+        },
+        "premarket_volume": {
+          "value": 400000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "premarket_volume"
+        },
+        "premarket_dollar_volume": {
+          "value": 5000000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "premarket_dollar_volume"
+        },
+        "average_daily_dollar_volume": {
+          "value": 40000000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "average_daily_dollar_volume"
+        },
+        "relative_volume": {
+          "value": 2.2,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "relative_volume"
+        }
       },
       "news": [
         {
@@ -44,22 +84,63 @@
         }
       ],
       "analyst_actions": [],
-      "social_observations": []
+      "social_observations": [],
+      "eligibility_as_of_timestamp": "2018-01-02T07:00:00-05:00"
     },
     {
       "ticker": "WIDE",
       "exchange": "NASDAQ",
       "eligible": true,
       "eligibility_reasons": [],
-      "market_cap_usd": 1800000000,
+      "market_cap_usd": {
+        "value": 1800000000,
+        "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+        "source": "TEST_FIXTURE",
+        "provider_field": "market_cap_usd"
+      },
       "market_data": {
-        "last_price": 10.0,
-        "bid": 9.9775,
-        "ask": 10.0225,
-        "premarket_volume": 600000,
-        "premarket_dollar_volume": 6000000,
-        "average_daily_dollar_volume": 50000000,
-        "relative_volume": 2.5
+        "last_price": {
+          "value": 10,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "last_price"
+        },
+        "bid": {
+          "value": 9.9775,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "bid"
+        },
+        "ask": {
+          "value": 10.0225,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "ask"
+        },
+        "premarket_volume": {
+          "value": 600000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "premarket_volume"
+        },
+        "premarket_dollar_volume": {
+          "value": 6000000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "premarket_dollar_volume"
+        },
+        "average_daily_dollar_volume": {
+          "value": 50000000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "average_daily_dollar_volume"
+        },
+        "relative_volume": {
+          "value": 2.5,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "relative_volume"
+        }
       },
       "news": [
         {
@@ -78,22 +159,63 @@
         }
       ],
       "analyst_actions": [],
-      "social_observations": []
+      "social_observations": [],
+      "eligibility_as_of_timestamp": "2018-01-02T07:00:00-05:00"
     },
     {
       "ticker": "THIN",
       "exchange": "NYSE",
       "eligible": true,
       "eligibility_reasons": [],
-      "market_cap_usd": 900000000,
+      "market_cap_usd": {
+        "value": 900000000,
+        "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+        "source": "TEST_FIXTURE",
+        "provider_field": "market_cap_usd"
+      },
       "market_data": {
-        "last_price": 8.0,
-        "bid": 7.995,
-        "ask": 8.005,
-        "premarket_volume": 10000,
-        "premarket_dollar_volume": 80000,
-        "average_daily_dollar_volume": 2000000,
-        "relative_volume": 3.0
+        "last_price": {
+          "value": 8,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "last_price"
+        },
+        "bid": {
+          "value": 7.995,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "bid"
+        },
+        "ask": {
+          "value": 8.005,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "ask"
+        },
+        "premarket_volume": {
+          "value": 10000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "premarket_volume"
+        },
+        "premarket_dollar_volume": {
+          "value": 80000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "premarket_dollar_volume"
+        },
+        "average_daily_dollar_volume": {
+          "value": 2000000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "average_daily_dollar_volume"
+        },
+        "relative_volume": {
+          "value": 3,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "relative_volume"
+        }
       },
       "news": [
         {
@@ -112,27 +234,69 @@
         }
       ],
       "analyst_actions": [],
-      "social_observations": []
+      "social_observations": [],
+      "eligibility_as_of_timestamp": "2018-01-02T07:00:00-05:00"
     },
     {
       "ticker": "MEH",
       "exchange": "NYSE",
       "eligible": true,
       "eligibility_reasons": [],
-      "market_cap_usd": 4200000000,
+      "market_cap_usd": {
+        "value": 4200000000,
+        "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+        "source": "TEST_FIXTURE",
+        "provider_field": "market_cap_usd"
+      },
       "market_data": {
-        "last_price": 20.0,
-        "bid": 19.99,
-        "ask": 20.01,
-        "premarket_volume": 300000,
-        "premarket_dollar_volume": 6000000,
-        "average_daily_dollar_volume": 30000000,
-        "relative_volume": 1.1
+        "last_price": {
+          "value": 20,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "last_price"
+        },
+        "bid": {
+          "value": 19.99,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "bid"
+        },
+        "ask": {
+          "value": 20.01,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "ask"
+        },
+        "premarket_volume": {
+          "value": 300000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "premarket_volume"
+        },
+        "premarket_dollar_volume": {
+          "value": 6000000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "premarket_dollar_volume"
+        },
+        "average_daily_dollar_volume": {
+          "value": 30000000,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "average_daily_dollar_volume"
+        },
+        "relative_volume": {
+          "value": 1.1,
+          "as_of_timestamp": "2018-01-02T07:00:00-05:00",
+          "source": "TEST_FIXTURE",
+          "provider_field": "relative_volume"
+        }
       },
       "news": [],
       "filings": [],
       "analyst_actions": [],
-      "social_observations": []
+      "social_observations": [],
+      "eligibility_as_of_timestamp": "2018-01-02T07:00:00-05:00"
     }
   ]
 }

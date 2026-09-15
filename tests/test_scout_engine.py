@@ -1,7 +1,10 @@
 from pathlib import Path
 
 from trainer.replay_engine import load_historical_snapshot
-from trainer.scout_engine import run_scout
+from trainer.scout_engine import (
+    minimum_points_for_threshold,
+    run_scout,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,19 +31,42 @@ def by_ticker(result):
 def test_expected_candidate_count():
     result = get_result()
 
-    assert result["qualifying_candidate_count"] == 1
+    assert result["qualifying_candidate_count"] == 0
 
 
-def test_winr_is_selected():
+def test_partial_fixture_uses_fixed_120_point_contract():
     result = get_result()
     candidates = by_ticker(result)
 
     winr = candidates["WINR"]
 
     assert winr["eligible"] is True
-    assert winr["selected"] is True
-    assert winr["score_pct"] == 87.5
-    assert winr["rank"] == 1
+    assert winr["selected"] is False
+    assert winr["total_score"] == 7
+    assert winr["maximum_possible_score"] == 120
+    assert winr["score_pct"] == 7 / 120 * 100
+    assert winr["threshold_points"] == 102
+    assert winr["rank"] is None
+    assert len(winr["component_scores"]) == 30
+
+
+def test_missing_metric_is_not_observed_zero():
+    winr = by_ticker(get_result())["WINR"]
+
+    missing = winr["component_scores"]["price_slope_15m"]
+    observed = winr["component_scores"]["relative_volume"]
+
+    assert missing["status"] == "MISSING"
+    assert missing["score"] is None
+    assert observed["status"] == "OBSERVED"
+    assert observed["score"] == 4
+
+
+def test_percentage_thresholds_round_up_to_attainable_points():
+    assert minimum_points_for_threshold(85) == 102
+    assert minimum_points_for_threshold(96) == 116
+    assert minimum_points_for_threshold(97) == 117
+    assert minimum_points_for_threshold(98) == 118
 
 
 def test_wide_is_rejected_for_spread():
@@ -89,7 +115,7 @@ def test_only_selected_candidates_receive_rank():
     result = get_result()
     candidates = by_ticker(result)
 
-    assert candidates["WINR"]["rank"] == 1
+    assert candidates["WINR"]["rank"] is None
     assert candidates["WIDE"]["rank"] is None
     assert candidates["THIN"]["rank"] is None
     assert candidates["MEH"]["rank"] is None

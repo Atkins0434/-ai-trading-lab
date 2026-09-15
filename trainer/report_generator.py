@@ -143,8 +143,9 @@ def generate_scout_markdown_report(
         for name, component in candidate["component_scores"].items():
             lines.append(
                 f"- {name}: "
-                f"{component['score']:.2f} / "
-                f"{component['maximum_score']:.2f}"
+                f"{fmt(component['score'])} / "
+                f"{fmt(component['maximum_score'])} "
+                f"({component['status']})"
             )
 
         lines.append("")
@@ -368,8 +369,9 @@ def generate_scout_pdf_report(
             story.append(
                 Paragraph(
                     f"- {name}: "
-                    f"{component['score']:.2f} / "
-                    f"{component['maximum_score']:.2f}",
+                    f"{fmt(component['score'])} / "
+                    f"{fmt(component['maximum_score'])} "
+                    f"({component['status']})",
                     small_style,
                 )
             )

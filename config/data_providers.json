@@ -1,0 +1,15 @@
+{
+  "historical_market_data": {
+    "provider": "TIINGO",
+    "adapter": "trainer.providers.tiingo.TiingoClient",
+    "credential_environment_variable": "TIINGO_API_TOKEN",
+    "feed_version": "tiingo_rest_v1",
+    "endpoints": {
+      "daily_prices": "/tiingo/daily/{ticker}/prices",
+      "intraday_prices": "/iex/{ticker}/prices",
+      "news": "/tiingo/news"
+    },
+    "default_intraday_frequency": "1min",
+    "secrets_may_be_logged": false
+  }
+}

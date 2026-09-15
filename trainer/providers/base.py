@@ -1,0 +1,39 @@
+from __future__ import annotations
+
+from typing import Any, Protocol
+
+
+class ProviderError(Exception):
+    """Raised when provider data cannot be safely admitted to a replay."""
+
+
+class MarketDataProvider(Protocol):
+    """Provider-neutral boundary used by historical snapshot builders."""
+
+    provider_name: str
+    feed_version: str
+
+    def get_daily_prices(
+        self,
+        ticker: str,
+        start_date: str,
+        end_date: str,
+    ) -> list[dict[str, Any]]:
+        ...
+
+    def get_intraday_prices(
+        self,
+        ticker: str,
+        start_timestamp: str,
+        end_timestamp: str,
+        resample_frequency: str = "1min",
+    ) -> list[dict[str, Any]]:
+        ...
+
+    def get_news(
+        self,
+        tickers: list[str],
+        start_date: str,
+        end_date: str,
+    ) -> list[dict[str, Any]]:
+        ...

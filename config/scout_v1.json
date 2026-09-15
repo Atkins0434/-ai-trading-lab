@@ -1,7 +1,7 @@
 {
-  "scout_id": "scout_v1.0",
-  "version": "1.0",
-  "status": "baseline",
+  "scout_id": "scout_v1.1-contract",
+  "version": "1.1-contract",
+  "status": "trainer_baseline_not_promoted",
   "description": "Baseline deterministic Production Scout configuration used by Scout Trainer for historical replay.",
 
   "session": {
@@ -42,7 +42,11 @@
   "scoring": {
     "metric_min_score": 0,
     "metric_max_score": 4,
-    "dynamic_denominator": true,
+    "metric_count": 30,
+    "maximum_points": 120,
+    "denominator_policy": "FIXED_120",
+    "missing_metric_score": null,
+    "feature_registry_path": "config/feature_registry_v1.json",
     "llm_discretion_allowed": false
   },
 

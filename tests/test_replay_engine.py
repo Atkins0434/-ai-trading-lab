@@ -1,4 +1,5 @@
 import pytest
+from copy import deepcopy
 
 from trainer.replay_engine import (
     ReplayError,
@@ -72,3 +73,44 @@ def test_timezone_is_required():
             "2018-01-02T06:59:59",
             "2018-01-02T07:00:00-05:00",
         )
+
+
+def test_loader_rejects_future_market_observation():
+    path = (
+        ROOT
+        / "fixtures"
+        / "2018-01-02"
+        / "historical_snapshot.json"
+    )
+    snapshot = load_historical_snapshot(path)
+    future = deepcopy(snapshot)
+    future["securities"][0]["market_data"]["last_price"][
+        "as_of_timestamp"
+    ] = "2018-01-02T07:00:01-05:00"
+
+    from trainer.replay_engine import validate_point_in_time_inputs
+
+    with pytest.raises(
+        ReplayError,
+        match="WINR.market_data.last_price",
+    ):
+        validate_point_in_time_inputs(future)
+
+
+def test_loader_rejects_future_information_event():
+    path = (
+        ROOT
+        / "fixtures"
+        / "2018-01-02"
+        / "historical_snapshot.json"
+    )
+    snapshot = load_historical_snapshot(path)
+    future = deepcopy(snapshot)
+    future["securities"][0]["news"][0][
+        "published_timestamp"
+    ] = "2018-01-02T08:00:00-05:00"
+
+    from trainer.replay_engine import validate_point_in_time_inputs
+
+    with pytest.raises(ReplayError, match=r"WINR.news\[0\]"):
+        validate_point_in_time_inputs(future)
