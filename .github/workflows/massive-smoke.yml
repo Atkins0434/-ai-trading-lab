@@ -46,6 +46,10 @@ jobs:
           python -m trainer.massive_capability_report
           --ticker SPY
           --date 2026-09-14
+      - name: Wait for Massive free-plan interval
+        # The preceding process has its own limiter state; preserve the
+        # provider-wide free-plan interval before starting a new process.
+        run: sleep 13
       - name: Run Research Scout Alpha pipeline probe
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
