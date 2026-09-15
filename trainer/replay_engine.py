@@ -151,6 +151,11 @@ def validate_point_in_time_inputs(snapshot: dict[str, Any]) -> None:
                 (f"market_data.{field}", observation["as_of_timestamp"])
             )
 
+        for index, bar in enumerate(security.get("premarket_bars", [])):
+            timestamped_inputs.append(
+                (f"premarket_bars[{index}]", bar["timestamp"])
+            )
+
         for collection in (
             "news",
             "filings",

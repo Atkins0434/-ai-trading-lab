@@ -153,7 +153,22 @@
 
             "relative_volume": {
               "$ref": "#/$defs/marketObservation"
+            },
+
+            "previous_close": {
+              "$ref": "#/$defs/marketObservation"
+            },
+
+            "average_daily_range_pct": {
+              "$ref": "#/$defs/marketObservation"
             }
+          }
+        },
+
+        "premarket_bars": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bar"
           }
         },
 
@@ -184,6 +199,32 @@
             "$ref": "#/$defs/informationEvent"
           }
         }
+      }
+    },
+
+    "bar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timestamp",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "source"
+      ],
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "open": {"type": "number", "exclusiveMinimum": 0},
+        "high": {"type": "number", "exclusiveMinimum": 0},
+        "low": {"type": "number", "exclusiveMinimum": 0},
+        "close": {"type": "number", "exclusiveMinimum": 0},
+        "volume": {"type": "number", "minimum": 0},
+        "source": {"type": "string", "minLength": 1}
       }
     },
 

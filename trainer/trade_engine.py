@@ -192,9 +192,10 @@ def simulate_trade(
             exit_reason = "ABNORMAL_PUT_VOLUME"
             break
 
-        if bar["high"] > highest_price:
-            highest_price = bar["high"]
-
+        # The bar's internal high/low order is unknowable from OHLC alone.
+        # Test the stop derived from information available before this bar,
+        # then admit the current high. This avoids assuming the high happened
+        # before the low and tightening the stop with future same-bar data.
         stop_price = trailing_stop_price(
             highest_price,
             policy.trailing_stop_pct,
@@ -214,6 +215,9 @@ def simulate_trade(
             exit_timestamp = timestamp
             exit_reason = "PROFIT_TARGET"
             break
+
+        if bar["high"] > highest_price:
+            highest_price = bar["high"]
 
     if exit_price is None:
         if not policy.mandatory_end_of_session_liquidation:
