@@ -77,6 +77,32 @@ After that passes, work proceeds through universe construction, the
 same-universe top-ten benchmark, manual day-one review, and blind holdout
 validation.
 
+## Massive Free capability check
+
+Massive is the provider candidate for consolidated U.S. premarket aggregates.
+Store its credential as `MASSIVE_API_KEY`; never commit or print the key. The
+free Stocks Basic plan is tested first against a recent completed trading day:
+See the official
+[Massive custom-bars documentation](https://massive.com/docs/rest/stocks/aggregates/custom-bars)
+for the upstream aggregate contract.
+
+```bash
+python -m trainer.massive_capability_report \
+  --ticker SPY \
+  --date 2026-09-14
+```
+
+The check uses one full-day aggregate request, partitions it in
+`America/New_York`, and requires at least 60 one-minute bars from 04:00 up to
+but not including 07:00. The 07:00 bar is excluded because its completed value
+would contain information occurring after the exact Scout freeze. The report
+also checks a daily aggregate and writes only counts, timestamps, plan/feed
+identity, and sanitized errors to `reports/massive/capability_report.json`.
+
+Passing on a recent day proves the adapter and premarket feed shape. It does
+not make January 2, 2018 available on the two-year free plan; that historical
+milestone remains a later paid-data gate.
+
 ## Authoritative specifications
 
 - `SCOUT_TRAINER.md`

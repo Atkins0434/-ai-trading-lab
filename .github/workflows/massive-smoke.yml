@@ -1,0 +1,33 @@
+name: Massive Capability Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/massive-smoke.yml"
+      - "trainer/massive_capability_report.py"
+      - "trainer/providers/massive.py"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Probe recent completed trading day
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+        run: >-
+          python -m trainer.massive_capability_report
+          --ticker SPY
+          --date 2026-09-14
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: massive-capability-report
+          path: reports/massive/capability_report.json
