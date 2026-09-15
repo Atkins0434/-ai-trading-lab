@@ -49,6 +49,10 @@ class FakeClient:
 
     def __init__(self) -> None:
         self.daily, self.intraday = alpha_inputs()
+        target = date(2026, 9, 14)
+        for minute in range(390):
+            timestamp = datetime.combine(target, time(9, 30), tzinfo=ET) + timedelta(minutes=minute)
+            self.intraday.append(aggregate(timestamp, 10 + minute / 1000, 8000))
 
     def get_ticker_overview(self, ticker, as_of_date):
         market_cap = 2_000_000_000 if ticker == "GOOD" else 20_000_000_000
@@ -84,3 +88,11 @@ def test_batch_screens_scores_and_creates_auditable_artifacts(tmp_path: Path):
     assert result["mode"] == "RESEARCH_ONLY"
     assert result["candidates"][0]["execution_eligible"] is False
     assert (output_dir / "research_alpha_report.pdf").read_bytes().startswith(b"%PDF")
+    outcome = json.loads((output_dir / "end_of_day_outcome.json").read_text())
+    benchmark = json.loads((output_dir / "benchmark_result.json").read_text())
+    postmortem = json.loads((output_dir / "postmortem.json").read_text())
+    assert outcome["outcomes"][0]["mfe_pct"] > 0
+    assert benchmark["benchmark_method"] == "TOP_10_MOVERS_SAME_UNIVERSE"
+    assert postmortem["feature_proposals"] == []
+    assert "no Production Scout configuration was modified" in postmortem["notes"][0]
+    assert (output_dir / "postmortem_report.pdf").read_bytes().startswith(b"%PDF")

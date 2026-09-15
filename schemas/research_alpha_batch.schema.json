@@ -23,11 +23,15 @@
     "artifacts": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["universe", "scout_output", "pdf_report"],
+      "required": ["universe", "scout_output", "pdf_report", "end_of_day_outcome", "benchmark_result", "postmortem", "postmortem_report"],
       "properties": {
         "universe": {"type": "string"},
         "scout_output": {"type": "string"},
-        "pdf_report": {"type": "string"}
+        "pdf_report": {"type": "string"},
+        "end_of_day_outcome": {"type": "string"},
+        "benchmark_result": {"type": "string"},
+        "postmortem": {"type": "string"},
+        "postmortem_report": {"type": "string"}
       }
     }
   }

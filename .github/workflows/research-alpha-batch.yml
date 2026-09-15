@@ -20,6 +20,13 @@ on:
       - "trainer/universe_collector.py"
       - "trainer/massive_alpha_snapshot.py"
       - "trainer/report_generator.py"
+      - "trainer/outcome_grader.py"
+      - "trainer/benchmark.py"
+      - "trainer/postmortem.py"
+      - "trainer/postmortem_report.py"
+      - "schemas/end_of_day_outcome.schema.json"
+      - "schemas/benchmark_result.schema.json"
+      - "schemas/postmortem.schema.json"
       - "schemas/research_alpha_batch.schema.json"
       - "schemas/research_universe.schema.json"
 
