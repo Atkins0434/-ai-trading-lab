@@ -7,6 +7,7 @@ import time
 from typing import Any, Callable
 
 from trainer.providers.massive import MassiveClient
+from trainer.providers.base import ProviderError
 from trainer.validate_contracts import validate_contract
 
 
@@ -66,6 +67,7 @@ def _new_manifest(tickers: list[str], as_of_date: str) -> dict[str, Any]:
         "completed_tickers": [],
         "remaining_tickers": list(requested),
         "eligible_tickers": [],
+        "eligible_securities": [],
         "rejected": {},
         "estimated_remaining_minutes": len(requested) / 5,
     }
@@ -77,6 +79,7 @@ def _load_or_create(path: Path, tickers: list[str], as_of_date: str) -> dict[str
         return _new_manifest(expected, as_of_date)
     manifest = json.loads(path.read_text(encoding="utf-8"))
     validate_contract("research_universe", manifest)
+    manifest.setdefault("eligible_securities", [])
     if manifest["as_of_date"] != as_of_date or manifest["requested_tickers"] != expected:
         raise ValueError("Checkpoint request does not match date and ticker universe.")
     return manifest
@@ -99,24 +102,41 @@ def collect_ticker_overviews(
     checkpoint_path: Path,
     *,
     max_new: int | None = None,
+    continue_on_error: bool = False,
 ) -> dict[str, Any]:
     """Resume point-in-time market-cap filtering and checkpoint after every ticker."""
     manifest = _load_or_create(checkpoint_path, tickers, as_of_date)
     remaining = list(manifest["remaining_tickers"])
     budget = len(remaining) if max_new is None else max(0, max_new)
     for ticker in remaining[:budget]:
-        overview = client.get_ticker_overview(ticker, as_of_date)
-        market_cap = overview.get("market_cap")
-        exchange = overview.get("primary_exchange")
-        if exchange not in PRIMARY_EXCHANGES or overview.get("type") != "CS":
-            manifest["rejected"][ticker] = "NOT_PRIMARY_EXCHANGE_COMMON_STOCK"
-        elif not isinstance(market_cap, (int, float)):
-            manifest["rejected"][ticker] = "MARKET_CAP_MISSING"
-        elif not MIN_MARKET_CAP <= market_cap <= MAX_MARKET_CAP:
-            manifest["rejected"][ticker] = "MARKET_CAP_OUT_OF_RANGE"
+        try:
+            overview = client.get_ticker_overview(ticker, as_of_date)
+        except ProviderError:
+            if not continue_on_error:
+                raise
+            manifest["rejected"][ticker] = "OVERVIEW_PROVIDER_ERROR"
+            overview = None
+        if overview is None:
+            pass
         else:
-            manifest["eligible_tickers"].append(ticker)
-            manifest["eligible_tickers"].sort()
+            market_cap = overview.get("market_cap")
+            exchange = overview.get("primary_exchange")
+            if exchange not in PRIMARY_EXCHANGES or overview.get("type") != "CS":
+                manifest["rejected"][ticker] = "NOT_PRIMARY_EXCHANGE_COMMON_STOCK"
+            elif not isinstance(market_cap, (int, float)):
+                manifest["rejected"][ticker] = "MARKET_CAP_MISSING"
+            elif not MIN_MARKET_CAP <= market_cap <= MAX_MARKET_CAP:
+                manifest["rejected"][ticker] = "MARKET_CAP_OUT_OF_RANGE"
+            else:
+                manifest["eligible_tickers"].append(ticker)
+                manifest["eligible_tickers"].sort()
+                manifest["eligible_securities"].append({
+                    "ticker": ticker,
+                    "primary_exchange": exchange,
+                    "market_cap_usd": market_cap,
+                    "as_of_date": as_of_date,
+                })
+                manifest["eligible_securities"].sort(key=lambda item: item["ticker"])
         manifest["completed_tickers"].append(ticker)
         manifest["completed_tickers"].sort()
         manifest["remaining_tickers"].remove(ticker)

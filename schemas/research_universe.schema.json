@@ -14,6 +14,20 @@
     "completed_tickers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
     "remaining_tickers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
     "eligible_tickers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "eligible_securities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ticker", "primary_exchange", "market_cap_usd", "as_of_date"],
+        "properties": {
+          "ticker": {"type": "string", "minLength": 1},
+          "primary_exchange": {"enum": ["XNAS", "XNYS", "XASE"]},
+          "market_cap_usd": {"type": "number", "minimum": 300000000, "maximum": 15000000000},
+          "as_of_date": {"type": "string", "format": "date"}
+        }
+      }
+    },
     "rejected": {"type": "object", "additionalProperties": {"type": "string"}},
     "estimated_remaining_minutes": {"type": "number", "minimum": 0}
   }
