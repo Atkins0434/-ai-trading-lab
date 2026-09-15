@@ -11,5 +11,18 @@
     },
     "default_intraday_frequency": "1min",
     "secrets_may_be_logged": false
+  },
+  "supplemental_historical_market_data": {
+    "provider": "MASSIVE",
+    "adapter": "trainer.providers.massive.MassiveClient",
+    "credential_environment_variable": "MASSIVE_API_KEY",
+    "feed_version": "massive_rest_v2_aggs",
+    "plan": "STOCKS_BASIC_FREE",
+    "endpoints": {
+      "aggregates": "/v2/aggs/ticker/{ticker}/range/{multiplier}/{timespan}/{from}/{to}",
+      "news": "/v2/reference/news"
+    },
+    "default_intraday_frequency": "1min",
+    "secrets_may_be_logged": false
   }
 }
