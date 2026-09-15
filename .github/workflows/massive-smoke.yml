@@ -9,9 +9,19 @@ on:
       - ".github/workflows/massive-smoke.yml"
       - "trainer/massive_capability_report.py"
       - "trainer/providers/massive.py"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/massive-smoke.yml"
+      - "trainer/massive_capability_report.py"
+      - "trainer/providers/massive.py"
 
 jobs:
   probe:
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
