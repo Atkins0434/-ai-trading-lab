@@ -265,13 +265,19 @@ def calculate_shadow_catalyst_metrics(
     snapshot: dict[str, Any], ticker: str
 ) -> dict[str, Any]:
     """Calculate metrics 19-21 without changing Alpha or Production scores."""
-    candidates = [
+    observed = [
         event
         for event in snapshot["events"]
         if event["ticker"] == ticker.upper()
         and event["admission_status"] == "ADMITTED"
-        and event["sentiment"] == "POSITIVE"
+    ]
+    candidates = [
+        event
+        for event in observed
+        if event["sentiment"] == "POSITIVE"
         and event["relevance_confidence"] >= 0.5
+        and event["verification_status"]
+        in {"VERIFIED_PRIMARY", "VERIFIED_MULTI_SOURCE"}
     ]
     dilution = any(
         event["ticker"] == ticker.upper()
@@ -279,7 +285,7 @@ def calculate_shadow_catalyst_metrics(
         and event["event_type"] == "OFFERING_DILUTION"
         for event in snapshot["events"]
     )
-    if not candidates:
+    if not observed:
         component = lambda metric: {
             "metric": metric,
             "status": "MISSING",
@@ -290,6 +296,20 @@ def calculate_shadow_catalyst_metrics(
             component("catalyst_quality"),
             component("catalyst_verification_confidence"),
             component("catalyst_freshness_relevance"),
+        ]
+    elif not candidates:
+        components = [
+            {
+                "metric": metric,
+                "status": "OBSERVED",
+                "points": 0,
+                "included_in_alpha_score": False,
+            }
+            for metric in (
+                "catalyst_quality",
+                "catalyst_verification_confidence",
+                "catalyst_freshness_relevance",
+            )
         ]
     else:
         best_quality = max(QUALITY_POINTS[event["event_type"]] for event in candidates)

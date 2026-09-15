@@ -1,5 +1,3 @@
-from copy import deepcopy
-
 import pytest
 
 from trainer.catalyst_events import (
@@ -115,11 +113,23 @@ def test_shadow_metrics_do_not_change_alpha_score():
     assert result["production_score_changed"] is False
 
 
-def test_missing_positive_catalyst_stays_missing_not_zero():
+def test_observed_negative_catalyst_scores_zero_not_missing():
     event = normalized(sentiment="NEGATIVE")
     result = calculate_shadow_catalyst_metrics(snapshot([event]), "JOBY")
+    assert all(item["status"] == "OBSERVED" for item in result["components"])
+    assert all(item["points"] == 0 for item in result["components"])
+
+
+def test_no_admitted_catalyst_stays_missing_not_zero():
+    result = calculate_shadow_catalyst_metrics(snapshot([]), "JOBY")
     assert all(item["status"] == "MISSING" for item in result["components"])
     assert all(item["points"] is None for item in result["components"])
+
+
+def test_unverified_positive_catalyst_scores_zero():
+    event = normalized(verification_status="UNVERIFIED")
+    result = calculate_shadow_catalyst_metrics(snapshot([event]), "JOBY")
+    assert all(item["points"] == 0 for item in result["components"])
 
 
 def test_dilution_is_exposed_as_guardrail_candidate_only():

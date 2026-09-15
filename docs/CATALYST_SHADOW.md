@@ -31,9 +31,10 @@ primary-source record becomes the admitted representative.
 
 ## Missing-data behavior
 
-No admitted, positive, sufficiently relevant catalyst produces `MISSING` for
-all three shadow metrics. It does not produce three observed zeroes. This keeps
-missing evidence distinguishable from evidence that was observed and weak.
+No admitted catalyst produces `MISSING` for all three shadow metrics. An
+admitted negative, neutral, insufficiently relevant, or unverified event is
+observed evidence and produces zeroes. This keeps missing evidence
+distinguishable from evidence that was observed and supplied no positive signal.
 
 ## Safety boundaries
 
