@@ -65,6 +65,7 @@ jobs:
         run: >-
           python -m trainer.run_multi_day_trainer
           --dates-csv "${{ steps.dates.outputs.value }}"
+          --exploration-top-k 3
           --tickers AA AAL BBAI CHWY CLOV ETSY FUBO JOBY LUNR UPST
       - uses: actions/cache/save@v4
         if: always()
