@@ -3,6 +3,7 @@ import pytest
 from trainer.providers.base import ProviderError
 from trainer.providers.tiingo import (
     TiingoClient,
+    canonical_price_bar,
     market_observation,
 )
 from trainer.snapshot_builder import (
@@ -82,3 +83,33 @@ def test_latest_observation_keeps_provider_provenance():
 def test_tiingo_token_is_required():
     with pytest.raises(ProviderError, match="token is required"):
         TiingoClient("")
+
+
+def test_tiingo_price_row_maps_to_provider_neutral_bar():
+    record = {
+        "date": "2018-01-02T14:30:00Z",
+        "open": 10.0,
+        "high": 10.2,
+        "low": 9.9,
+        "close": 10.1,
+        "volume": 500,
+    }
+
+    bar = canonical_price_bar(record, include_source=True)
+
+    assert bar == {
+        "timestamp": record["date"],
+        "open": 10.0,
+        "high": 10.2,
+        "low": 9.9,
+        "close": 10.1,
+        "volume": 500,
+        "source": "TIINGO",
+    }
+
+
+def test_tiingo_price_row_requires_complete_ohlcv():
+    with pytest.raises(ProviderError, match="missing fields"):
+        canonical_price_bar(
+            {"date": "2018-01-02T14:30:00Z", "close": 10.0}
+        )
