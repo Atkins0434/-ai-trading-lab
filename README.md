@@ -41,10 +41,41 @@ The Tiingo transport lives behind the provider-neutral
 timestamped observations and pass the replay freeze checks before Scout can
 see them.
 
-Tiingo-ready does not mean the January 2 replay is complete. The next
-integration unit is the authenticated historical fetch/cache pipeline,
-followed by universe construction, feature calculation, the same-universe
-top-ten benchmark, outcome grading, and blind holdout validation.
+Fetch Tiingo's usable daily baseline and regular-session outcome history into
+the checksum-protected local cache with:
+
+```bash
+python -m trainer.cache_tiingo --ticker SPY --date 2018-01-02
+```
+
+Every cache entry contains an immutable request manifest, provider/feed
+identity, retrieval timestamp, record count, and a SHA-256 content digest.
+`data/cache/` is intentionally ignored by Git; raw licensed provider data is
+not committed to the repository.
+
+Tiingo Free did not return historical 04:00-07:00 premarket rows in the live
+capability check. It is therefore used only where the feed is sufficient:
+daily baselines and regular-session outcome grading. Synthetic premarket bars
+exercise the same provider-neutral contract until a consolidated historical
+premarket provider passes its own capability check.
+
+## Implemented replay path
+
+- All twelve Price & Volume Dynamics metrics have deterministic V1 baseline
+  calculations and 0-4 score mappings.
+- Premarket bars must be timezone-aware, chronological, contiguous one-minute
+  OHLCV observations and no later than the 07:00 freeze.
+- Missing baseline inputs remain `MISSING`; they are never converted to zero.
+- Regular-session paths are isolated from Scout and admitted only to outcome
+  grading.
+- `run_single_day_replay` connects Scout selection, position-limit enforcement,
+  deterministic execution, MFE/MAE, maximum capturable move, and capture ratio.
+
+Tiingo-ready does not mean the January 2 replay is complete. The next external
+data gate is a provider check for genuine January 2018 premarket history.
+After that passes, work proceeds through universe construction, the
+same-universe top-ten benchmark, manual day-one review, and blind holdout
+validation.
 
 ## Authoritative specifications
 
