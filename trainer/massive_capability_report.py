@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time
 import json
 from pathlib import Path
 from typing import Any, Callable
@@ -40,6 +40,7 @@ def _probe(operation: Callable[[], list[dict[str, Any]]]) -> dict[str, Any]:
 
 def _partition_intraday(
     records: list[dict[str, Any]],
+    trading_date: str,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     premarket = []
     regular = []
@@ -47,6 +48,8 @@ def _partition_intraday(
         observed = datetime.fromisoformat(
             parse_massive_timestamp(record)
         ).astimezone(MARKET_TIMEZONE)
+        if observed.date().isoformat() != trading_date:
+            continue
         observed_time = observed.time()
         if time(4, 0) <= observed_time < time(7, 0):
             premarket.append(record)
@@ -61,15 +64,14 @@ def build_report(
     trading_date: str,
 ) -> dict[str, Any]:
     target_date = date.fromisoformat(trading_date)
-    next_date = (target_date + timedelta(days=1)).isoformat()
     intraday_result: dict[str, Any]
     try:
         intraday = client.get_intraday_prices(
             ticker,
             trading_date,
-            next_date,
+            target_date.isoformat(),
         )
-        premarket, regular = _partition_intraday(intraday)
+        premarket, regular = _partition_intraday(intraday, trading_date)
         intraday_result = {
             "full_day": _summarize(intraday),
             "premarket_0400_to_0700_et": _summarize(premarket),
