@@ -121,7 +121,16 @@ def _aggregate(day_records: list[dict[str, Any]], root: Path) -> tuple[dict[str,
     return aggregate, hypotheses
 
 
-def _build_state(dates, tickers, days, failures, aggregate, hypotheses) -> dict[str, Any]:
+def _build_state(
+    dates,
+    tickers,
+    days,
+    failures,
+    aggregate,
+    hypotheses,
+    threshold_pct,
+    exploration_top_k,
+) -> dict[str, Any]:
     ordered_days = [days[value] for value in dates if value in days]
     completed = [item["trading_date"] for item in ordered_days if item["status"] in {"COMPLETE", "PARTIAL"}]
     if not completed:
@@ -139,6 +148,10 @@ def _build_state(dates, tickers, days, failures, aggregate, hypotheses) -> dict[
         "status": status,
         "requested_dates": dates,
         "requested_tickers": tickers,
+        "selection_policy": {
+            "scoring_threshold_pct_override": threshold_pct,
+            "exploration_top_k": exploration_top_k,
+        },
         "completed_dates": completed,
         "failed_dates": failures,
         "days": ordered_days,
@@ -165,6 +178,7 @@ def run_multi_day_trainer(
     cache_root: Path,
     output_root: Path,
     threshold_pct: float | None = None,
+    exploration_top_k: int = 0,
     resume: bool = True,
     day_runner: DayRunner = run_massive_alpha_batch,
 ) -> dict[str, Any]:
@@ -177,6 +191,12 @@ def run_multi_day_trainer(
     output_root.mkdir(parents=True, exist_ok=True)
     state_path = output_root / "trainer_run_state.json"
     prior = _read_json(state_path) if resume and state_path.exists() else {}
+    expected_policy = {
+        "scoring_threshold_pct_override": threshold_pct,
+        "exploration_top_k": exploration_top_k,
+    }
+    if prior and prior.get("selection_policy") != expected_policy:
+        prior = {}
     dates = _validate_dates(prior.get("requested_dates", []) + requested_dates) if prior else requested_dates
     prior_days = {item["trading_date"]: item for item in prior.get("days", [])}
     days: dict[str, dict[str, Any]] = {}
@@ -191,7 +211,15 @@ def run_multi_day_trainer(
             days[trading_date] = previous
             continue
         try:
-            manifest = day_runner(client, requested_tickers, trading_date, cache_root=cache_root, output_dir=day_dir, threshold_pct=threshold_pct)
+            manifest = day_runner(
+                client,
+                requested_tickers,
+                trading_date,
+                cache_root=cache_root,
+                output_dir=day_dir,
+                threshold_pct=threshold_pct,
+                exploration_top_k=exploration_top_k,
+            )
             days[trading_date] = {
                 "trading_date": trading_date,
                 "status": manifest["status"],
@@ -212,11 +240,32 @@ def run_multi_day_trainer(
 
         successful = [item for item in days.values() if item["status"] in {"COMPLETE", "PARTIAL"}]
         aggregate, hypotheses = _aggregate(successful, output_root)
-        _write_json(state_path, _build_state(dates, requested_tickers, days, failures, aggregate, hypotheses))
+        _write_json(
+            state_path,
+            _build_state(
+                dates,
+                requested_tickers,
+                days,
+                failures,
+                aggregate,
+                hypotheses,
+                threshold_pct,
+                exploration_top_k,
+            ),
+        )
 
     successful = [item for item in days.values() if item["status"] in {"COMPLETE", "PARTIAL"}]
     aggregate, hypotheses = _aggregate(successful, output_root)
-    state = _build_state(dates, requested_tickers, days, failures, aggregate, hypotheses)
+    state = _build_state(
+        dates,
+        requested_tickers,
+        days,
+        failures,
+        aggregate,
+        hypotheses,
+        threshold_pct,
+        exploration_top_k,
+    )
     validate_contract("multi_day_trainer_run", state)
     _write_json(state_path, state)
     generate_trainer_summary_pdf(state, output_root / "trainer_summary_report.pdf")
