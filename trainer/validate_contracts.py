@@ -13,6 +13,7 @@ SCHEMA_DIR = ROOT / "schemas"
 SCHEMA_FILES = {
     "historical_snapshot": "historical_snapshot.schema.json",
     "scout_output": "scout_output.schema.json",
+    "research_scout_output": "research_scout_output.schema.json",
     "end_of_day_outcome": "end_of_day_outcome.schema.json",
     "benchmark_result": "benchmark_result.schema.json",
     "postmortem": "postmortem.schema.json",

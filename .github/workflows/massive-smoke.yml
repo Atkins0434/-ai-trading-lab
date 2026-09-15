@@ -8,6 +8,9 @@ on:
     paths:
       - ".github/workflows/massive-smoke.yml"
       - "trainer/massive_capability_report.py"
+      - "trainer/massive_alpha_snapshot.py"
+      - "trainer/research_scout_alpha.py"
+      - "trainer/run_massive_alpha.py"
       - "trainer/providers/massive.py"
   pull_request:
     branches:
@@ -15,6 +18,9 @@ on:
     paths:
       - ".github/workflows/massive-smoke.yml"
       - "trainer/massive_capability_report.py"
+      - "trainer/massive_alpha_snapshot.py"
+      - "trainer/research_scout_alpha.py"
+      - "trainer/run_massive_alpha.py"
       - "trainer/providers/massive.py"
 
 jobs:
@@ -36,8 +42,15 @@ jobs:
           python -m trainer.massive_capability_report
           --ticker SPY
           --date 2026-09-14
+      - name: Run Research Scout Alpha pipeline probe
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+        run: >-
+          python -m trainer.run_massive_alpha
+          --ticker SPY
+          --date 2026-09-14
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: massive-capability-report
-          path: reports/massive/capability_report.json
+          path: reports/massive/*.json
