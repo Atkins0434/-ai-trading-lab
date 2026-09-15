@@ -59,6 +59,7 @@ def run_massive_alpha_batch(
     cache_root: Path,
     output_dir: Path,
     threshold_pct: float | None = None,
+    exploration_top_k: int = 0,
 ) -> dict[str, Any]:
     """Screen, collect, score, and report one bounded research-only Alpha batch."""
     target = date.fromisoformat(trading_date)
@@ -115,7 +116,11 @@ def run_massive_alpha_batch(
             continue
         snapshot["securities"].extend(single["securities"])
 
-    result = run_research_scout_alpha(snapshot, threshold_pct=threshold_pct)
+    result = run_research_scout_alpha(
+        snapshot,
+        threshold_pct=threshold_pct,
+        exploration_top_k=exploration_top_k,
+    )
     _write_json(scout_output_path, result)
     generate_scout_pdf_report(result, pdf_path)
 
