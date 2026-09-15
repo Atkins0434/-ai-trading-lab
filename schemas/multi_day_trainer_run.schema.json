@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "multi_day_trainer_run.schema.json",
+  "title": "Multi-Day Scout Trainer Run",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "run_id", "mode", "trainer_version", "source", "status", "requested_dates", "requested_tickers", "completed_dates", "failed_dates", "days", "aggregate_performance", "hypotheses", "controls", "artifacts"],
+  "properties": {
+    "version": {"const": "multi_day_trainer_run_v1.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "mode": {"const": "RESEARCH_ONLY"},
+    "trainer_version": {"type": "string"},
+    "source": {"type": "string"},
+    "status": {"enum": ["COMPLETE", "PARTIAL", "FAILED"]},
+    "requested_dates": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "format": "date"}},
+    "requested_tickers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "completed_dates": {"type": "array", "uniqueItems": true, "items": {"type": "string", "format": "date"}},
+    "failed_dates": {"type": "object", "additionalProperties": {"type": "string"}},
+    "days": {"type": "array", "items": {"$ref": "#/$defs/day"}},
+    "aggregate_performance": {"$ref": "#/$defs/performance"},
+    "hypotheses": {"type": "array", "items": {"$ref": "#/$defs/hypothesis"}},
+    "controls": {"$ref": "#/$defs/controls"},
+    "artifacts": {"type": "object", "additionalProperties": false, "required": ["state", "summary_report"], "properties": {"state": {"type": "string"}, "summary_report": {"type": "string"}}}
+  },
+  "$defs": {
+    "day": {"type": "object", "additionalProperties": false, "required": ["trading_date", "status", "artifact_directory", "scored_ticker_count", "skipped_ticker_count"], "properties": {"trading_date": {"type": "string", "format": "date"}, "status": {"enum": ["COMPLETE", "PARTIAL", "FAILED"]}, "artifact_directory": {"type": "string"}, "scored_ticker_count": {"type": "integer", "minimum": 0}, "skipped_ticker_count": {"type": "integer", "minimum": 0}}},
+    "performance": {"type": "object", "additionalProperties": false, "required": ["days_processed", "scout_wins", "ties", "misses", "scout_total_realized_pnl_usd", "benchmark_total_realized_pnl_usd", "scout_average_daily_return_pct", "benchmark_average_daily_return_pct", "average_top_10_capture_rate_pct", "top_10_capture_target_pct", "top_10_capture_target_met"], "properties": {"days_processed": {"type": "integer", "minimum": 0}, "scout_wins": {"type": "integer", "minimum": 0}, "ties": {"type": "integer", "minimum": 0}, "misses": {"type": "integer", "minimum": 0}, "scout_total_realized_pnl_usd": {"type": "number"}, "benchmark_total_realized_pnl_usd": {"type": "number"}, "scout_average_daily_return_pct": {"type": "number"}, "benchmark_average_daily_return_pct": {"type": "number"}, "average_top_10_capture_rate_pct": {"type": "number", "minimum": 0, "maximum": 100}, "top_10_capture_target_pct": {"const": 70.0}, "top_10_capture_target_met": {"type": "boolean"}}},
+    "hypothesis": {"type": "object", "additionalProperties": false, "required": ["hypothesis_id", "target_feature_id", "proposal_type", "hypothesis", "independent_occurrence_count", "minimum_required_occurrences", "evidence_requirement_met", "status", "production_mutation_allowed", "evidence"], "properties": {"hypothesis_id": {"type": "string"}, "target_feature_id": {"type": "string"}, "proposal_type": {"type": "string"}, "hypothesis": {"type": "string"}, "independent_occurrence_count": {"type": "integer", "minimum": 0}, "minimum_required_occurrences": {"const": 30}, "evidence_requirement_met": {"type": "boolean"}, "status": {"enum": ["COLLECTING_EVIDENCE", "READY_FOR_VALIDATION"]}, "production_mutation_allowed": {"const": false}, "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}}}},
+    "evidence": {"type": "object", "additionalProperties": false, "required": ["trading_date", "ticker", "benchmark_rank", "failure_stage", "failure_reason_codes"], "properties": {"trading_date": {"type": "string", "format": "date"}, "ticker": {"type": "string"}, "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10}, "failure_stage": {"type": "string"}, "failure_reason_codes": {"type": "array", "items": {"type": "string"}}}},
+    "controls": {"type": "object", "additionalProperties": false, "required": ["real_money_execution_allowed", "production_mutation_allowed", "automatic_promotion_allowed", "minimum_independent_occurrences", "out_of_sample_validation_required", "blind_holdout_required", "manual_promotion_required"], "properties": {"real_money_execution_allowed": {"const": false}, "production_mutation_allowed": {"const": false}, "automatic_promotion_allowed": {"const": false}, "minimum_independent_occurrences": {"const": 30}, "out_of_sample_validation_required": {"const": true}, "blind_holdout_required": {"const": true}, "manual_promotion_required": {"const": true}}}
+  }
+}
