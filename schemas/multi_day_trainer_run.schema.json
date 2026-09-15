@@ -4,7 +4,7 @@
   "title": "Multi-Day Scout Trainer Run",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "run_id", "mode", "trainer_version", "source", "status", "requested_dates", "requested_tickers", "completed_dates", "failed_dates", "days", "aggregate_performance", "hypotheses", "controls", "artifacts"],
+  "required": ["version", "run_id", "mode", "trainer_version", "source", "status", "requested_dates", "requested_tickers", "selection_policy", "completed_dates", "failed_dates", "days", "aggregate_performance", "hypotheses", "controls", "artifacts"],
   "properties": {
     "version": {"const": "multi_day_trainer_run_v1.0"},
     "run_id": {"type": "string", "minLength": 1},
@@ -14,6 +14,7 @@
     "status": {"enum": ["COMPLETE", "PARTIAL", "FAILED"]},
     "requested_dates": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "format": "date"}},
     "requested_tickers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "selection_policy": {"type": "object", "additionalProperties": false, "required": ["scoring_threshold_pct_override", "exploration_top_k"], "properties": {"scoring_threshold_pct_override": {"type": ["number", "null"], "minimum": 0, "maximum": 100}, "exploration_top_k": {"type": "integer", "minimum": 0, "maximum": 5}}},
     "completed_dates": {"type": "array", "uniqueItems": true, "items": {"type": "string", "format": "date"}},
     "failed_dates": {"type": "object", "additionalProperties": {"type": "string"}},
     "days": {"type": "array", "items": {"$ref": "#/$defs/day"}},
