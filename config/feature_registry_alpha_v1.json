@@ -1,0 +1,22 @@
+{
+  "feature_registry_id": "feature_registry_alpha_v1.0",
+  "status": "research_only_not_promoted",
+  "metric_count": 12,
+  "points_per_metric": 4,
+  "maximum_points": 48,
+  "denominator_policy": "FIXED_48",
+  "metrics": [
+    {"id": "relative_volume", "number": 1},
+    {"id": "price_slope_15m", "number": 2},
+    {"id": "price_slope_30m", "number": 3},
+    {"id": "price_slope_60m", "number": 4},
+    {"id": "volume_slope_15m", "number": 5},
+    {"id": "volume_slope_30m", "number": 6},
+    {"id": "volume_slope_60m", "number": 7},
+    {"id": "premarket_gap_strength", "number": 8},
+    {"id": "price_vs_premarket_vwap", "number": 9},
+    {"id": "premarket_trend_consistency", "number": 10},
+    {"id": "price_volume_confirmation", "number": 11},
+    {"id": "premarket_range_expansion", "number": 12}
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "scout_id": "research_scout_alpha_v1.0",
+  "status": "research_only_not_promoted",
+  "execution_allowed": false,
+  "selection_threshold_pct": 70,
+  "validation_thresholds_pct": [60, 70, 80, 85],
+  "scoring": {
+    "metric_count": 12,
+    "points_per_metric": 4,
+    "maximum_points": 48,
+    "denominator_policy": "FIXED_48",
+    "feature_registry_path": "config/feature_registry_alpha_v1.json"
+  },
+  "liquidity": {
+    "minimum_average_daily_dollar_volume_usd": 5000000,
+    "minimum_premarket_dollar_volume_usd": 250000
+  },
+  "unavailable_execution_checks": [
+    "HISTORICAL_SPREAD",
+    "ORDER_BOOK_DEPTH"
+  ],
+  "price_momentum": {
+    "score_thresholds_pct_per_minute": {
+      "0": 0.0,
+      "1": 0.015,
+      "2": 0.030,
+      "3": 0.050,
+      "4": 0.075
+    }
+  },
+  "price_volume_metric_thresholds": {
+    "volume_slope": {"1": 0.25, "2": 0.50, "3": 1.00, "4": 2.00},
+    "premarket_gap_pct": {"1": 1.0, "2": 2.0, "3": 4.0, "4": 6.0},
+    "price_vs_vwap_pct": {"1": 0.25, "2": 0.50, "3": 1.00, "4": 2.00},
+    "trend_consistency_pct": {"1": 50.0, "2": 60.0, "3": 70.0, "4": 80.0},
+    "range_expansion_ratio": {"1": 1.00, "2": 1.25, "3": 1.50, "4": 2.00}
+  }
+}

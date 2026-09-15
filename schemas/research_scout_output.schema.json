@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "research_scout_output.schema.json",
+  "title": "Research Scout Alpha Output",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["replay_id", "scout_version", "mode", "snapshot_timestamp", "scoring_threshold_pct", "eligible_universe_count", "qualifying_candidate_count", "candidates"],
+  "properties": {
+    "replay_id": {"type": "string"},
+    "scout_version": {"const": "research_scout_alpha_v1.0"},
+    "mode": {"const": "RESEARCH_ONLY"},
+    "snapshot_timestamp": {"type": "string", "format": "date-time"},
+    "scoring_threshold_pct": {"type": "number", "minimum": 0, "maximum": 100},
+    "eligible_universe_count": {"type": "integer", "minimum": 0},
+    "qualifying_candidate_count": {"type": "integer", "minimum": 0},
+    "candidates": {"type": "array", "items": {"$ref": "#/$defs/candidate"}}
+  },
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ticker", "timestamp", "research_eligible", "research_selected", "execution_eligible", "rank", "total_score", "maximum_possible_score", "score_pct", "threshold_points", "component_scores", "guardrails", "reason_codes", "rejection_reasons", "unavailable_execution_checks"],
+      "properties": {
+        "ticker": {"type": "string", "minLength": 1},
+        "timestamp": {"type": "string", "format": "date-time"},
+        "research_eligible": {"type": "boolean"},
+        "research_selected": {"type": "boolean"},
+        "execution_eligible": {"const": false},
+        "rank": {"type": ["integer", "null"], "minimum": 1},
+        "total_score": {"type": "integer", "minimum": 0, "maximum": 48},
+        "maximum_possible_score": {"const": 48},
+        "score_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "threshold_points": {"type": "integer", "minimum": 0, "maximum": 48},
+        "component_scores": {
+          "type": "object",
+          "minProperties": 12,
+          "maxProperties": 12,
+          "propertyNames": {"enum": ["relative_volume", "price_slope_15m", "price_slope_30m", "price_slope_60m", "volume_slope_15m", "volume_slope_30m", "volume_slope_60m", "premarket_gap_strength", "price_vs_premarket_vwap", "premarket_trend_consistency", "price_volume_confirmation", "premarket_range_expansion"]},
+          "additionalProperties": {"$ref": "#/$defs/component"}
+        },
+        "guardrails": {"type": "object", "additionalProperties": {"$ref": "#/$defs/guardrail"}},
+        "reason_codes": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "rejection_reasons": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "unavailable_execution_checks": {"type": "array", "items": {"type": "string"}, "contains": {"const": "HISTORICAL_SPREAD"}, "minContains": 1}
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "score", "maximum_score", "raw_value", "as_of_timestamp", "reason_code", "calculation_version"],
+      "properties": {
+        "status": {"enum": ["OBSERVED", "MISSING"]},
+        "score": {"type": ["integer", "null"], "minimum": 0, "maximum": 4},
+        "maximum_score": {"const": 4},
+        "raw_value": {},
+        "as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
+        "reason_code": {"type": "string"},
+        "calculation_version": {"type": "string", "minLength": 1}
+      }
+    },
+    "guardrail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "action", "observed_value", "threshold", "reason_code"],
+      "properties": {
+        "passed": {"type": "boolean"},
+        "action": {"enum": ["PASS", "REJECT", "NOT_EVALUATED"]},
+        "observed_value": {},
+        "threshold": {},
+        "reason_code": {"type": "string"}
+      }
+    }
+  }
+}
