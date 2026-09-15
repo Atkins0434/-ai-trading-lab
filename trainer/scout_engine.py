@@ -9,6 +9,10 @@ from trainer.validate_contracts import (
     load_json,
     validate_contract,
 )
+from trainer.price_volume import (
+    PriceVolumeError,
+    calculate_price_volume_metrics,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -325,6 +329,25 @@ def score_security(
             as_of_timestamp=relative_volume_observation["as_of_timestamp"],
             reason_code="RELATIVE_VOLUME_SCORE",
             calculation_version="relative_volume_v1.0",
+        )
+
+    try:
+        price_volume_metrics = calculate_price_volume_metrics(
+            security,
+            config,
+        )
+    except PriceVolumeError as exc:
+        raise ScoutError(
+            f"Unable to calculate Price & Volume metrics for {ticker}: {exc}"
+        ) from exc
+
+    for metric_id, metric in price_volume_metrics.items():
+        component_scores[metric_id] = observed_component(
+            score=metric.score,
+            raw_value=metric.raw_value,
+            as_of_timestamp=metric.as_of_timestamp,
+            reason_code=metric.reason_code,
+            calculation_version="price_volume_v1.0",
         )
 
     catalyst_events = security.get("news", []) + security.get("filings", [])
