@@ -22,6 +22,7 @@ SCHEMA_FILES = {
     "feature_proposal": "feature_proposal.schema.json",
     "validation_result": "validation_result.schema.json",
     "promotion_decision": "promotion_decision.schema.json",
+    "multi_day_trainer_run": "multi_day_trainer_run.schema.json",
 }
 
 
