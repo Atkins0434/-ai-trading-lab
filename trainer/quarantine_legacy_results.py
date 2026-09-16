@@ -15,16 +15,25 @@ ARTIFACT_NAMES = {
 }
 
 
-def classification(payload: dict[str, Any]) -> list[str]:
+def classification(
+    payload: dict[str, Any], artifact_name: str | None = None
+) -> list[str]:
     reasons = []
     if "universe_mode" not in payload:
         reasons.append("LEGACY_UNIVERSE_MODE_MISSING")
     elif payload["universe_mode"] == "ci_fixture":
         reasons.append("STATIC_SYMBOL_FIXTURE")
-    if "universe_manifest_hash" not in payload:
-        reasons.append("UNIVERSE_MANIFEST_HASH_MISSING")
-    if payload.get("universe_coverage") != "complete":
-        reasons.append("POINT_IN_TIME_COVERAGE_NOT_COMPLETE")
+    if artifact_name == "trainer_run_state.json":
+        days = payload.get("days", [])
+        if any(day.get("universe_coverage") != "complete" for day in days):
+            reasons.append("POINT_IN_TIME_COVERAGE_NOT_COMPLETE")
+        if any(not day.get("universe_manifest_hash") for day in days):
+            reasons.append("UNIVERSE_MANIFEST_HASH_MISSING")
+    else:
+        if "universe_manifest_hash" not in payload:
+            reasons.append("UNIVERSE_MANIFEST_HASH_MISSING")
+        if payload.get("universe_coverage") != "complete":
+            reasons.append("POINT_IN_TIME_COVERAGE_NOT_COMPLETE")
     if payload.get("research_evidence") is not True:
         reasons.append("RESEARCH_EVIDENCE_NOT_TRUE")
     if payload.get("promotion_eligible") is not True:
@@ -42,7 +51,7 @@ def quarantine_legacy_results(root: Path) -> dict[str, Any]:
         except (OSError, json.JSONDecodeError):
             reasons = ["ARTIFACT_UNREADABLE"]
         else:
-            reasons = classification(payload)
+            reasons = classification(payload, path.name)
         if reasons:
             entries.append({
                 "artifact": str(path.relative_to(root)),

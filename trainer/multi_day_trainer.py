@@ -15,6 +15,7 @@ from trainer.dataset_splits import (
 )
 from trainer.replay_queue import ReplayQueue
 from trainer.research_alpha_batch import run_massive_alpha_batch
+from trainer.quarantine_legacy_results import quarantine_legacy_results
 from trainer.trainer_summary_report import generate_trainer_summary_pdf
 from trainer.validate_contracts import validate_contract
 from trainer.evidence_eligibility import (
@@ -393,6 +394,7 @@ def run_multi_day_trainer(
         or prior.get("requested_tickers") != requested_tickers
         or prior.get("universe_mode") != universe_mode
     ):
+        quarantine_legacy_results(output_root)
         _preserve_superseded(state_path)
         prior = {}
         reset_queue = True

@@ -142,6 +142,10 @@ def test_selection_policy_change_invalidates_prior_day_results(tmp_path: Path):
     run_multi_day_trainer(**common, exploration_top_k=3)
 
     assert calls == [("2026-09-14", 0), ("2026-09-14", 3)]
+    registry = json.loads(
+        (root / "LEGACY_RESEARCH_QUARANTINE.json").read_text()
+    )
+    assert registry["version"] == "legacy_result_quarantine_v1.0"
 
 
 def test_holdout_dates_are_generated_but_not_executed_without_unlock(tmp_path: Path):
