@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 import json
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
 from trainer.historical_cache import CacheError, HistoricalCache
+from trainer.historical_news import CatalystError, backfill_news_snapshot
 from trainer.benchmark import build_same_universe_benchmark
 from trainer.massive_alpha_snapshot import build_massive_alpha_snapshot, regular_session_bars
 from trainer.outcome_grader import grade_replay_outcomes
@@ -14,6 +15,7 @@ from trainer.postmortem import build_postmortem
 from trainer.postmortem_report import generate_postmortem_pdf
 from trainer.providers.base import ProviderError
 from trainer.providers.massive import MassiveClient
+from trainer.replay_queue import ReplayQueue
 from trainer.report_generator import generate_scout_pdf_report
 from trainer.research_scout_alpha import ResearchScoutError, run_research_scout_alpha
 from trainer.universe_collector import collect_ticker_overviews
@@ -60,12 +62,15 @@ def run_massive_alpha_batch(
     output_dir: Path,
     threshold_pct: float | None = None,
     exploration_top_k: int = 0,
+    dataset_partition: str = "DEVELOPMENT",
 ) -> dict[str, Any]:
     """Screen, collect, score, and report one bounded research-only Alpha batch."""
     target = date.fromisoformat(trading_date)
     requested = sorted({ticker.upper() for ticker in tickers})
     if not requested:
         raise ValueError("At least one ticker is required for an Alpha batch.")
+    if dataset_partition not in {"DEVELOPMENT", "VALIDATION", "HOLDOUT"}:
+        raise ValueError("Unknown dataset partition.")
 
     output_dir.mkdir(parents=True, exist_ok=True)
     universe_path = output_dir / "research_universe.json"
@@ -76,6 +81,10 @@ def run_massive_alpha_batch(
     postmortem_path = output_dir / "postmortem.json"
     postmortem_pdf_path = output_dir / "postmortem_report.pdf"
     manifest_path = output_dir / "research_alpha_batch_manifest.json"
+    news_backfill_path = output_dir / "historical_news_backfill.json"
+    catalyst_metrics_path = output_dir / "catalyst_shadow_metrics.json"
+    ticker_queue_path = output_dir / "ticker_replay_queue.json"
+    ticker_result_dir = output_dir / "ticker_results"
 
     universe = collect_ticker_overviews(
         client,
@@ -89,9 +98,38 @@ def run_massive_alpha_batch(
     snapshot = _empty_snapshot(trading_date)
     skipped: dict[str, str] = {}
     outcome_bars: dict[str, list[dict[str, Any]]] = {}
+    news_snapshots: dict[str, dict[str, Any]] = {}
+    catalyst_metrics: list[dict[str, Any]] = []
+    news_backfill_errors: dict[str, str] = {}
+    retrieved_at = datetime.now(timezone.utc).isoformat()
+    securities = universe.get("eligible_securities", [])
+    ticker_queue = ReplayQueue(ticker_queue_path)
+    ticker_queue.enqueue(
+        (trading_date, security["ticker"], "TICKER_REPLAY", dataset_partition)
+        for security in securities
+    )
 
-    for security in universe.get("eligible_securities", []):
+    for security in securities:
         ticker = security["ticker"]
+        task_id = ReplayQueue.task_id(trading_date, ticker, "TICKER_REPLAY")
+        ticker_result_path = ticker_result_dir / f"{ticker}.json"
+        known = {
+            task["task_id"]: task for task in ticker_queue.snapshot()["tasks"]
+        }[task_id]
+        if known["status"] == "COMPLETE" and ticker_result_path.exists():
+            ticker_result = json.loads(ticker_result_path.read_text(encoding="utf-8"))
+            snapshot["securities"].extend(ticker_result["securities"])
+            outcome_bars[ticker] = ticker_result["outcome_bars"]
+            if ticker_result.get("news_snapshot") is not None:
+                news_snapshots[ticker] = ticker_result["news_snapshot"]
+            if ticker_result.get("catalyst_metrics") is not None:
+                catalyst_metrics.append(ticker_result["catalyst_metrics"])
+            if ticker_result.get("news_error") is not None:
+                news_backfill_errors[ticker] = ticker_result["news_error"]
+            continue
+        if ticker_queue.claim(task_id) is None:
+            skipped[ticker] = "TICKER_QUEUE_NOT_CLAIMABLE"
+            continue
         try:
             daily = cache.get_daily_prices(
                 client, ticker, start, trading_date
@@ -110,11 +148,74 @@ def run_massive_alpha_batch(
                 intraday,
                 exchange=security["primary_exchange"],
             )
-            outcome_bars[ticker] = regular_session_bars(intraday, trading_date)
+            ticker_outcome_bars = regular_session_bars(intraday, trading_date)
         except (ProviderError, CacheError, ResearchScoutError) as exc:
-            skipped[ticker] = f"{type(exc).__name__}: {exc}"
+            error = f"{type(exc).__name__}: {exc}"
+            skipped[ticker] = error
+            ticker_queue.fail(task_id, error, retryable=True)
             continue
         snapshot["securities"].extend(single["securities"])
+        outcome_bars[ticker] = ticker_outcome_bars
+        news_snapshot = None
+        metrics = None
+        news_error = None
+        if hasattr(client, "get_news"):
+            try:
+                news_snapshot, metrics = backfill_news_snapshot(
+                    client,
+                    ticker,
+                    trading_date,
+                    cache=cache,
+                    retrieved_at=retrieved_at,
+                )
+                news_snapshots[ticker] = news_snapshot
+                catalyst_metrics.append(metrics)
+            except (
+                ProviderError,
+                CacheError,
+                ResearchScoutError,
+                CatalystError,
+                ValueError,
+            ) as exc:
+                news_error = f"{type(exc).__name__}: {exc}"
+                news_backfill_errors[ticker] = news_error
+        _write_json(
+            ticker_result_path,
+            {
+                "ticker": ticker,
+                "trading_date": trading_date,
+                "dataset_partition": dataset_partition,
+                "securities": single["securities"],
+                "outcome_bars": ticker_outcome_bars,
+                "news_snapshot": news_snapshot,
+                "catalyst_metrics": metrics,
+                "news_error": news_error,
+            },
+        )
+        ticker_queue.complete(task_id)
+
+    _write_json(
+        news_backfill_path,
+        {
+            "version": "historical_news_backfill_v1.0",
+            "trading_date": trading_date,
+            "mode": "RESEARCH_ONLY",
+            "snapshots": news_snapshots,
+            "errors": news_backfill_errors,
+        },
+    )
+    _write_json(
+        catalyst_metrics_path,
+        {
+            "version": "catalyst_shadow_metrics_v1.0",
+            "trading_date": trading_date,
+            "mode": "SHADOW_ONLY",
+            "production_score_changed": False,
+            "ticker_metrics": sorted(
+                catalyst_metrics, key=lambda item: item["ticker"]
+            ),
+        },
+    )
 
     result = run_research_scout_alpha(
         snapshot,
@@ -143,7 +244,7 @@ def run_massive_alpha_batch(
     scored = sorted(candidate["ticker"] for candidate in result["candidates"])
     if not scored:
         status = "FAILED"
-    elif skipped or universe["status"] != "COMPLETE":
+    elif skipped or news_backfill_errors or universe["status"] != "COMPLETE":
         status = "PARTIAL"
     else:
         status = "COMPLETE"
@@ -152,12 +253,15 @@ def run_massive_alpha_batch(
         "trading_date": trading_date,
         "status": status,
         "mode": "RESEARCH_ONLY",
+        "dataset_partition": dataset_partition,
         "source": "MASSIVE",
         "requested_tickers": requested,
         "universe_eligible_tickers": universe["eligible_tickers"],
         "scored_tickers": scored,
         "universe_rejections": universe["rejected"],
         "skipped": skipped,
+        "news_backfill_errors": news_backfill_errors,
+        "ticker_queue": ticker_queue.snapshot(),
         "artifacts": {
             "universe": universe_path.name,
             "scout_output": scout_output_path.name,
@@ -166,6 +270,9 @@ def run_massive_alpha_batch(
             "benchmark_result": benchmark_path.name,
             "postmortem": postmortem_path.name,
             "postmortem_report": postmortem_pdf_path.name,
+            "historical_news_backfill": news_backfill_path.name,
+            "catalyst_shadow_metrics": catalyst_metrics_path.name,
+            "ticker_queue": ticker_queue_path.name,
         },
     }
     validate_contract("research_alpha_batch", manifest)

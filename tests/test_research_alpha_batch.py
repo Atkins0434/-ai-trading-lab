@@ -96,3 +96,8 @@ def test_batch_screens_scores_and_creates_auditable_artifacts(tmp_path: Path):
     assert postmortem["feature_proposals"] == []
     assert "no Production Scout configuration was modified" in postmortem["notes"][0]
     assert (output_dir / "postmortem_report.pdf").read_bytes().startswith(b"%PDF")
+    assert (output_dir / "historical_news_backfill.json").exists()
+    assert (output_dir / "catalyst_shadow_metrics.json").exists()
+    assert manifest["news_backfill_errors"] == {}
+    assert manifest["ticker_queue"]["counts"]["COMPLETE"] == 1
+    assert (output_dir / "ticker_replay_queue.json").exists()

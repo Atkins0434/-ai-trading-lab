@@ -38,6 +38,21 @@ def content_sha256(records: list[dict[str, Any]]) -> str:
     return sha256(_canonical_bytes(records)).hexdigest()
 
 
+def deduplicate_records(
+    records: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], int]:
+    """Remove exact provider duplicates without changing first-seen order."""
+    unique: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for record in records:
+        digest = sha256(_canonical_bytes(record)).hexdigest()
+        if digest in seen:
+            continue
+        seen.add(digest)
+        unique.append(record)
+    return unique, len(records) - len(unique)
+
+
 def _safe_segment(value: str, label: str) -> str:
     if not re.fullmatch(r"[A-Za-z0-9_.:+-]+", value):
         raise CacheError(f"Unsafe {label}: {value}")
@@ -105,6 +120,10 @@ class HistoricalCache:
             raise CacheError("Cache content checksum mismatch.")
         if manifest.get("record_count") != len(records):
             raise CacheError("Cache record count mismatch.")
+        source_count = manifest.get("source_record_count", len(records))
+        duplicate_count = manifest.get("duplicate_records_removed", 0)
+        if source_count - duplicate_count != len(records):
+            raise CacheError("Cache deduplication manifest mismatch.")
         if not all(isinstance(record, dict) for record in records):
             raise CacheError("Cache records must all be objects.")
         return envelope
@@ -134,6 +153,8 @@ class HistoricalCache:
             isinstance(record, dict) for record in records
         ):
             raise ProviderError("Provider fetch must return a list of objects.")
+        source_record_count = len(records)
+        records, duplicate_records_removed = deduplicate_records(records)
 
         retrieval_timestamp = retrieved_at or datetime.now(timezone.utc).isoformat()
         try:
@@ -152,6 +173,8 @@ class HistoricalCache:
                 "feed_version": provider.feed_version,
                 "request": asdict(request),
                 "retrieved_at": retrieval_timestamp,
+                "source_record_count": source_record_count,
+                "duplicate_records_removed": duplicate_records_removed,
                 "record_count": len(records),
                 "content_sha256": content_sha256(records),
             },
@@ -215,6 +238,33 @@ class HistoricalCache:
                 start_timestamp,
                 end_timestamp,
                 "1min",
+            ),
+            force_refresh=force_refresh,
+            retrieved_at=retrieved_at,
+        )
+
+    def get_news(
+        self,
+        provider: MarketDataProvider,
+        ticker: str,
+        start_timestamp: str,
+        end_timestamp: str,
+        *,
+        force_refresh: bool = False,
+        retrieved_at: str | None = None,
+    ) -> dict[str, Any]:
+        request = CacheRequest(
+            dataset="news",
+            ticker=ticker,
+            start=start_timestamp,
+            end=end_timestamp,
+            purpose="CATALYST_SELECTION_BACKFILL",
+        )
+        return self.fetch(
+            provider,
+            request,
+            lambda: provider.get_news(
+                [ticker], start_timestamp, end_timestamp
             ),
             force_refresh=force_refresh,
             retrieved_at=retrieved_at,

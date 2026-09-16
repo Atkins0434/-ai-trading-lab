@@ -2,12 +2,19 @@ from __future__ import annotations
 
 from datetime import date, datetime, timezone
 import os
+import threading
+import time
 from typing import Any, Callable
 from urllib.parse import urlparse
 
 import requests
 
 from trainer.providers.base import ProviderError
+from trainer.rate_control import (
+    AdaptiveRateLimiter,
+    RETRYABLE_STATUS_CODES,
+    RetryPolicy,
+)
 
 
 class MassiveClient:
@@ -23,13 +30,20 @@ class MassiveClient:
         session: requests.Session | None = None,
         timeout_seconds: float = 30.0,
         before_request: Callable[[], None] | None = None,
+        rate_limiter: AdaptiveRateLimiter | None = None,
+        retry_policy: RetryPolicy | None = None,
+        sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         if not api_key.strip():
             raise ProviderError("Massive API key is required.")
         self._api_key = api_key
-        self._session = session or requests.Session()
+        self._session = session
+        self._thread_local = threading.local()
         self._timeout_seconds = timeout_seconds
         self._before_request = before_request or (lambda: None)
+        self._rate_limiter = rate_limiter
+        self._retry_policy = retry_policy or RetryPolicy()
+        self._sleep = sleep
 
     @classmethod
     def from_environment(
@@ -37,13 +51,29 @@ class MassiveClient:
         variable_name: str = "MASSIVE_API_KEY",
         *,
         before_request: Callable[[], None] | None = None,
+        rate_limiter: AdaptiveRateLimiter | None = None,
+        retry_policy: RetryPolicy | None = None,
     ) -> "MassiveClient":
         api_key = os.getenv(variable_name, "")
         if not api_key:
             raise ProviderError(
                 f"Missing required environment variable: {variable_name}"
             )
-        return cls(api_key, before_request=before_request)
+        return cls(
+            api_key,
+            before_request=before_request,
+            rate_limiter=rate_limiter,
+            retry_policy=retry_policy,
+        )
+
+    def _request_session(self) -> requests.Session:
+        if self._session is not None:
+            return self._session
+        session = getattr(self._thread_local, "session", None)
+        if session is None:
+            session = requests.Session()
+            self._thread_local.session = session
+        return session
 
     def _get_page(
         self,
@@ -64,18 +94,45 @@ class MassiveClient:
             "Authorization": f"Bearer {self._api_key}",
             "Accept": "application/json",
         }
-        self._before_request()
-        try:
-            response = self._session.get(
-                url,
-                params=params,
-                headers=headers,
-                timeout=self._timeout_seconds,
-            )
-            response.raise_for_status()
-            payload = response.json()
-        except (requests.RequestException, ValueError) as exc:
-            raise ProviderError(f"Massive request failed: {exc}") from exc
+        payload = None
+        last_error: Exception | None = None
+        for attempt in range(1, self._retry_policy.max_attempts + 1):
+            self._before_request()
+            if self._rate_limiter is not None:
+                self._rate_limiter.wait()
+            try:
+                response = self._request_session().get(
+                    url,
+                    params=params,
+                    headers=headers,
+                    timeout=self._timeout_seconds,
+                )
+                status_code = int(getattr(response, "status_code", 200))
+                if status_code in RETRYABLE_STATUS_CODES:
+                    retry_after = getattr(response, "headers", {}).get("Retry-After")
+                    retry_after_seconds = None
+                    if retry_after is not None:
+                        try:
+                            retry_after_seconds = float(retry_after)
+                        except (TypeError, ValueError):
+                            retry_after_seconds = None
+                    if self._rate_limiter is not None:
+                        self._rate_limiter.record_throttle(retry_after_seconds)
+                    if attempt < self._retry_policy.max_attempts:
+                        self._sleep(self._retry_policy.delay_for_attempt(attempt))
+                        continue
+                response.raise_for_status()
+                payload = response.json()
+                if self._rate_limiter is not None:
+                    self._rate_limiter.record_success()
+                break
+            except (requests.RequestException, ValueError) as exc:
+                last_error = exc
+                if attempt >= self._retry_policy.max_attempts:
+                    break
+                self._sleep(self._retry_policy.delay_for_attempt(attempt))
+        if payload is None:
+            raise ProviderError(f"Massive request failed: {last_error}") from last_error
 
         if not isinstance(payload, dict):
             raise ProviderError("Massive response must be a JSON object.")

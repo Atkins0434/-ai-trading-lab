@@ -114,3 +114,20 @@ def test_unsafe_cache_segment_is_rejected(tmp_path):
             "2017-12-01",
             "2018-01-02",
         )
+
+
+def test_cache_deduplicates_exact_provider_records(tmp_path):
+    provider = FakeProvider()
+    provider.get_news = lambda tickers, start, end: [
+        {"id": "same", "published_utc": start},
+        {"published_utc": start, "id": "same"},
+    ]
+    result = HistoricalCache(tmp_path).get_news(
+        provider,
+        "SPY",
+        "2026-09-14T00:00:00Z",
+        "2026-09-14T07:00:00-04:00",
+    )
+    assert len(result["records"]) == 1
+    assert result["manifest"]["source_record_count"] == 2
+    assert result["manifest"]["duplicate_records_removed"] == 1

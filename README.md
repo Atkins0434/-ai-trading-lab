@@ -131,6 +131,21 @@ At five calls per minute, a full universe collection is intentionally slow.
 The manifest reports remaining symbols and estimated minutes so a paid-plan
 decision can be based on measured workload rather than guesswork.
 
+## Historical Replay Accelerator
+
+Multi-day research can run from an explicit session list or an exchange-aware
+date range with bounded concurrent date workers, a shared adaptive provider
+rate limit, resumable date/ticker queues, checksum-verified deduplicated cache
+entries, and historical news/sentiment shadow backfills.
+
+Chronological development/validation/holdout assignments are frozen per
+experiment. Only development evidence can train a hypothesis; validation is
+out of sample, and holdout dates require an explicit unlock. The cumulative PDF
+reports compounded return, money capture, drawdown, stability, daily results,
+cross-day hypotheses, feature evidence, and dataset isolation.
+
+See `docs/HISTORICAL_REPLAY_ACCELERATOR.md` for operation and safety details.
+
 ## Authoritative specifications
 
 - `SCOUT_TRAINER.md`

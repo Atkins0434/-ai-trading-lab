@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import threading
+import time
 
 from trainer.multi_day_trainer import run_multi_day_trainer
 
@@ -15,6 +17,7 @@ def fake_day_runner(
     output_dir,
     threshold_pct,
     exploration_top_k,
+    dataset_partition,
 ):
     output_dir.mkdir(parents=True, exist_ok=True)
     benchmark = {
@@ -29,6 +32,17 @@ def fake_day_runner(
     }
     (output_dir / "benchmark_result.json").write_text(json.dumps(benchmark))
     (output_dir / "postmortem.json").write_text(json.dumps(postmortem))
+    (output_dir / "catalyst_shadow_metrics.json").write_text(json.dumps({
+        "ticker_metrics": [{
+            "ticker": "MISS",
+            "components": [{
+                "metric": "catalyst_quality",
+                "status": "OBSERVED",
+                "points": 2,
+                "included_in_alpha_score": False,
+            }],
+        }],
+    }))
     return {"status": "COMPLETE", "scored_tickers": ["MISS"], "skipped": {}}
 
 
@@ -45,6 +59,12 @@ def test_multi_day_trainer_persists_evidence_and_never_promotes(tmp_path: Path):
     assert state["controls"]["production_mutation_allowed"] is False
     assert state["controls"]["automatic_promotion_allowed"] is False
     assert state["selection_policy"]["exploration_top_k"] == 0
+    assert state["aggregate_performance"]["scout_cumulative_return_pct"] == 3.0301
+    assert state["aggregate_performance"]["realized_pnl_capture_pct"] == 50.0
+    assert state["aggregate_performance"]["scout_max_drawdown_pct"] == 0.0
+    assert state["feature_evidence"][0]["independent_occurrence_count"] == 3
+    assert state["feature_evidence"][0]["average_points"] == 2.0
+    assert state["queue"]["counts"]["COMPLETE"] == 3
     assert (tmp_path / "reports" / "trainer" / "trainer_summary_report.pdf").read_bytes().startswith(b"%PDF")
 
 
@@ -84,3 +104,82 @@ def test_selection_policy_change_invalidates_prior_day_results(tmp_path: Path):
     run_multi_day_trainer(**common, exploration_top_k=3)
 
     assert calls == [("2026-09-14", 0), ("2026-09-14", 3)]
+
+
+def test_holdout_dates_are_generated_but_not_executed_without_unlock(tmp_path: Path):
+    calls = []
+
+    def recording_runner(*args, **kwargs):
+        calls.append(args[2])
+        return fake_day_runner(*args, **kwargs)
+
+    dates = ["2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-14"]
+    state = run_multi_day_trainer(
+        object(), ["MISS"], dates,
+        cache_root=tmp_path / "cache",
+        output_root=tmp_path / "trainer",
+        day_runner=recording_runner,
+        max_workers=2,
+    )
+    assert state["dataset_policy"]["locked_holdout_dates"] == ["2026-09-14"]
+    assert "2026-09-14" not in calls
+    assert len(calls) == 4
+    # The four runnable sessions split into three development dates and one
+    # validation date. Validation measures but never trains the hypothesis.
+    assert state["hypotheses"][0]["independent_occurrence_count"] == 3
+    assert state["feature_evidence"][0]["independent_occurrence_count"] == 3
+    assert state["feature_evidence"][0]["validation_occurrence_count"] == 1
+    assert state["feature_evidence"][0]["holdout_occurrence_count"] == 0
+    assert all(
+        item["partition"] == "DEVELOPMENT"
+        for item in state["hypotheses"][0]["evidence"]
+    )
+
+
+def test_bounded_workers_execute_independent_dates_concurrently(tmp_path: Path):
+    lock = threading.Lock()
+    active = 0
+    maximum_active = 0
+
+    def concurrent_runner(*args, **kwargs):
+        nonlocal active, maximum_active
+        with lock:
+            active += 1
+            maximum_active = max(maximum_active, active)
+        time.sleep(0.02)
+        try:
+            return fake_day_runner(*args, **kwargs)
+        finally:
+            with lock:
+                active -= 1
+
+    state = run_multi_day_trainer(
+        object(), ["MISS"],
+        ["2026-09-10", "2026-09-11", "2026-09-14"],
+        cache_root=tmp_path / "cache",
+        output_root=tmp_path / "trainer",
+        day_runner=concurrent_runner,
+        max_workers=2,
+    )
+    assert maximum_active == 2
+    assert state["accelerator"]["max_workers"] == 2
+
+
+def test_frozen_dataset_partitions_cannot_shift_on_resume(tmp_path: Path):
+    root = tmp_path / "trainer"
+    first_dates = ["2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-14"]
+    run_multi_day_trainer(
+        object(), ["MISS"], first_dates,
+        cache_root=tmp_path / "cache",
+        output_root=root,
+        day_runner=fake_day_runner,
+    )
+    import pytest
+
+    with pytest.raises(ValueError, match="frozen development"):
+        run_multi_day_trainer(
+            object(), ["MISS"], ["2026-09-15"],
+            cache_root=tmp_path / "cache",
+            output_root=root,
+            day_runner=fake_day_runner,
+        )

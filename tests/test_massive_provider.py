@@ -14,10 +14,16 @@ from trainer.providers.massive import (
 
 
 class FakeResponse:
-    def __init__(self, payload):
+    def __init__(self, payload, status_code=200, headers=None):
         self.payload = payload
+        self.status_code = status_code
+        self.headers = headers or {}
 
     def raise_for_status(self):
+        if self.status_code >= 400:
+            import requests
+
+            raise requests.HTTPError(f"status {self.status_code}")
         return None
 
     def json(self):
@@ -167,3 +173,36 @@ def test_massive_reference_endpoints_support_arrays_and_objects():
     assert client.get_ticker_overview("a", "2026-09-14")["market_cap"] == 1_000_000_000
     assert session.calls[0][1]["params"]["type"] == "CS"
     assert session.calls[1][0].endswith("/v3/reference/tickers/A")
+
+
+def test_massive_retries_throttled_request_without_leaking_key():
+    from trainer.rate_control import RetryPolicy
+
+    sleeps = []
+    session = FakeSession([
+        FakeResponse({"status": "ERROR"}, status_code=429, headers={"Retry-After": "0"}),
+        FakeResponse({"status": "OK", "results": []}),
+    ])
+    # FakeSession normally wraps payloads; use a tiny session that returns responses.
+    session.payloads = list(session.payloads)
+
+    class ResponseSession:
+        def __init__(self, responses):
+            self.responses = responses
+            self.calls = []
+
+        def get(self, url, **kwargs):
+            self.calls.append((url, kwargs))
+            return self.responses.pop(0)
+
+    response_session = ResponseSession(session.payloads)
+    client = MassiveClient(
+        "secret-key",
+        session=response_session,
+        retry_policy=RetryPolicy(max_attempts=2, base_backoff_seconds=0),
+        sleep=sleeps.append,
+    )
+    assert client.get_daily_prices("SPY", "2026-09-14", "2026-09-14") == []
+    assert len(response_session.calls) == 2
+    assert sleeps == [0]
+    assert "secret-key" not in response_session.calls[0][0]
