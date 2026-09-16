@@ -5,6 +5,8 @@ from pathlib import Path
 import threading
 import time
 
+import pytest
+
 from trainer.multi_day_trainer import run_multi_day_trainer
 
 
@@ -32,13 +34,62 @@ def fake_day_runner(
         **evidence,
         "scout_summary": {"realized_return_pct": 1.0, "realized_pnl_usd": 25.0},
         "benchmark_summary": {"realized_return_pct": 2.0, "realized_pnl_usd": 50.0},
+        "return_baselines": {
+            "eligible_ticker_mean_realized_return_pct": 0.4,
+            "eligible_ticker_mean_realized_pnl_usd": 10.0,
+            "random_draw_mean_realized_return_pct": 2.0,
+            "random_draw_mean_realized_pnl_usd": 50.0,
+        },
+        "benchmark_candidates": [
+            {"ticker": "MISS", "benchmark_rank": 1},
+            {"ticker": "INVISIBLE", "benchmark_rank": 2},
+            {"ticker": "EXEC", "benchmark_rank": 3},
+        ],
         "comparison": {"top_10_capture_rate_pct": 40.0},
     }
     postmortem = {
         **evidence,
         "trading_date": trading_date,
         "result": "MISS",
-        "missed_opportunities": [{"ticker": "MISS", "benchmark_rank": 1, "failure_stage": "BELOW_SELECTION_THRESHOLD", "failure_reason_codes": ["BELOW_RESEARCH_THRESHOLD"]}],
+        "unreachable_mover_count": 1,
+        "unreachable_pct": 100 / 3,
+        "missed_opportunities": [
+            {
+                "ticker": "MISS",
+                "benchmark_rank": 1,
+                "miss_classification": "VISIBLE_SCORED_LOW",
+                "failure_reason_codes": ["BELOW_RESEARCH_THRESHOLD"],
+                "component_scores": [
+                    {"metric_id": "relative_volume", "score": 1, "raw_value": float(trading_date[-2:])},
+                    {"metric_id": "price_slope_15m", "score": 0, "raw_value": -0.2},
+                    {"metric_id": "volume_slope_15m", "score": 1, "raw_value": 0.3},
+                    {"metric_id": "volume_slope_30m", "score": 0, "raw_value": -0.4},
+                    {"metric_id": "premarket_gap_strength", "score": 2, "raw_value": 1.5},
+                ],
+            },
+            {
+                "ticker": "INVISIBLE",
+                "benchmark_rank": 2,
+                "miss_classification": "INVISIBLE_AT_FREEZE",
+                "failure_reason_codes": ["FEWER_THAN_60_PREMARKET_BARS"],
+                "component_scores": [],
+            },
+            {
+                "ticker": "EXEC",
+                "benchmark_rank": 3,
+                "miss_classification": "PICKED_EXECUTION_LOSS",
+                "failure_reason_codes": ["EXECUTION_CAPTURE_BELOW_50_PERCENT"],
+                "component_scores": [],
+            },
+        ],
+        "execution_policy_review": [{
+            "ticker": "EXEC",
+            "benchmark_rank": 3,
+            "realized_return_pct": 1.0,
+            "maximum_capturable_move_pct": 10.0,
+            "exit_reason": "TRAILING_STOP",
+            "reason_codes": ["EXECUTION_CAPTURE_BELOW_50_PERCENT"],
+        }],
     }
     (output_dir / "benchmark_result.json").write_text(json.dumps(benchmark))
     (output_dir / "postmortem.json").write_text(json.dumps(postmortem))
@@ -65,6 +116,11 @@ def test_multi_day_trainer_persists_evidence_and_never_promotes(tmp_path: Path):
     assert state["aggregate_performance"]["days_processed"] == 3
     assert state["aggregate_performance"]["misses"] == 3
     assert state["hypotheses"][0]["independent_occurrence_count"] == 3
+    assert len(state["hypotheses"]) == 1
+    assert all(
+        item["miss_classification"] == "VISIBLE_SCORED_LOW"
+        for item in state["hypotheses"][0]["evidence"]
+    )
     assert state["hypotheses"][0]["status"] == "COLLECTING_EVIDENCE"
     assert state["controls"]["production_mutation_allowed"] is False
     assert state["controls"]["automatic_promotion_allowed"] is False
@@ -72,10 +128,72 @@ def test_multi_day_trainer_persists_evidence_and_never_promotes(tmp_path: Path):
     assert state["aggregate_performance"]["scout_cumulative_return_pct"] == 3.0301
     assert state["aggregate_performance"]["realized_pnl_capture_pct"] == 50.0
     assert state["aggregate_performance"]["scout_max_drawdown_pct"] == 0.0
+    assert state["aggregate_performance"]["unreachable_mover_count"] == 3
+    assert state["aggregate_performance"]["unreachable_pct"] == pytest.approx(
+        100 / 3, abs=1e-6
+    )
+    assert state["aggregate_performance"]["execution_policy_review_count"] == 3
+    assert len(state["execution_policy_review"]) == 3
+    assert [
+        item["metric_id"] for item in state["candidate_threshold_reviews"]
+    ] == ["price_slope_15m", "relative_volume", "volume_slope_15m"]
+    relative_review = next(
+        item
+        for item in state["candidate_threshold_reviews"]
+        if item["metric_id"] == "relative_volume"
+    )
+    assert relative_review["observed_raw_value_min"] == 10.0
+    assert relative_review["observed_raw_value_max"] == 14.0
+    assert all(item["unreachable_mover_count"] == 1 for item in state["days"])
     assert state["feature_evidence"][0]["independent_occurrence_count"] == 3
     assert state["feature_evidence"][0]["average_points"] == 2.0
     assert state["queue"]["counts"]["COMPLETE"] == 3
     assert (tmp_path / "reports" / "trainer" / "trainer_summary_report.pdf").read_bytes().startswith(b"%PDF")
+
+
+def test_only_visible_score_and_guardrail_misses_generate_hypotheses(
+    tmp_path: Path,
+):
+    def mixed_miss_runner(*args, **kwargs):
+        manifest = fake_day_runner(*args, **kwargs)
+        path = kwargs["output_dir"] / "postmortem.json"
+        postmortem = json.loads(path.read_text())
+        postmortem["missed_opportunities"].append({
+            "ticker": "GUARD",
+            "benchmark_rank": 4,
+            "miss_classification": "VISIBLE_GUARDRAIL_REJECT",
+            "failure_reason_codes": ["LOW_AGGREGATE_LIQUIDITY"],
+            "component_scores": [],
+        })
+        path.write_text(json.dumps(postmortem))
+        benchmark_path = kwargs["output_dir"] / "benchmark_result.json"
+        benchmark = json.loads(benchmark_path.read_text())
+        benchmark["benchmark_candidates"].append({
+            "ticker": "GUARD", "benchmark_rank": 4
+        })
+        benchmark_path.write_text(json.dumps(benchmark))
+        return manifest
+
+    state = run_multi_day_trainer(
+        object(),
+        None,
+        ["2026-09-14"],
+        cache_root=tmp_path / "cache",
+        output_root=tmp_path / "trainer",
+        day_runner=mixed_miss_runner,
+        universe_mode="historical_research",
+    )
+
+    classifications = {
+        evidence["miss_classification"]
+        for hypothesis in state["hypotheses"]
+        for evidence in hypothesis["evidence"]
+    }
+    assert classifications == {
+        "VISIBLE_SCORED_LOW",
+        "VISIBLE_GUARDRAIL_REJECT",
+    }
+    assert len(state["hypotheses"]) == 2
 
 
 def test_multi_day_trainer_resumes_completed_days(tmp_path: Path):
@@ -219,8 +337,6 @@ def test_frozen_dataset_partitions_cannot_shift_on_resume(tmp_path: Path):
         day_runner=fake_day_runner,
         universe_mode="historical_research",
     )
-    import pytest
-
     with pytest.raises(ValueError, match="frozen development"):
         run_multi_day_trainer(
             object(), None, ["2026-09-15"],

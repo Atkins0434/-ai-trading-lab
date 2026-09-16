@@ -73,9 +73,11 @@ premarket provider passes its own capability check.
 
 Tiingo-ready does not mean the January 2 replay is complete. The next external
 data gate is a provider check for genuine January 2018 premarket history.
-After that passes, work proceeds through universe construction, the
-same-universe top-ten benchmark, manual day-one review, and blind holdout
-validation.
+After that passes, work proceeds through universe construction, deterministic
+same-universe return baselines, top-ten missed-opportunity diagnostics, manual
+day-one review, and blind holdout validation. WIN/TIE/MISS compares Scout's
+net return with the fixed-seed 200-draw baseline; top-ten capture is diagnostic
+only.
 
 ## Massive Free capability check
 

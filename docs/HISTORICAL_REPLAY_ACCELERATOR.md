@@ -87,12 +87,14 @@ way that would reassign an existing date requires a new output directory.
 development, validation, and holdout observations separately. The generated
 four-page `trainer_summary_report.pdf` presents:
 
-- compounded Scout and benchmark return;
+- compounded Scout and deterministic random-baseline return;
 - total realized P&L and money-capture percentage;
 - maximum drawdown and daily-return volatility;
-- positive-day rate and top-ten capture;
+- positive-day rate and diagnostic-only top-ten capture;
 - a partition-labeled daily replay ledger;
-- cumulative missed-opportunity hypotheses;
+- unreachable-mover and execution-policy review sections;
+- the top three low-scoring metric threshold reviews;
+- cumulative hypotheses sourced only from visible low-score and guardrail misses;
 - cross-day shadow-feature evidence; and
 - the enforced safety and dataset-isolation boundaries.
 

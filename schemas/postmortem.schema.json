@@ -2,364 +2,151 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "postmortem.schema.json",
   "title": "Scout Trainer Postmortem",
-  "description": "Structured analysis of Scout performance after historical outcomes and benchmark results are revealed. A postmortem may identify measurable hypotheses but cannot modify Scout.",
+  "description": "Return-baseline verdict and independent top-10 miss diagnosis.",
   "type": "object",
   "additionalProperties": false,
-
   "required": [
-    "replay_id",
-    "trading_date",
-    "scout_version",
-    "trainer_version",
-    "execution_policy_version",
-    "universe_mode",
-    "universe_manifest_hash",
-    "universe_coverage",
-    "research_evidence",
-    "promotion_eligible",
-    "result",
-    "scout_performance",
-    "benchmark_performance",
-    "missed_opportunities",
-    "feature_failures",
-    "feature_proposals"
+    "replay_id", "trading_date", "scout_version", "trainer_version",
+    "execution_policy_version", "universe_mode", "universe_manifest_hash",
+    "universe_coverage", "research_evidence", "promotion_eligible", "result",
+    "scout_performance", "benchmark_performance", "unreachable_mover_count",
+    "unreachable_pct", "missed_opportunities", "execution_policy_review",
+    "feature_failures", "feature_proposals"
   ],
-
   "properties": {
-    "replay_id": {
-      "type": "string"
-    },
-
-    "trading_date": {
-      "type": "string",
-      "format": "date"
-    },
-
-    "scout_version": {
-      "type": "string"
-    },
-
-    "trainer_version": {
-      "type": "string"
-    },
-
-    "execution_policy_version": {
-      "type": "string"
-    },
-
+    "replay_id": {"type": "string"},
+    "trading_date": {"type": "string", "format": "date"},
+    "scout_version": {"type": "string"},
+    "trainer_version": {"type": "string"},
+    "execution_policy_version": {"type": "string"},
     "universe_mode": {"const": "historical_research"},
     "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
     "universe_coverage": {"const": "complete"},
     "research_evidence": {"const": true},
     "promotion_eligible": {"type": "boolean"},
-
-    "result": {
-      "type": "string",
-      "enum": [
-        "WIN",
-        "TIE",
-        "MISS"
-      ]
-    },
-
-    "scout_performance": {
-      "$ref": "#/$defs/performance"
-    },
-
-    "benchmark_performance": {
-      "$ref": "#/$defs/performance"
-    },
-
+    "result": {"enum": ["WIN", "TIE", "MISS"]},
+    "scout_performance": {"$ref": "#/$defs/performance"},
+    "benchmark_performance": {"$ref": "#/$defs/performance"},
+    "unreachable_mover_count": {"type": "integer", "minimum": 0, "maximum": 10},
+    "unreachable_pct": {"type": "number", "minimum": 0, "maximum": 100},
     "missed_opportunities": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/missedOpportunity"
-      }
+      "type": "array", "items": {"$ref": "#/$defs/missedOpportunity"}
     },
-
+    "execution_policy_review": {
+      "type": "array", "items": {"$ref": "#/$defs/executionReview"}
+    },
     "feature_failures": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/featureFailure"
-      }
+      "type": "array", "items": {"$ref": "#/$defs/featureFailure"}
     },
-
     "feature_proposals": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/featureProposalReference"
-      }
+      "type": "array", "items": {"$ref": "#/$defs/featureProposalReference"}
     },
-
-    "notes": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    }
+    "notes": {"type": "array", "items": {"type": "string"}}
   },
-
   "$defs": {
+    "nullableNumber": {"type": ["number", "null"]},
+    "nullableString": {"type": ["string", "null"]},
     "performance": {
-      "type": "object",
-      "additionalProperties": false,
-
+      "type": "object", "additionalProperties": false,
       "required": [
-        "realized_return_pct",
-        "realized_pnl_usd"
+        "realized_return_pct", "realized_pnl_usd", "max_drawdown_pct",
+        "win_rate_pct", "average_capture_ratio"
       ],
-
       "properties": {
-        "realized_return_pct": {
-          "type": "number"
-        },
-
-        "realized_pnl_usd": {
-          "type": "number"
-        },
-
-        "max_drawdown_pct": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-
-        "win_rate_pct": {
-          "type": [
-            "number",
-            "null"
-          ],
-          "minimum": 0,
-          "maximum": 100
-        },
-
-        "average_capture_ratio": {
-          "type": [
-            "number",
-            "null"
-          ]
-        }
+        "realized_return_pct": {"type": "number"},
+        "realized_pnl_usd": {"type": "number"},
+        "max_drawdown_pct": {"$ref": "#/$defs/nullableNumber"},
+        "win_rate_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "average_capture_ratio": {"$ref": "#/$defs/nullableNumber"}
       }
     },
-
+    "componentScore": {
+      "type": "object", "additionalProperties": false,
+      "required": ["metric_id", "score", "raw_value"],
+      "properties": {
+        "metric_id": {"type": "string", "minLength": 1},
+        "score": {"type": ["integer", "null"], "minimum": 0, "maximum": 4},
+        "raw_value": {}
+      }
+    },
     "missedOpportunity": {
-      "type": "object",
-      "additionalProperties": false,
-
+      "type": "object", "additionalProperties": false,
       "required": [
-        "ticker",
-        "benchmark_rank",
-        "was_in_scout_output",
-        "failure_stage",
-        "observable_differentiators"
+        "ticker", "benchmark_rank", "was_in_scout_output", "scout_selected",
+        "scout_score_pct", "miss_classification", "failure_reason_codes",
+        "component_scores", "realized_benchmark_return_pct",
+        "realized_benchmark_pnl_usd", "scout_realized_return_pct",
+        "maximum_capturable_move_pct", "scout_exit_reason"
       ],
-
       "properties": {
-        "ticker": {
-          "type": "string",
-          "minLength": 1
-        },
-
-        "benchmark_rank": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 10
-        },
-
-        "was_in_scout_output": {
-          "type": "boolean"
-        },
-
-        "scout_score_pct": {
-          "type": [
-            "number",
-            "null"
-          ],
-          "minimum": 0,
-          "maximum": 100
-        },
-
-        "failure_stage": {
-          "type": "string",
+        "ticker": {"type": "string", "minLength": 1},
+        "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10},
+        "was_in_scout_output": {"type": "boolean"},
+        "scout_selected": {"type": "boolean"},
+        "scout_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "miss_classification": {
           "enum": [
-            "UNIVERSE_EXCLUSION",
-            "MISSING_DATA",
-            "HARD_GUARDRAIL",
-            "LOW_COMPONENT_SCORE",
-            "BELOW_SELECTION_THRESHOLD",
-            "RANKED_OUT",
-            "EXECUTION_REJECTION",
-            "UNKNOWN"
+            "NOT_IN_UNIVERSE", "INVISIBLE_AT_FREEZE", "VISIBLE_SCORED_LOW",
+            "VISIBLE_GUARDRAIL_REJECT", "PICKED_EXECUTION_LOSS"
           ]
         },
-
         "failure_reason_codes": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "uniqueItems": true
+          "type": "array", "uniqueItems": true, "items": {"type": "string"}
         },
-
-        "observable_differentiators": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/differentiator"
-          }
+        "component_scores": {
+          "type": "array", "items": {"$ref": "#/$defs/componentScore"}
         },
-
-        "realized_benchmark_return_pct": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-
-        "realized_benchmark_pnl_usd": {
-          "type": [
-            "number",
-            "null"
-          ]
-        }
+        "realized_benchmark_return_pct": {"$ref": "#/$defs/nullableNumber"},
+        "realized_benchmark_pnl_usd": {"$ref": "#/$defs/nullableNumber"},
+        "scout_realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
+        "maximum_capturable_move_pct": {"type": "number"},
+        "scout_exit_reason": {"$ref": "#/$defs/nullableString"}
       }
     },
-
-    "differentiator": {
-      "type": "object",
-      "additionalProperties": false,
-
+    "executionReview": {
+      "type": "object", "additionalProperties": false,
       "required": [
-        "name",
-        "available_before_freeze",
-        "observed_value"
+        "ticker", "benchmark_rank", "realized_return_pct",
+        "maximum_capturable_move_pct", "exit_reason", "reason_codes"
       ],
-
       "properties": {
-        "name": {
-          "type": "string"
-        },
-
-        "available_before_freeze": {
-          "type": "boolean"
-        },
-
-        "observed_value": {
-          "type": [
-            "number",
-            "integer",
-            "string",
-            "boolean",
-            "null"
-          ]
-        },
-
-        "comparison_to_selected_candidates": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-
-        "potential_predictive_value": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
+        "ticker": {"type": "string"},
+        "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10},
+        "realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
+        "maximum_capturable_move_pct": {"type": "number"},
+        "exit_reason": {"$ref": "#/$defs/nullableString"},
+        "reason_codes": {"type": "array", "items": {"type": "string"}}
       }
     },
-
     "featureFailure": {
-      "type": "object",
-      "additionalProperties": false,
-
-      "required": [
-        "feature_id",
-        "failure_type"
-      ],
-
+      "type": "object", "additionalProperties": false,
+      "required": ["feature_id", "failure_type"],
       "properties": {
-        "feature_id": {
-          "type": "string"
-        },
-
+        "feature_id": {"type": "string"},
         "failure_type": {
-          "type": "string",
           "enum": [
-            "THRESHOLD",
-            "INTERACTION",
-            "REDUNDANCY",
-            "DOUBLE_COUNTING",
-            "CANCELLATION",
-            "MISSING_DATA",
-            "MISSING_FEATURE",
-            "WEIGHTING",
-            "OTHER"
+            "THRESHOLD", "INTERACTION", "REDUNDANCY", "DOUBLE_COUNTING",
+            "CANCELLATION", "MISSING_DATA", "MISSING_FEATURE", "WEIGHTING", "OTHER"
           ]
         },
-
-        "description": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-
-        "evidence": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
+        "description": {"$ref": "#/$defs/nullableString"},
+        "evidence": {"type": "array", "items": {"type": "string"}}
       }
     },
-
     "featureProposalReference": {
-      "type": "object",
-      "additionalProperties": false,
-
-      "required": [
-        "proposal_id",
-        "proposal_type",
-        "status"
-      ],
-
+      "type": "object", "additionalProperties": false,
+      "required": ["proposal_id", "proposal_type", "status"],
       "properties": {
-        "proposal_id": {
-          "type": "string"
-        },
-
+        "proposal_id": {"type": "string"},
         "proposal_type": {
-          "type": "string",
           "enum": [
-            "NEW_FEATURE",
-            "THRESHOLD_CHANGE",
-            "WEIGHT_CHANGE",
-            "FEATURE_INTERACTION",
-            "COMPOSITE_FEATURE",
-            "GUARDRAIL_CHANGE"
+            "NEW_FEATURE", "THRESHOLD_CHANGE", "WEIGHT_CHANGE",
+            "FEATURE_INTERACTION", "COMPOSITE_FEATURE", "GUARDRAIL_CHANGE"
           ]
         },
-
-        "status": {
-          "type": "string",
-          "const": "PROPOSED"
-        },
-
-        "target_feature_id": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-
-        "hypothesis": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
+        "status": {"const": "PROPOSED"},
+        "target_feature_id": {"$ref": "#/$defs/nullableString"},
+        "hypothesis": {"$ref": "#/$defs/nullableString"}
       }
     }
   }

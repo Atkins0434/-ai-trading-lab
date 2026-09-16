@@ -27,6 +27,11 @@ from trainer.universe_manifest import CI_FIXTURE, HISTORICAL_RESEARCH
 
 
 MINIMUM_OCCURRENCES = 30
+STATE_VERSION = "multi_day_trainer_run_v2.1"
+HYPOTHESIS_ELIGIBLE_MISSES = {
+    "VISIBLE_SCORED_LOW",
+    "VISIBLE_GUARDRAIL_REJECT",
+}
 DayRunner = Callable[..., dict[str, Any]]
 
 
@@ -66,14 +71,29 @@ def _validate_dates(trading_dates: list[str]) -> list[str]:
     return parsed
 
 
-def _hypothesis_key(stage: str) -> tuple[str, str, str]:
-    if stage == "HARD_GUARDRAIL":
+def _hypothesis_key(classification: str) -> tuple[str, str, str]:
+    if classification == "VISIBLE_GUARDRAIL_REJECT":
         return ("aggregate_liquidity", "GUARDRAIL_REVIEW", "Review whether the research liquidity guardrail excludes repeatable tradable movers.")
-    if stage == "BELOW_SELECTION_THRESHOLD":
+    if classification == "VISIBLE_SCORED_LOW":
         return ("selection_threshold", "THRESHOLD_REVIEW", "Review whether the Alpha selection threshold suppresses repeatable tradable movers.")
-    if stage == "MISSING_DATA":
-        return ("data_completeness", "DATA_QUALITY_REVIEW", "Review repeatable provider gaps before treating missing observations as market evidence.")
-    return (stage.lower(), "PIPELINE_REVIEW", f"Review repeatable misses at the {stage} stage.")
+    raise ValueError(
+        f"Miss classification cannot generate a Scout hypothesis: {classification}"
+    )
+
+
+def _sortable_raw_value(value: Any) -> tuple[int, Any]:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return (0, float(value))
+    if value is None:
+        return (2, "")
+    return (1, json.dumps(value, sort_keys=True, separators=(",", ":")))
+
+
+def _raw_value_range(values: list[Any]) -> tuple[Any, Any]:
+    if not values:
+        return None, None
+    ordered = sorted(values, key=_sortable_raw_value)
+    return ordered[0], ordered[-1]
 
 
 def _compounded_return(returns: list[float]) -> float:
@@ -94,7 +114,13 @@ def _maximum_drawdown(returns: list[float]) -> float:
 
 def _aggregate(
     day_records: list[dict[str, Any]], root: Path
-) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+) -> tuple[
+    dict[str, Any],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+]:
     scout_returns: list[float] = []
     benchmark_returns: list[float] = []
     scout_pnl = 0.0
@@ -103,6 +129,10 @@ def _aggregate(
     results = defaultdict(int)
     evidence: dict[str, dict[str, Any]] = {}
     feature_rows: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    low_score_metrics: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    execution_policy_review: list[dict[str, Any]] = []
+    unreachable_count = 0
+    top_mover_count = 0
 
     for record in sorted(day_records, key=lambda item: item["trading_date"]):
         day_dir = root / record["artifact_directory"]
@@ -115,13 +145,26 @@ def _aggregate(
         except EvidenceEligibilityError as exc:
             raise ValueError(str(exc)) from exc
         scout_summary = benchmark["scout_summary"]
-        benchmark_summary = benchmark["benchmark_summary"]
+        baselines = benchmark["return_baselines"]
         scout_returns.append(float(scout_summary["realized_return_pct"]))
-        benchmark_returns.append(float(benchmark_summary["realized_return_pct"]))
+        benchmark_returns.append(
+            float(baselines["random_draw_mean_realized_return_pct"])
+        )
         scout_pnl += float(scout_summary["realized_pnl_usd"])
-        benchmark_pnl += float(benchmark_summary["realized_pnl_usd"])
+        benchmark_pnl += float(
+            baselines["random_draw_mean_realized_pnl_usd"]
+        )
         captures.append(float(benchmark["comparison"]["top_10_capture_rate_pct"]))
         results[postmortem["result"]] += 1
+        unreachable_count += int(postmortem["unreachable_mover_count"])
+        top_mover_count += len(benchmark["benchmark_candidates"])
+
+        for review in postmortem["execution_policy_review"]:
+            execution_policy_review.append({
+                "trading_date": postmortem["trading_date"],
+                "partition": partition,
+                **review,
+            })
 
         # Only development misses may create or strengthen a hypothesis.
         # Validation and holdout dates measure frozen hypotheses; allowing them
@@ -131,7 +174,22 @@ def _aggregate(
             if partition == "DEVELOPMENT"
             else []
         ):
-            feature_id, proposal_type, hypothesis = _hypothesis_key(miss["failure_stage"])
+            classification = miss["miss_classification"]
+            if classification == "VISIBLE_SCORED_LOW":
+                for component in miss["component_scores"]:
+                    if component["score"] not in {0, 1}:
+                        continue
+                    low_score_metrics[component["metric_id"]].append({
+                        "trading_date": postmortem["trading_date"],
+                        "ticker": miss["ticker"],
+                        "score": component["score"],
+                        "raw_value": component["raw_value"],
+                    })
+            if classification not in HYPOTHESIS_ELIGIBLE_MISSES:
+                continue
+            feature_id, proposal_type, hypothesis = _hypothesis_key(
+                classification
+            )
             hypothesis_id = f"{feature_id}:{proposal_type}"
             item = evidence.setdefault(hypothesis_id, {
                 "hypothesis_id": hypothesis_id,
@@ -147,7 +205,7 @@ def _aggregate(
                 "ticker": miss["ticker"],
                 "partition": partition,
                 "benchmark_rank": miss["benchmark_rank"],
-                "failure_stage": miss["failure_stage"],
+                "miss_classification": classification,
                 "failure_reason_codes": miss.get("failure_reason_codes", []),
             }
             occurrence_key = (occurrence["trading_date"], occurrence["ticker"])
@@ -177,6 +235,30 @@ def _aggregate(
         item["production_mutation_allowed"] = False
         hypotheses.append(item)
     hypotheses.sort(key=lambda item: (-item["independent_occurrence_count"], item["hypothesis_id"]))
+
+    candidate_threshold_reviews = []
+    for metric_id, rows in low_score_metrics.items():
+        raw_min, raw_max = _raw_value_range(
+            [row["raw_value"] for row in rows]
+        )
+        candidate_threshold_reviews.append({
+            "metric_id": metric_id,
+            "low_score_frequency": len(rows),
+            "missed_ticker_count": len({
+                (row["trading_date"], row["ticker"]) for row in rows
+            }),
+            "observed_raw_value_min": raw_min,
+            "observed_raw_value_max": raw_max,
+        })
+    candidate_threshold_reviews.sort(
+        key=lambda item: (-item["low_score_frequency"], item["metric_id"])
+    )
+    candidate_threshold_reviews = candidate_threshold_reviews[:3]
+    execution_policy_review.sort(
+        key=lambda item: (
+            item["trading_date"], item["benchmark_rank"], item["ticker"]
+        )
+    )
 
     feature_evidence = []
     for metric_id, rows in sorted(feature_rows.items()):
@@ -238,10 +320,20 @@ def _aggregate(
         "benchmark_positive_day_rate_pct": round(sum(value > 0 for value in benchmark_returns) / count * 100, 6) if count else 0.0,
         "realized_pnl_capture_pct": round(scout_pnl / benchmark_pnl * 100, 6) if benchmark_pnl > 0 else None,
         "average_top_10_capture_rate_pct": round(sum(captures) / count, 6) if count else 0.0,
-        "top_10_capture_target_pct": 70.0,
-        "top_10_capture_target_met": bool(captures) and (sum(captures) / count) >= 70.0,
+        "unreachable_mover_count": unreachable_count,
+        "unreachable_pct": (
+            round(unreachable_count / top_mover_count * 100, 6)
+            if top_mover_count else 0.0
+        ),
+        "execution_policy_review_count": len(execution_policy_review),
     }
-    return aggregate, hypotheses, feature_evidence
+    return (
+        aggregate,
+        hypotheses,
+        feature_evidence,
+        candidate_threshold_reviews,
+        execution_policy_review,
+    )
 
 
 def _build_state(
@@ -252,6 +344,8 @@ def _build_state(
     aggregate,
     hypotheses,
     feature_evidence,
+    candidate_threshold_reviews,
+    execution_policy_review,
     threshold_pct,
     exploration_top_k,
     dataset_split,
@@ -278,7 +372,7 @@ def _build_state(
     else:
         status = "COMPLETE"
     return {
-        "version": "multi_day_trainer_run_v2.0",
+        "version": STATE_VERSION,
         "run_id": f"trainer-{dates[0]}-to-{dates[-1]}",
         "mode": "RESEARCH_ONLY",
         "universe_mode": universe_mode,
@@ -293,7 +387,7 @@ def _build_state(
             )
             and all(item.get("promotion_eligible") is True for item in evidence_days)
         ),
-        "trainer_version": "scout_trainer_v1.1",
+        "trainer_version": "scout_trainer_v1.2",
         "source": "MASSIVE",
         "status": status,
         "requested_dates": dates,
@@ -323,6 +417,8 @@ def _build_state(
         ],
         "aggregate_performance": aggregate,
         "hypotheses": hypotheses,
+        "candidate_threshold_reviews": candidate_threshold_reviews,
+        "execution_policy_review": execution_policy_review,
         "feature_evidence": feature_evidence,
         "queue": queue_snapshot,
         "accelerator": {
@@ -390,7 +486,8 @@ def run_multi_day_trainer(
     }
     reset_queue = not resume
     if prior and (
-        prior.get("selection_policy") != expected_policy
+        prior.get("version") != STATE_VERSION
+        or prior.get("selection_policy") != expected_policy
         or prior.get("requested_tickers") != requested_tickers
         or prior.get("universe_mode") != universe_mode
     ):
@@ -483,6 +580,13 @@ def run_multi_day_trainer(
                 dataset_partition=dataset_split[trading_date],
                 universe_mode=universe_mode,
             )
+            postmortem_path = day_dir / "postmortem.json"
+            postmortem = (
+                _read_json(postmortem_path)
+                if manifest.get("research_evidence") is True
+                and postmortem_path.exists()
+                else {}
+            )
             record = {
                 "trading_date": trading_date,
                 "partition": dataset_split[trading_date],
@@ -498,6 +602,15 @@ def run_multi_day_trainer(
                 "universe_coverage": manifest["universe_coverage"],
                 "research_evidence": manifest["research_evidence"],
                 "promotion_eligible": manifest["promotion_eligible"],
+                "unreachable_mover_count": int(
+                    postmortem.get("unreachable_mover_count", 0)
+                ),
+                "unreachable_pct": float(
+                    postmortem.get("unreachable_pct", 0.0)
+                ),
+                "execution_policy_review_count": len(
+                    postmortem.get("execution_policy_review", [])
+                ),
             }
             if manifest["status"] == "COMPLETE":
                 queue.complete(task_id)
@@ -530,6 +643,9 @@ def run_multi_day_trainer(
                 "universe_coverage": "incomplete" if universe_mode == HISTORICAL_RESEARCH else "fixture",
                 "research_evidence": False,
                 "promotion_eligible": False,
+                "unreachable_mover_count": 0,
+                "unreachable_pct": 0.0,
+                "execution_policy_review_count": 0,
             }, error
 
     def checkpoint() -> dict[str, Any]:
@@ -538,9 +654,13 @@ def run_multi_day_trainer(
             if item["status"] in {"COMPLETE", "PARTIAL"}
             and item.get("research_evidence") is True
         ]
-        aggregate, hypotheses, feature_evidence = _aggregate(
-            successful, output_root
-        )
+        (
+            aggregate,
+            hypotheses,
+            feature_evidence,
+            candidate_threshold_reviews,
+            execution_policy_review,
+        ) = _aggregate(successful, output_root)
         state = _build_state(
             dates,
             requested_tickers,
@@ -549,6 +669,8 @@ def run_multi_day_trainer(
             aggregate,
             hypotheses,
             feature_evidence,
+            candidate_threshold_reviews,
+            execution_policy_review,
             threshold_pct,
             exploration_top_k,
             dataset_split,

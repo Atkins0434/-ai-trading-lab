@@ -4,9 +4,9 @@
   "title": "Historical Replay Accelerator Run",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "run_id", "mode", "universe_mode", "research_evidence", "promotion_eligible", "trainer_version", "source", "status", "requested_dates", "requested_tickers", "selection_policy", "dataset_policy", "completed_dates", "failed_dates", "days", "quarantined_days", "aggregate_performance", "hypotheses", "feature_evidence", "queue", "accelerator", "controls", "artifacts"],
+  "required": ["version", "run_id", "mode", "universe_mode", "research_evidence", "promotion_eligible", "trainer_version", "source", "status", "requested_dates", "requested_tickers", "selection_policy", "dataset_policy", "completed_dates", "failed_dates", "days", "quarantined_days", "aggregate_performance", "hypotheses", "candidate_threshold_reviews", "execution_policy_review", "feature_evidence", "queue", "accelerator", "controls", "artifacts"],
   "properties": {
-    "version": {"const": "multi_day_trainer_run_v2.0"},
+    "version": {"const": "multi_day_trainer_run_v2.1"},
     "run_id": {"type": "string", "minLength": 1},
     "mode": {"const": "RESEARCH_ONLY"},
     "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
@@ -25,6 +25,8 @@
     "quarantined_days": {"type": "array", "uniqueItems": true, "items": {"type": "string", "format": "date"}},
     "aggregate_performance": {"$ref": "#/$defs/performance"},
     "hypotheses": {"type": "array", "items": {"$ref": "#/$defs/hypothesis"}},
+    "candidate_threshold_reviews": {"type": "array", "maxItems": 3, "items": {"$ref": "#/$defs/candidateThresholdReview"}},
+    "execution_policy_review": {"type": "array", "items": {"$ref": "#/$defs/executionPolicyReview"}},
     "feature_evidence": {"type": "array", "items": {"$ref": "#/$defs/featureEvidence"}},
     "queue": {"$ref": "#/$defs/queue"},
     "accelerator": {"$ref": "#/$defs/accelerator"},
@@ -46,7 +48,7 @@
     },
     "day": {
       "type": "object", "additionalProperties": false,
-      "required": ["trading_date", "partition", "status", "artifact_directory", "scored_ticker_count", "skipped_ticker_count", "eligible_symbol_count", "universe_mode", "universe_manifest_hash", "universe_coverage", "research_evidence", "promotion_eligible"],
+      "required": ["trading_date", "partition", "status", "artifact_directory", "scored_ticker_count", "skipped_ticker_count", "eligible_symbol_count", "universe_mode", "universe_manifest_hash", "universe_coverage", "research_evidence", "promotion_eligible", "unreachable_mover_count", "unreachable_pct", "execution_policy_review_count"],
       "properties": {
         "trading_date": {"type": "string", "format": "date"},
         "partition": {"$ref": "#/$defs/partition"},
@@ -59,12 +61,15 @@
         "universe_manifest_hash": {"type": ["string", "null"], "pattern": "^sha256:[0-9a-f]{64}$"},
         "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
         "research_evidence": {"type": "boolean"},
-        "promotion_eligible": {"type": "boolean"}
+        "promotion_eligible": {"type": "boolean"},
+        "unreachable_mover_count": {"type": "integer", "minimum": 0, "maximum": 10},
+        "unreachable_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "execution_policy_review_count": {"type": "integer", "minimum": 0, "maximum": 10}
       }
     },
     "performance": {
       "type": "object", "additionalProperties": false,
-      "required": ["days_processed", "scout_wins", "ties", "misses", "scout_total_realized_pnl_usd", "benchmark_total_realized_pnl_usd", "scout_average_daily_return_pct", "benchmark_average_daily_return_pct", "scout_cumulative_return_pct", "benchmark_cumulative_return_pct", "scout_max_drawdown_pct", "benchmark_max_drawdown_pct", "scout_daily_return_stddev_pct", "benchmark_daily_return_stddev_pct", "scout_positive_day_rate_pct", "benchmark_positive_day_rate_pct", "realized_pnl_capture_pct", "average_top_10_capture_rate_pct", "top_10_capture_target_pct", "top_10_capture_target_met"],
+      "required": ["days_processed", "scout_wins", "ties", "misses", "scout_total_realized_pnl_usd", "benchmark_total_realized_pnl_usd", "scout_average_daily_return_pct", "benchmark_average_daily_return_pct", "scout_cumulative_return_pct", "benchmark_cumulative_return_pct", "scout_max_drawdown_pct", "benchmark_max_drawdown_pct", "scout_daily_return_stddev_pct", "benchmark_daily_return_stddev_pct", "scout_positive_day_rate_pct", "benchmark_positive_day_rate_pct", "realized_pnl_capture_pct", "average_top_10_capture_rate_pct", "unreachable_mover_count", "unreachable_pct", "execution_policy_review_count"],
       "properties": {
         "days_processed": {"type": "integer", "minimum": 0},
         "scout_wins": {"type": "integer", "minimum": 0},
@@ -84,8 +89,9 @@
         "benchmark_positive_day_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
         "realized_pnl_capture_pct": {"type": ["number", "null"]},
         "average_top_10_capture_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
-        "top_10_capture_target_pct": {"const": 70.0},
-        "top_10_capture_target_met": {"type": "boolean"}
+        "unreachable_mover_count": {"type": "integer", "minimum": 0},
+        "unreachable_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "execution_policy_review_count": {"type": "integer", "minimum": 0}
       }
     },
     "hypothesis": {
@@ -100,8 +106,33 @@
     },
     "hypothesisEvidence": {
       "type": "object", "additionalProperties": false,
-      "required": ["trading_date", "ticker", "partition", "benchmark_rank", "failure_stage", "failure_reason_codes"],
-      "properties": {"trading_date": {"type": "string", "format": "date"}, "ticker": {"type": "string"}, "partition": {"const": "DEVELOPMENT"}, "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10}, "failure_stage": {"type": "string"}, "failure_reason_codes": {"type": "array", "items": {"type": "string"}}}
+      "required": ["trading_date", "ticker", "partition", "benchmark_rank", "miss_classification", "failure_reason_codes"],
+      "properties": {"trading_date": {"type": "string", "format": "date"}, "ticker": {"type": "string"}, "partition": {"const": "DEVELOPMENT"}, "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10}, "miss_classification": {"enum": ["VISIBLE_SCORED_LOW", "VISIBLE_GUARDRAIL_REJECT"]}, "failure_reason_codes": {"type": "array", "items": {"type": "string"}}}
+    },
+    "candidateThresholdReview": {
+      "type": "object", "additionalProperties": false,
+      "required": ["metric_id", "low_score_frequency", "missed_ticker_count", "observed_raw_value_min", "observed_raw_value_max"],
+      "properties": {
+        "metric_id": {"type": "string"},
+        "low_score_frequency": {"type": "integer", "minimum": 1},
+        "missed_ticker_count": {"type": "integer", "minimum": 1},
+        "observed_raw_value_min": {},
+        "observed_raw_value_max": {}
+      }
+    },
+    "executionPolicyReview": {
+      "type": "object", "additionalProperties": false,
+      "required": ["trading_date", "partition", "ticker", "benchmark_rank", "realized_return_pct", "maximum_capturable_move_pct", "exit_reason", "reason_codes"],
+      "properties": {
+        "trading_date": {"type": "string", "format": "date"},
+        "partition": {"$ref": "#/$defs/partition"},
+        "ticker": {"type": "string"},
+        "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10},
+        "realized_return_pct": {"type": ["number", "null"]},
+        "maximum_capturable_move_pct": {"type": "number"},
+        "exit_reason": {"type": ["string", "null"]},
+        "reason_codes": {"type": "array", "items": {"type": "string"}}
+      }
     },
     "featureEvidence": {
       "type": "object", "additionalProperties": false,
