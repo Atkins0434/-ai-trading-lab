@@ -13,12 +13,17 @@ from trainer.validate_contracts import validate_contract
 
 
 ET = ZoneInfo("America/New_York")
+ROOT = Path(__file__).resolve().parent.parent
+UNIVERSE_CONFIG_PATH = ROOT / "config" / "universe.json"
 CI_FIXTURE = "ci_fixture"
 HISTORICAL_RESEARCH = "historical_research"
 RULESET_NAME = "us_listed_common_equity"
 RULESET_VERSION = "1.0"
-PRIMARY_EXCHANGES = {"XNAS", "XNYS", "XASE"}
-INCLUDED_TYPES = {"CS", "COMMON_STOCK", "COMMON_EQUITY"}
+_UNIVERSE_CONFIG = json.loads(
+    UNIVERSE_CONFIG_PATH.read_text(encoding="utf-8")
+)
+PRIMARY_EXCHANGES = set(_UNIVERSE_CONFIG["allowed_exchanges"])
+INCLUDED_TYPES = set(_UNIVERSE_CONFIG["included_security_types"])
 TYPE_REASONS = {
     "ETF": "SECURITY_TYPE_ETF",
     "ETN": "SECURITY_TYPE_ETN",
@@ -43,12 +48,19 @@ REQUIRED_CAPABILITIES = {
     "historical_trading_status",
     "point_in_time_market_cap",
 }
-MIN_MARKET_CAP = 300_000_000
-MAX_MARKET_CAP = 15_000_000_000
+LAGGED_MARKET_CAP_PROXY = "LAGGED_PROXY"
+MIN_MARKET_CAP = float(_UNIVERSE_CONFIG["market_cap_usd"]["minimum"])
+MAX_MARKET_CAP = float(_UNIVERSE_CONFIG["market_cap_usd"]["maximum"])
 
 
 class UniverseManifestError(Exception):
     """Raised when a daily universe cannot be proved or reproduced."""
+
+
+def _capability_available(name: str, value: Any) -> bool:
+    if name == "point_in_time_market_cap":
+        return value is True or value == LAGGED_MARKET_CAP_PROXY
+    return value is True
 
 
 def information_cutoff(trading_date: str) -> str:
@@ -69,6 +81,9 @@ def _canonical_hash_payload(manifest: dict[str, Any]) -> dict[str, Any]:
     payload = json.loads(json.dumps(manifest))
     payload.pop("manifest_hash", None)
     payload["source"].pop("retrieved_at", None)
+    payload["source"]["query_parameters"].pop(
+        "ticker_overview_cache", None
+    )
     payload["securities"] = sorted(
         payload["securities"],
         key=lambda item: (
@@ -96,6 +111,18 @@ def verify_manifest(manifest: dict[str, Any]) -> None:
         raise UniverseManifestError(
             "Daily universe manifest hash does not match its canonical content."
         )
+
+
+def persist_manifest(path: Path, manifest: dict[str, Any]) -> None:
+    """Validate and atomically persist an immutable universe manifest."""
+    verify_manifest(manifest)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    temporary.replace(path)
 
 
 def evidence_metadata(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -196,6 +223,17 @@ def _evaluate_record(
         reasons.append("OTC_SECURITY")
     if record.get("operating_status") in {"PLACEHOLDER", "NON_OPERATING"}:
         reasons.append("NON_OPERATING_PLACEHOLDER")
+    if record.get("is_shell") is True:
+        reasons.append("SHELL_COMPANY")
+    if record.get("is_spac") is True:
+        reasons.append("SPAC_SECURITY")
+    if record.get("is_spac_suffix") is True:
+        reasons.append("SPAC_SUFFIX_SECURITY")
+    precomputed_reasons = record.get("eligibility_exclusion_reasons", [])
+    if isinstance(precomputed_reasons, list):
+        reasons.extend(
+            str(reason) for reason in precomputed_reasons if str(reason)
+        )
 
     market_cap = record.get("market_cap_usd", record.get("market_cap"))
     if not reasons:
@@ -220,6 +258,30 @@ def _evaluate_record(
             if delisting_is_known and delisting_effective
             else last_trading.isoformat() if delisting_is_known and last_trading else None
         ),
+        "reference_data_as_of_timestamp": record.get(
+            "reference_data_as_of_timestamp"
+        ),
+        "market_cap_as_of_timestamp": record.get(
+            "market_cap_available_at"
+        ),
+        "shares_outstanding": record.get("shares_outstanding"),
+        "shares_outstanding_lag_days": record.get(
+            "shares_outstanding_lag_days"
+        ),
+        "shares_outstanding_lagged_date": record.get(
+            "shares_outstanding_lagged_date"
+        ),
+        "shares_outstanding_provider_query_date": record.get(
+            "shares_outstanding_provider_query_date"
+        ),
+        "shares_outstanding_provider_period_date": record.get(
+            "shares_outstanding_provider_period_date"
+        ),
+        "prior_close": record.get("prior_close"),
+        "prior_close_as_of_timestamp": record.get(
+            "prior_close_as_of_timestamp"
+        ),
+        "market_cap_usd": market_cap,
         "inclusion": not reasons,
         "reason_codes": reasons or ["ELIGIBLE"],
     }
@@ -235,6 +297,7 @@ def _base_manifest(
     feed_version: str,
     query_parameters: dict[str, Any],
     retrieved_at: str,
+    capabilities: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "version": "daily_universe_manifest_v1.0",
@@ -245,6 +308,7 @@ def _base_manifest(
         "universe_mode": universe_mode,
         "massive_plan": load_massive_plan(),
         "ruleset": {"name": RULESET_NAME, "version": RULESET_VERSION},
+        "capabilities": capabilities,
         "source": {
             "provider": provider,
             "feed_version": feed_version,
@@ -286,6 +350,10 @@ def build_fixture_manifest(
         feed_version=feed_version,
         query_parameters={"hardcoded_symbols": requested},
         retrieved_at=retrieved_at or datetime.now(timezone.utc).isoformat(),
+        capabilities={
+            **{name: False for name in REQUIRED_CAPABILITIES},
+            "provider_response_complete": True,
+        },
     )
     manifest["coverage_status"] = "fixture"
     manifest["coverage_reasons"] = ["STATIC_SYMBOL_FIXTURE_NOT_RESEARCH_UNIVERSE"]
@@ -321,7 +389,7 @@ def build_research_manifest(
     provider: str,
     feed_version: str,
     query_parameters: dict[str, Any],
-    capabilities: dict[str, bool],
+    capabilities: dict[str, Any],
     retrieved_at: str | None = None,
 ) -> dict[str, Any]:
     manifest = _base_manifest(
@@ -332,11 +400,14 @@ def build_research_manifest(
         feed_version=feed_version,
         query_parameters=query_parameters,
         retrieved_at=retrieved_at or datetime.now(timezone.utc).isoformat(),
+        capabilities=capabilities,
     )
     missing_capabilities = sorted(
         capability
         for capability in REQUIRED_CAPABILITIES
-        if capabilities.get(capability) is not True
+        if not _capability_available(
+            capability, capabilities.get(capability)
+        )
     )
     cutoff = _parse_timestamp(manifest["information_cutoff"])
     assert cutoff is not None
@@ -451,7 +522,11 @@ def load_or_resolve_manifest(
         )
     else:
         capabilities = provider.historical_universe_capabilities()
-        missing = [name for name in REQUIRED_CAPABILITIES if not capabilities.get(name)]
+        missing = [
+            name
+            for name in REQUIRED_CAPABILITIES
+            if not _capability_available(name, capabilities.get(name))
+        ]
         if missing:
             payload = {
                 "records": [],

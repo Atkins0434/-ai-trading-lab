@@ -182,6 +182,18 @@ def test_massive_reference_endpoints_support_arrays_and_objects():
     assert session.calls[1][0].endswith("/v3/reference/tickers/A")
 
 
+def test_massive_reference_ticker_query_can_include_types_for_exclusion_audit():
+    session = FakeSession([
+        {"status": "OK", "results": [{"ticker": "A.WS", "type": "WARRANT"}]},
+    ])
+    client = MassiveClient("secret-key", session=session)
+
+    assert client.get_tickers(
+        "2026-09-14", security_type=None
+    )[0]["type"] == "WARRANT"
+    assert "type" not in session.calls[0][1]["params"]
+
+
 def test_massive_retries_throttled_request_without_leaking_key():
     from trainer.rate_control import RetryPolicy
 

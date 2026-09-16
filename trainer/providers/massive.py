@@ -258,21 +258,27 @@ class MassiveClient:
         )
 
     def get_tickers(
-        self, as_of_date: str, *, active: bool = True
+        self,
+        as_of_date: str,
+        *,
+        active: bool = True,
+        security_type: str | None = "CS",
     ) -> list[dict[str, Any]]:
         """Return ticker rows for a provider-documented point-in-time date."""
         date.fromisoformat(as_of_date)
+        params = {
+            "market": "stocks",
+            "active": "true" if active else "false",
+            "date": as_of_date,
+            "order": "asc",
+            "sort": "ticker",
+            "limit": 1000,
+        }
+        if security_type is not None:
+            params["type"] = security_type
         return self._get(
             "/v3/reference/tickers",
-            {
-                "market": "stocks",
-                "type": "CS",
-                "active": "true" if active else "false",
-                "date": as_of_date,
-                "order": "asc",
-                "sort": "ticker",
-                "limit": 1000,
-            },
+            params,
         )
 
     def get_ticker_overview(
@@ -287,7 +293,7 @@ class MassiveClient:
         )
         return payload["results"]
 
-    def historical_universe_capabilities(self) -> dict[str, bool]:
+    def historical_universe_capabilities(self) -> dict[str, Any]:
         """Declare only capabilities Massive can prove for this adapter.
 
         The All Tickers endpoint is date-aware and exposes FIGIs, but the

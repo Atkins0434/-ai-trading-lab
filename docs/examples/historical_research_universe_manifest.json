@@ -1,18 +1,75 @@
 {
+  "capabilities": {
+    "delisted_securities": true,
+    "historical_trading_status": true,
+    "point_in_time_exchange": true,
+    "point_in_time_listings": true,
+    "point_in_time_market_cap": "LAGGED_PROXY",
+    "point_in_time_security_type": true,
+    "provider_response_complete": true,
+    "stable_security_ids": true,
+    "ticker_history": true
+  },
   "coverage_reasons": [],
   "coverage_status": "complete",
   "eligible_symbol_count": 1,
   "excluded_symbol_count": 0,
   "information_cutoff": "2024-06-10T07:00:00-04:00",
-  "manifest_hash": "sha256:5bcf5bc8f99eaf4ae0d59708f414ee5ba96998a9ceb11a60a1f646cfa3ad4a07",
+  "manifest_hash": "sha256:55475b310f32a9c0ab57b26a8ddea181c7d29fe176648b47b5eb978f95b3bedd",
+  "massive_plan": {
+    "flat_files": true,
+    "history_years": 10,
+    "plan": "DEVELOPER",
+    "rest_calls_per_minute": null
+  },
   "promotion_eligible": true,
   "replay_id": "sample-research-2024-06-10",
   "research_evidence": true,
-  "ruleset": {"name": "us_listed_common_equity", "version": "1.0"},
+  "ruleset": {
+    "name": "us_listed_common_equity",
+    "version": "1.0"
+  },
   "securities": [
-    {"delisting_date": null, "inclusion": true, "listing_date": "2010-01-01", "listing_venue": "XNYS", "reason_codes": ["ELIGIBLE"], "security_type": "CS", "stable_security_id": "FIGI-DELISTED-EXAMPLE", "ticker": "OLDCO"}
+    {
+      "delisting_date": null,
+      "inclusion": true,
+      "listing_date": "2010-01-01",
+      "listing_venue": "XNYS",
+      "market_cap_as_of_timestamp": "2024-06-10T00:00:00-04:00",
+      "market_cap_usd": 1000000000,
+      "prior_close": 10.0,
+      "prior_close_as_of_timestamp": "2024-06-07T16:00:00-04:00",
+      "reason_codes": [
+        "ELIGIBLE"
+      ],
+      "reference_data_as_of_timestamp": "2024-06-10T00:00:00-04:00",
+      "security_type": "CS",
+      "shares_outstanding": 100000000,
+      "shares_outstanding_lag_days": 120,
+      "shares_outstanding_lagged_date": "2024-02-11",
+      "shares_outstanding_provider_period_date": "2024-03-31",
+      "shares_outstanding_provider_query_date": "2024-02-11",
+      "stable_security_id": "FIGI-DELISTED-EXAMPLE",
+      "ticker": "OLDCO"
+    }
   ],
-  "source": {"feed_version": "sample_v1", "provider": "SYNTHETIC_SECURITY_MASTER", "query_parameters": {"active": "all", "date": "2024-06-10"}, "retrieved_at": "2026-09-16T00:00:00+00:00"},
+  "source": {
+    "feed_version": "sample_v1",
+    "provider": "SYNTHETIC_SECURITY_MASTER",
+    "query_parameters": {
+      "active": "all",
+      "date": "2024-06-10",
+      "shares_outstanding_lag_days": 120,
+      "shares_outstanding_lagged_date": "2024-02-11",
+      "ticker_overview_cache": {
+        "errors": 0,
+        "fetches": 1,
+        "hits": 0,
+        "quarter_reuse_hits": 0
+      }
+    },
+    "retrieved_at": "2026-09-16T00:00:00+00:00"
+  },
   "timezone": "America/New_York",
   "trading_date": "2024-06-10",
   "universe_mode": "historical_research",

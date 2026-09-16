@@ -24,6 +24,7 @@ SCHEMA_FILES = {
     "promotion_decision": "promotion_decision.schema.json",
     "multi_day_trainer_run": "multi_day_trainer_run.schema.json",
     "catalyst_snapshot": "catalyst_snapshot.schema.json",
+    "flatfile_replay_manifest": "flatfile_replay_manifest.schema.json",
 }
 
 

@@ -4,3 +4,5 @@ __pycache__/
 *.py[cod]
 reports/**/*.pdf
 data/cache/
+data/flatfiles/
+data/reference_cache/

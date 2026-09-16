@@ -46,7 +46,8 @@ trading date at 07:00 `America/New_York`.
   securities, test issues, and non-operating placeholders with deterministic
   reason codes.
 - Enforce the configured $300 million–$15 billion point-in-time market-cap
-  range only when the value and its provider-availability time are proven.
+  range using the versioned 120-calendar-day shares-outstanding proxy and the
+  prior session close. The manifest labels this capability `LAGGED_PROXY`.
 - Use historical listing/trading status, never today’s `active` flag.
 - Preserve stable identities across ticker changes and distinguish later reuse
   of the same ticker text by a different security.
@@ -90,14 +91,46 @@ interval reconstruction relies on an experimental ticker-events endpoint.
 Ticker Overview also does not provide a safe filing-availability timestamp for
 derived fundamentals.
 
-Consequently the Massive adapter declares those capabilities unavailable. A
-`historical_research` run writes an `incomplete` manifest and an `UNSUPPORTED`
-batch without creating Scout performance, benchmark, Trainer, or promotion
-evidence. A provider error behaves the same way. There is no fallback to the
-current active list or the static CI list.
+Consequently the legacy REST-only universe adapter declares those capabilities
+unavailable. A REST `historical_research` run writes an `incomplete` manifest
+and an `UNSUPPORTED` batch without creating Scout performance, benchmark,
+Trainer, or promotion evidence. A provider error behaves the same way. There
+is no fallback to the current active list or the static CI list.
 
 Provider plan depth is a separate constraint: the configured Massive Developer
 plan exposes ten years of history and flat files. Those capabilities do not by
 themselves resolve the availability-time and ticker-history proof gaps above.
 Every universe and replay manifest records the active plan so evidence cannot
 be confused with an earlier free-plan run.
+
+The flat-file replay path closes the price-history scaling gap and can derive
+market capitalization from shares outstanding and the prior session's
+`day_aggs_v1` close without changing the cutoff. For each date it requests the
+Massive reference ticker list with `date=D&active=true`, ignores present-day
+active state, and persists the result through the same immutable daily manifest
+and hash controls. Exchange, security-type, shell, unit, warrant, and
+SPAC-suffix exclusions are versioned in `config/universe.json`.
+
+Massive documents an important availability caveat for Ticker Overview: a
+query dated at a filing's period-of-report date can include values from an SEC
+filing submitted later. The flat-file universe therefore never queries shares
+outstanding at the replay date. It subtracts the versioned
+`shares_outstanding_lag_days` value (120 calendar days) and requests Ticker
+Overview at that lagged date. The policy assumes that an SEC filing associated
+with a report period at least 120 days old was submitted before the replay day.
+This is deliberately labeled `LAGGED_PROXY`, not exact point-in-time market
+capitalization. Each security records the requested lagged date, configured
+lag, actual provider query date, and provider period date when returned.
+
+Lagged Ticker Overview responses are cached under
+`data/reference_cache/<ticker>/<lagged-date>.json`. A later replay date may
+reuse the nearest earlier cached query in the same calendar quarter. A cached
+date after the requested lagged date is never reused because doing so could
+shorten the 120-day buffer. Daily universe query metadata and the replay
+manifest report cache hits, fetches, quarter reuses, and errors.
+
+Shell exclusion uses the existing security-type, symbol-suffix, and company
+name rules. When Massive supplies `is_shell=true`, that is an additional
+exclusion. The absence of an `is_shell` field is not treated as evidence that
+the security is ineligible. Missing stable identity, lagged shares, or prior
+close remains explicit and is never replaced with present-day data.

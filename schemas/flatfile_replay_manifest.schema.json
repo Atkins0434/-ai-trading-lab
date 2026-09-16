@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flatfile_replay_manifest.schema.json",
+  "title": "Massive Flat-File Replay Run Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version", "run_id", "start_date", "end_date", "status", "massive_plan",
+    "datasets", "baseline_lookback_sessions", "strategy_capital_usd",
+    "selection_policy", "universe_policy", "requested_dates",
+    "completed_dates", "failed_dates", "reference_cache_summary", "days"
+  ],
+  "properties": {
+    "version": {"const": "flatfile_replay_manifest_v1.0"},
+    "run_id": {"type": "string", "minLength": 1},
+    "start_date": {"type": "string", "format": "date"},
+    "end_date": {"type": "string", "format": "date"},
+    "status": {"enum": ["COMPLETE", "PARTIAL", "FAILED"]},
+    "massive_plan": {"$ref": "#/$defs/massivePlan"},
+    "datasets": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {"type": "string"}
+    },
+    "baseline_lookback_sessions": {"type": "integer", "minimum": 1},
+    "strategy_capital_usd": {"type": "number", "exclusiveMinimum": 0},
+    "selection_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["threshold_pct", "exploration_top_k"],
+      "properties": {
+        "threshold_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "exploration_top_k": {"type": "integer", "minimum": 0, "maximum": 5}
+      }
+    },
+    "universe_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version", "shares_outstanding_lag_days",
+        "ticker_overview_cache_policy"
+      ],
+      "properties": {
+        "version": {"type": "string", "minLength": 1},
+        "shares_outstanding_lag_days": {"type": "integer", "minimum": 1},
+        "ticker_overview_cache_policy": {
+          "const": "EARLIER_OR_EQUAL_SAME_CALENDAR_QUARTER"
+        }
+      }
+    },
+    "requested_dates": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "format": "date"}
+    },
+    "completed_dates": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "format": "date"}
+    },
+    "failed_dates": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
+    "reference_cache_summary": {"$ref": "#/$defs/referenceCache"},
+    "days": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/day"}
+    }
+  },
+  "$defs": {
+    "massivePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan", "rest_calls_per_minute", "history_years", "flat_files"],
+      "properties": {
+        "plan": {"type": "string", "minLength": 1},
+        "rest_calls_per_minute": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "history_years": {"type": "integer", "minimum": 1},
+        "flat_files": {"type": "boolean"}
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataset", "trading_date", "object_key", "local_path", "size",
+        "sha256", "etag", "downloaded"
+      ],
+      "properties": {
+        "dataset": {"type": "string"},
+        "trading_date": {"type": "string", "format": "date"},
+        "object_key": {"type": "string"},
+        "local_path": {"type": "string"},
+        "size": {"type": "integer", "minimum": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "etag": {"type": ["string", "null"]},
+        "downloaded": {"type": "boolean"}
+      }
+    },
+    "paddedStats": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "referenceCache": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hits", "fetches", "quarter_reuse_hits", "errors"],
+      "properties": {
+        "hits": {"type": "integer", "minimum": 0},
+        "fetches": {"type": "integer", "minimum": 0},
+        "quarter_reuse_hits": {"type": "integer", "minimum": 0},
+        "errors": {"type": "integer", "minimum": 0}
+      }
+    },
+    "day": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trading_date", "status", "universe_size", "universe_manifest_hash",
+        "scored_ticker_count", "padded_bar_statistics", "files",
+        "reference_cache", "artifacts", "error"
+      ],
+      "properties": {
+        "trading_date": {"type": "string", "format": "date"},
+        "status": {"enum": ["COMPLETE", "UNSUPPORTED", "FAILED"]},
+        "universe_size": {"type": "integer", "minimum": 0},
+        "universe_manifest_hash": {
+          "type": ["string", "null"],
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "scored_ticker_count": {"type": "integer", "minimum": 0},
+        "padded_bar_statistics": {"$ref": "#/$defs/paddedStats"},
+        "files": {"type": "array", "items": {"$ref": "#/$defs/file"}},
+        "reference_cache": {"$ref": "#/$defs/referenceCache"},
+        "artifacts": {
+          "type": "object",
+          "additionalProperties": {"type": "string"}
+        },
+        "error": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
