@@ -1,4 +1,4 @@
-name: Research Scout Alpha Batch
+name: Research Alpha Universe-Gated Replay
 
 concurrency:
   group: research-alpha-${{ github.repository }}
@@ -11,6 +11,12 @@ on:
         description: Completed trading date (YYYY-MM-DD)
         required: true
         default: "2026-09-14"
+      universe_mode:
+        description: Point-in-time research or non-research engineering fixture
+        required: true
+        type: choice
+        options: [historical_research, ci_fixture]
+        default: historical_research
   pull_request:
     branches: [main]
     paths:
@@ -18,6 +24,8 @@ on:
       - "trainer/research_alpha_batch.py"
       - "trainer/run_research_alpha_batch.py"
       - "trainer/universe_collector.py"
+      - "trainer/universe_manifest.py"
+      - "trainer/evidence_eligibility.py"
       - "trainer/massive_alpha_snapshot.py"
       - "trainer/report_generator.py"
       - "trainer/outcome_grader.py"
@@ -46,14 +54,44 @@ jobs:
       - name: Stagger provider workflows on pull requests and pushes
         if: github.event_name == 'pull_request' || github.event_name == 'push'
         run: sleep 60
-      - name: Run bounded mid-cap Alpha batch
+      - name: Resolve explicit universe mode
+        id: universe
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_MODE: ${{ inputs.universe_mode }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ] || [ "${REQUESTED_MODE:-historical_research}" = "ci_fixture" ]; then
+            echo "args=--universe-mode ci_fixture --tickers AA AAL BBAI CHWY CLOV ETSY FUBO JOBY LUNR UPST" >> "$GITHUB_OUTPUT"
+          else
+            echo "args=--universe-mode historical_research" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run universe-gated Alpha batch
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
           TRADING_DATE: ${{ inputs.trading_date || '2026-09-14' }}
         run: >-
           python -m trainer.run_research_alpha_batch
           --date "$TRADING_DATE"
-          --tickers AA AAL BBAI CHWY CLOV ETSY FUBO JOBY LUNR UPST
+          ${{ steps.universe.outputs.args }}
+      - name: Publish universe evidence summary
+        if: always()
+        shell: bash
+        env:
+          TRADING_DATE: ${{ inputs.trading_date || '2026-09-14' }}
+        run: |
+          manifest="reports/$TRADING_DATE/research_alpha_batch_manifest.json"
+          if [ -f "$manifest" ]; then
+            {
+              echo "### Daily universe gate"
+              echo "- Mode: $(jq -r .universe_mode "$manifest")"
+              echo "- Eligible count: $(jq -r '.universe_eligible_tickers | length' "$manifest")"
+              echo "- Coverage: $(jq -r .universe_coverage "$manifest")"
+              echo "- Manifest hash: $(jq -r .universe_manifest_hash "$manifest")"
+              echo "- Research evidence: $(jq -r .research_evidence "$manifest")"
+              echo "- Promotion eligible: $(jq -r .promotion_eligible "$manifest")"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:

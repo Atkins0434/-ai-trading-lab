@@ -11,6 +11,11 @@
     "trading_date",
     "scout_version",
     "execution_policy_version",
+    "universe_mode",
+    "universe_manifest_hash",
+    "universe_coverage",
+    "research_evidence",
+    "promotion_eligible",
     "outcomes"
   ],
 
@@ -32,6 +37,12 @@
       "type": "string"
     },
 
+    "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
+    "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
+    "research_evidence": {"type": "boolean"},
+    "promotion_eligible": {"type": "boolean"},
+
     "outcomes": {
       "type": "array",
       "items": {
@@ -48,6 +59,7 @@
       "required": [
         "ticker",
         "selected",
+        "selection_basis",
         "intraday_path",
         "mfe_pct",
         "mae_pct",
@@ -62,6 +74,14 @@
 
         "selected": {
           "type": "boolean"
+        },
+
+        "selection_basis": {
+          "enum": [
+            "QUALIFYING_THRESHOLD",
+            "EXPLORATION_TOP_K",
+            "NOT_SELECTED"
+          ]
         },
 
         "scout_rank": {

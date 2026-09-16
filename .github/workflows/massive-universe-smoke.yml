@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - name: Collect bounded historical universe sample
+      - name: Collect bounded non-research fixture sample
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
         run: >-
@@ -34,6 +34,14 @@ jobs:
           --date 2026-09-14
           --tickers AAPL MSFT NVDA
           --max-new 3
+      - name: Label smoke artifact as non-research
+        run: |
+          {
+            echo "### Universe collector smoke fixture"
+            echo "- Universe mode: ci_fixture"
+            echo "- Research evidence: false"
+            echo "- Promotion eligible: false"
+          } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:

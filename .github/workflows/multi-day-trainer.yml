@@ -9,8 +9,28 @@ on:
     inputs:
       trading_dates:
         description: Comma-separated completed trading dates (YYYY-MM-DD)
-        required: true
+        required: false
         default: "2026-09-10,2026-09-11,2026-09-14"
+      start_date:
+        description: Optional first date for calendar-generated sessions
+        required: false
+      end_date:
+        description: Optional last date for calendar-generated sessions
+        required: false
+      max_workers:
+        description: Bounded concurrent date workers (1-8)
+        required: true
+        default: "2"
+      requests_per_minute:
+        description: Shared provider request ceiling
+        required: true
+        default: "5"
+      universe_mode:
+        description: Point-in-time research or non-research engineering fixture
+        required: true
+        type: choice
+        options: [historical_research, ci_fixture]
+        default: historical_research
   schedule:
     - cron: "30 23 * * 1-5"
   pull_request:
@@ -20,8 +40,22 @@ on:
       - "trainer/multi_day_trainer.py"
       - "trainer/trainer_summary_report.py"
       - "trainer/run_multi_day_trainer.py"
+      - "trainer/trading_calendar.py"
+      - "trainer/replay_queue.py"
+      - "trainer/rate_control.py"
+      - "trainer/dataset_splits.py"
+      - "trainer/historical_news.py"
+      - "trainer/historical_cache.py"
+      - "trainer/providers/massive.py"
+      - "trainer/research_alpha_batch.py"
+      - "trainer/universe_manifest.py"
+      - "trainer/evidence_eligibility.py"
       - "schemas/multi_day_trainer_run.schema.json"
+      - "schemas/research_alpha_batch.schema.json"
+      - "schemas/catalyst_snapshot.schema.json"
       - "tests/test_multi_day_trainer.py"
+      - "tests/test_replay_accelerator.py"
+      - "tests/test_historical_news.py"
 
 jobs:
   trainer:
@@ -29,7 +63,7 @@ jobs:
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     permissions:
       contents: read
     steps:
@@ -53,23 +87,53 @@ jobs:
         shell: bash
         env:
           DISPATCH_DATES: ${{ inputs.trading_dates }}
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
           EVENT_NAME: ${{ github.event_name }}
         run: |
           if [ "$EVENT_NAME" = "pull_request" ]; then
-            echo "value=2026-09-10,2026-09-11,2026-09-14" >> "$GITHUB_OUTPUT"
+            echo "args=--dates-csv 2026-09-10,2026-09-11,2026-09-14" >> "$GITHUB_OUTPUT"
+          elif [ -n "$START_DATE" ] && [ -n "$END_DATE" ]; then
+            echo "args=--start-date $START_DATE --end-date $END_DATE" >> "$GITHUB_OUTPUT"
           elif [ -n "$DISPATCH_DATES" ]; then
-            echo "value=$DISPATCH_DATES" >> "$GITHUB_OUTPUT"
+            echo "args=--dates-csv $DISPATCH_DATES" >> "$GITHUB_OUTPUT"
           else
-            echo "value=$(date -u +%F)" >> "$GITHUB_OUTPUT"
+            echo "args=--dates-csv $(date -u +%F)" >> "$GITHUB_OUTPUT"
           fi
       - name: Run resumable research trainer
+        shell: bash
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
-        run: >-
-          python -m trainer.run_multi_day_trainer
-          --dates-csv "${{ steps.dates.outputs.value }}"
-          --exploration-top-k 3
-          --tickers AA AAL BBAI CHWY CLOV ETSY FUBO JOBY LUNR UPST
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_MODE: ${{ inputs.universe_mode }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ] || [ "${REQUESTED_MODE:-historical_research}" = "ci_fixture" ]; then
+            universe_args=(--universe-mode ci_fixture --tickers AA AAL BBAI CHWY CLOV ETSY FUBO JOBY LUNR UPST)
+          else
+            universe_args=(--universe-mode historical_research)
+          fi
+          python -m trainer.run_multi_day_trainer \
+            ${{ steps.dates.outputs.args }} \
+            --exploration-top-k 3 \
+            --max-workers "${{ inputs.max_workers || '2' }}" \
+            --requests-per-minute "${{ inputs.requests_per_minute || '5' }}" \
+            "${universe_args[@]}"
+      - name: Publish universe evidence summary
+        if: always()
+        shell: bash
+        run: |
+          manifest="reports/trainer/trainer_run_state.json"
+          if [ -f "$manifest" ]; then
+            {
+              echo "### Historical replay universe gate"
+              echo "- Mode: $(jq -r .universe_mode "$manifest")"
+              echo "- Research days: $(jq -r .aggregate_performance.days_processed "$manifest")"
+              echo "- Quarantined days: $(jq -r '.quarantined_days | length' "$manifest")"
+              echo "- Research evidence: $(jq -r .research_evidence "$manifest")"
+              echo "- Promotion eligible: $(jq -r .promotion_eligible "$manifest")"
+              jq -r '.days[] | "- \(.trading_date): eligible=\(.eligible_symbol_count), coverage=\(.universe_coverage), hash=\(.universe_manifest_hash // "none"), evidence=\(.research_evidence), promotion=\(.promotion_eligible)"' "$manifest"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/cache/save@v4
         if: always()
         with:

@@ -7,6 +7,11 @@
   "scout_version": "scout_v1.0",
   "execution_policy_version": "execution_policy_v1.0",
   "feature_registry_version": "feature_registry_v1.0",
+  "universe_mode": "ci_fixture",
+  "universe_manifest_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "universe_coverage": "fixture",
+  "research_evidence": false,
+  "promotion_eligible": false,
   "data_source": {
     "provider": "TEST_FIXTURE",
     "feed_version": "synthetic_v1"

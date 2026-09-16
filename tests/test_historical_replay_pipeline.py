@@ -87,6 +87,7 @@ def test_single_day_replay_runs_scout_trade_and_outcome_contract():
         for component in candidate["component_scores"].values()
     ) == 13
     assert outcome["selected"] is True
+    assert outcome["selection_basis"] == "QUALIFYING_THRESHOLD"
     assert outcome["execution_result"]["trade_executed"] is True
     assert outcome["execution_result"]["entry_timestamp"] == (
         "2018-01-02T14:30:00+00:00"

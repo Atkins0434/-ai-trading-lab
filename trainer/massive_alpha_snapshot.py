@@ -97,6 +97,7 @@ def build_massive_alpha_snapshot(
     exchange: str = "UNKNOWN",
     eligible: bool = True,
     eligibility_reasons: list[str] | None = None,
+    universe_metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a point-in-time Alpha snapshot from raw Massive aggregates."""
     day = date.fromisoformat(trading_date)
@@ -143,9 +144,20 @@ def build_massive_alpha_snapshot(
     )
     relative_volume = premarket_volume / average_premarket_volume if average_premarket_volume else 0.0
     bars = regularize_last_premarket_hour(intraday_records, trading_date)
+    padded_bar_count = sum(
+        bar["source"] == "MASSIVE_ZERO_VOLUME_CARRY_FORWARD"
+        for bar in bars
+    )
     as_of = bars[-1]["timestamp"]
     prior_close_as_of = _market_datetime(previous_day, time(16, 0)).isoformat()
 
+    universe_metadata = universe_metadata or {
+        "universe_mode": "ci_fixture",
+        "universe_manifest_hash": "sha256:" + "0" * 64,
+        "universe_coverage": "fixture",
+        "research_evidence": False,
+        "promotion_eligible": False,
+    }
     snapshot = {
         "replay_id": f"{trading_date}-0700-{ticker.upper()}-research-alpha",
         "trading_date": trading_date,
@@ -156,6 +168,7 @@ def build_massive_alpha_snapshot(
         "execution_policy_version": "execution_disabled",
         "feature_registry_version": "feature_registry_alpha_v1.0",
         "data_source": {"provider": "MASSIVE", "feed_version": MassiveClient.feed_version},
+        **universe_metadata,
         "securities": [{
             "ticker": ticker.upper(),
             "exchange": exchange,
@@ -168,6 +181,11 @@ def build_massive_alpha_snapshot(
                 "premarket_dollar_volume": _observed(premarket_dollar_volume, as_of, "sum(typical_price*v)"),
                 "average_daily_dollar_volume": _observed(average_daily_dollar_volume, prior_close_as_of, "mean(c*v),20_sessions"),
                 "relative_volume": _observed(relative_volume, as_of, "premarket_volume/20_session_mean"),
+                "padded_bar_count": _observed(
+                    padded_bar_count,
+                    as_of,
+                    "count(MASSIVE_ZERO_VOLUME_CARRY_FORWARD),06:00-07:00ET",
+                ),
                 "previous_close": _observed(previous_close, prior_close_as_of, "c"),
                 "average_daily_range_pct": _observed(average_daily_range_pct, prior_close_as_of, "mean((h-l)/c),20_sessions"),
             },

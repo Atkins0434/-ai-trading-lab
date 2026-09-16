@@ -2,255 +2,147 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "benchmark_result.schema.json",
   "title": "Benchmark Result",
-  "description": "Same-universe benchmark used to compare Scout performance against the strongest historical opportunities under the same deterministic execution policy.",
+  "description": "Qualifying-only deterministic same-universe return verdict, separate exploration and combined summaries, plus an independent top-10 diagnostic.",
   "type": "object",
   "additionalProperties": false,
-
   "required": [
-    "replay_id",
-    "trading_date",
-    "universe_version",
-    "execution_policy_version",
-    "benchmark_method",
-    "benchmark_candidates",
-    "scout_summary",
-    "benchmark_summary",
-    "comparison"
+    "replay_id", "trading_date", "universe_version", "universe_mode",
+    "universe_manifest_hash", "universe_coverage", "research_evidence",
+    "promotion_eligible", "execution_policy_version", "benchmark_method",
+    "benchmark_candidates", "scout_summary", "exploration_summary",
+    "combined_summary", "benchmark_summary",
+    "return_baselines", "comparison"
   ],
-
   "properties": {
-    "replay_id": {
-      "type": "string"
-    },
-
-    "trading_date": {
-      "type": "string",
-      "format": "date"
-    },
-
-    "universe_version": {
-      "type": "string"
-    },
-
-    "execution_policy_version": {
-      "type": "string"
-    },
-
-    "benchmark_method": {
-      "type": "string",
-      "enum": [
-        "TOP_10_MOVERS_SAME_UNIVERSE"
-      ]
-    },
-
+    "replay_id": {"type": "string"},
+    "trading_date": {"type": "string", "format": "date"},
+    "universe_version": {"type": "string"},
+    "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
+    "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
+    "research_evidence": {"type": "boolean"},
+    "promotion_eligible": {"type": "boolean"},
+    "execution_policy_version": {"type": "string"},
+    "benchmark_method": {"const": "RANDOM_DRAW_BASELINE_SAME_UNIVERSE"},
     "benchmark_candidates": {
-      "type": "array",
-      "maxItems": 10,
-      "items": {
-        "$ref": "#/$defs/benchmarkCandidate"
-      }
+      "type": "array", "maxItems": 10,
+      "items": {"$ref": "#/$defs/benchmarkCandidate"}
     },
-
-    "scout_summary": {
-      "$ref": "#/$defs/performanceSummary"
-    },
-
-    "benchmark_summary": {
-      "$ref": "#/$defs/performanceSummary"
-    },
-
-    "comparison": {
-      "$ref": "#/$defs/comparison"
-    }
+    "scout_summary": {"$ref": "#/$defs/performanceSummary"},
+    "exploration_summary": {"$ref": "#/$defs/performanceSummary"},
+    "combined_summary": {"$ref": "#/$defs/performanceSummary"},
+    "benchmark_summary": {"$ref": "#/$defs/performanceSummary"},
+    "return_baselines": {"$ref": "#/$defs/returnBaselines"},
+    "comparison": {"$ref": "#/$defs/comparison"}
   },
-
   "$defs": {
+    "nullableNumber": {"type": ["number", "null"]},
+    "nullableString": {"type": ["string", "null"]},
     "benchmarkCandidate": {
       "type": "object",
       "additionalProperties": false,
-
       "required": [
-        "ticker",
-        "benchmark_rank",
-        "raw_move_pct",
-        "fair_simulation_possible"
+        "ticker", "benchmark_rank", "raw_move_pct",
+        "maximum_capturable_move_pct", "day_high_timestamp",
+        "universe_eligible", "scout_selected", "scout_selection_basis",
+        "scout_trade_executed",
+        "scout_realized_return_pct", "scout_exit_reason",
+        "scout_exit_timestamp", "fair_simulation_possible",
+        "simulation_exclusion_reason", "trade_executed",
+        "realized_return_pct", "realized_pnl_usd", "capture_ratio",
+        "exit_reason"
       ],
-
       "properties": {
-        "ticker": {
-          "type": "string",
-          "minLength": 1
+        "ticker": {"type": "string", "minLength": 1},
+        "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10},
+        "raw_move_pct": {"type": "number"},
+        "maximum_capturable_move_pct": {"type": "number"},
+        "day_high_timestamp": {"type": "string", "format": "date-time"},
+        "universe_eligible": {"type": "boolean"},
+        "scout_selected": {"type": "boolean"},
+        "scout_selection_basis": {
+          "enum": ["QUALIFYING_THRESHOLD", "EXPLORATION_TOP_K", "NOT_SELECTED"]
         },
-
-        "benchmark_rank": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 10
-        },
-
-        "raw_move_pct": {
-          "type": "number"
-        },
-
-        "fair_simulation_possible": {
-          "type": "boolean"
-        },
-
-        "simulation_exclusion_reason": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-
-        "trade_executed": {
-          "type": [
-            "boolean",
-            "null"
-          ]
-        },
-
-        "realized_return_pct": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-
-        "realized_pnl_usd": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-
-        "capture_ratio": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-
-        "exit_reason": {
-          "type": [
-            "string",
-            "null"
-          ]
-        }
+        "scout_trade_executed": {"type": "boolean"},
+        "scout_realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
+        "scout_exit_reason": {"$ref": "#/$defs/nullableString"},
+        "scout_exit_timestamp": {"type": ["string", "null"], "format": "date-time"},
+        "fair_simulation_possible": {"type": "boolean"},
+        "simulation_exclusion_reason": {"$ref": "#/$defs/nullableString"},
+        "trade_executed": {"type": ["boolean", "null"]},
+        "realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
+        "realized_pnl_usd": {"$ref": "#/$defs/nullableNumber"},
+        "capture_ratio": {"$ref": "#/$defs/nullableNumber"},
+        "exit_reason": {"$ref": "#/$defs/nullableString"}
       }
     },
-
     "performanceSummary": {
       "type": "object",
       "additionalProperties": false,
-
       "required": [
-        "candidate_count",
-        "trades_executed",
-        "realized_return_pct",
-        "realized_pnl_usd"
+        "candidate_count", "trades_executed", "realized_return_pct",
+        "realized_pnl_usd", "win_rate_pct", "profit_factor",
+        "max_drawdown_pct", "average_capture_ratio"
       ],
-
       "properties": {
-        "candidate_count": {
-          "type": "integer",
-          "minimum": 0
-        },
-
-        "trades_executed": {
-          "type": "integer",
-          "minimum": 0
-        },
-
-        "realized_return_pct": {
-          "type": "number"
-        },
-
-        "realized_pnl_usd": {
-          "type": "number"
-        },
-
-        "win_rate_pct": {
-          "type": [
-            "number",
-            "null"
-          ],
-          "minimum": 0,
-          "maximum": 100
-        },
-
-        "profit_factor": {
-          "type": [
-            "number",
-            "null"
-          ],
-          "minimum": 0
-        },
-
-        "max_drawdown_pct": {
-          "type": [
-            "number",
-            "null"
-          ]
-        },
-
-        "average_capture_ratio": {
-          "type": [
-            "number",
-            "null"
-          ]
-        }
+        "candidate_count": {"type": "integer", "minimum": 0},
+        "trades_executed": {"type": "integer", "minimum": 0},
+        "realized_return_pct": {"type": "number"},
+        "realized_pnl_usd": {"type": "number"},
+        "win_rate_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "profit_factor": {"type": ["number", "null"], "minimum": 0},
+        "max_drawdown_pct": {"$ref": "#/$defs/nullableNumber"},
+        "average_capture_ratio": {"$ref": "#/$defs/nullableNumber"}
       }
     },
-
+    "returnBaselines": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "return_basis", "eligible_ticker_count", "eligible_single_position_mean_return_pct",
+        "eligible_ticker_mean_realized_pnl_usd", "eligible_basket_expected_return_pct",
+        "eligible_basket_expected_pnl_usd", "random_draw_count",
+        "random_draw_size", "random_seed",
+        "random_draw_mean_realized_return_pct",
+        "random_draw_mean_realized_pnl_usd"
+      ],
+      "properties": {
+        "return_basis": {"const": "GROSS_STRATEGY_RETURN_PCT"},
+        "eligible_ticker_count": {"type": "integer", "minimum": 0},
+        "eligible_single_position_mean_return_pct": {"type": "number"},
+        "eligible_ticker_mean_realized_pnl_usd": {"type": "number"},
+        "eligible_basket_expected_return_pct": {"type": "number"},
+        "eligible_basket_expected_pnl_usd": {"type": "number"},
+        "random_draw_count": {"const": 200},
+        "random_draw_size": {"type": "integer", "minimum": 0},
+        "random_seed": {"type": "integer"},
+        "random_draw_mean_realized_return_pct": {"type": "number"},
+        "random_draw_mean_realized_pnl_usd": {"type": "number"}
+      }
+    },
     "comparison": {
       "type": "object",
       "additionalProperties": false,
-
       "required": [
-        "scout_won",
-        "return_difference_pct",
-        "pnl_difference_usd",
-        "top_10_capture_rate_pct",
-        "target_driver_capture_met",
-        "result_code"
+        "scout_won", "scout_net_realized_return_pct",
+        "eligible_ticker_mean_return_difference_pct",
+        "random_draw_mean_return_difference_pct", "return_difference_pct",
+        "pnl_difference_usd", "top_10_capture_rate_pct",
+        "exploration_top_10_capture_rate_pct",
+        "combined_top_10_capture_rate_pct", "result_code"
       ],
-
       "properties": {
-        "scout_won": {
-          "type": "boolean"
-        },
-
-        "return_difference_pct": {
-          "type": "number"
-        },
-
-        "pnl_difference_usd": {
-          "type": "number"
-        },
-
-        "top_10_capture_rate_pct": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 100
-        },
-
-        "target_driver_capture_pct": {
-          "type": "number",
-          "const": 70
-        },
-
-        "target_driver_capture_met": {
-          "type": "boolean"
-        },
-
+        "scout_won": {"type": "boolean"},
+        "scout_net_realized_return_pct": {"type": "number"},
+        "eligible_ticker_mean_return_difference_pct": {"type": "number"},
+        "random_draw_mean_return_difference_pct": {"type": "number"},
+        "return_difference_pct": {"type": "number"},
+        "pnl_difference_usd": {"type": "number"},
+        "top_10_capture_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "exploration_top_10_capture_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "combined_top_10_capture_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
         "result_code": {
-          "type": "string",
-          "enum": [
-            "SCOUT_OUTPERFORMED",
-            "SCOUT_TIED",
-            "SCOUT_UNDERPERFORMED"
-          ]
+          "enum": ["SCOUT_OUTPERFORMED", "SCOUT_TIED", "SCOUT_UNDERPERFORMED"]
         }
       }
     }

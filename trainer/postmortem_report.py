@@ -31,7 +31,8 @@ def generate_postmortem_pdf(
     doc = SimpleDocTemplate(str(output_path), pagesize=landscape(letter), leftMargin=32, rightMargin=32, topMargin=28, bottomMargin=28, title="Scout Trainer Postmortem", author="AI Trading Lab")
     comparison = benchmark["comparison"]
     scout = benchmark["scout_summary"]
-    bench = benchmark["benchmark_summary"]
+    bench = postmortem["benchmark_performance"]
+    baselines = benchmark["return_baselines"]
     result_color = green if postmortem["result"] == "WIN" else red if postmortem["result"] == "MISS" else pale
     story: list[Any] = [
         Paragraph("Scout Trainer Postmortem", title),
@@ -41,20 +42,21 @@ def generate_postmortem_pdf(
     kpis = [
         ("RESULT", postmortem["result"]),
         ("SCOUT RETURN", _pct(scout["realized_return_pct"])),
-        ("BENCHMARK RETURN", _pct(bench["realized_return_pct"])),
+        ("RANDOM BASELINE", _pct(bench["realized_return_pct"])),
         ("RETURN GAP", _pct(comparison["return_difference_pct"])),
         ("TOP-10 CAPTURE", _pct(comparison["top_10_capture_rate_pct"])),
-        ("TARGET", "70%"),
+        ("UNREACHABLE", _pct(postmortem["unreachable_pct"])),
     ]
     kpi = Table([[Paragraph(f"<b>{label}</b><br/><font size='14'>{value}</font>", small) for label, value in kpis]], colWidths=[10.1 * inch / 6] * 6, rowHeights=[0.60 * inch])
     kpi.setStyle(TableStyle([("BACKGROUND", (0, 0), (0, 0), result_color), ("BACKGROUND", (1, 0), (-1, -1), pale), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BFDBFE")), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
     comparison_rows = [
-        ["Performance", "Scout", "Benchmark"],
-        ["Trades executed", scout["trades_executed"], bench["trades_executed"]],
+        ["Performance", "Scout", "Random baseline"],
+        ["Selected / draw size", scout["candidate_count"], baselines["random_draw_size"]],
         ["Realized P&L", f"${scout['realized_pnl_usd']:.2f}", f"${bench['realized_pnl_usd']:.2f}"],
-        ["Win rate", _pct(scout["win_rate_pct"]), _pct(bench["win_rate_pct"])],
-        ["Average capture ratio", "N/A" if scout["average_capture_ratio"] is None else f"{scout['average_capture_ratio']:.2f}x", "N/A" if bench["average_capture_ratio"] is None else f"{bench['average_capture_ratio']:.2f}x"],
-        ["Maximum drawdown", _pct(scout["max_drawdown_pct"]), _pct(bench["max_drawdown_pct"])],
+        ["Gross realized return", _pct(scout["realized_return_pct"]), _pct(bench["realized_return_pct"])],
+        ["Eligible basket expected", "-", _pct(baselines["eligible_basket_expected_return_pct"])],
+        ["Eligible single-position mean", "-", _pct(baselines["eligible_single_position_mean_return_pct"])],
+        ["Random draws / seed", "-", f"{baselines['random_draw_count']} / {baselines['random_seed']}"],
     ]
     comparison_table = Table(comparison_rows, colWidths=[4.1*inch,3.0*inch,3.0*inch], repeatRows=1)
     comparison_table.setStyle(TableStyle([
@@ -72,7 +74,7 @@ def generate_postmortem_pdf(
         comparison_table,
         Spacer(1, 8),
         Paragraph(
-            "Research-only grading. The benchmark uses the same pre-entry guardrails, position limit, and deterministic exit policy as Scout.",
+            "WIN/TIE/MISS compares Scout gross return with 200 deterministic random same-universe baskets under the same execution policy. Top-10 capture is diagnostic only.",
             small,
         ),
         PageBreak(),
@@ -109,10 +111,10 @@ def generate_postmortem_pdf(
         ])
     else:
         story.append(Paragraph("Missed-opportunity diagnosis", section))
-    missed_rows = [["Rank", "Ticker", "Scout score", "Failure stage", "Reason"]]
+    missed_rows = [["Rank", "Ticker", "Scout score", "Classification", "Reason"]]
     for item in postmortem["missed_opportunities"][:10]:
         reason = ", ".join(item.get("failure_reason_codes", [])) or "-"
-        missed_rows.append([item["benchmark_rank"], item["ticker"], _pct(item["scout_score_pct"]), item["failure_stage"].replace("_", " "), Paragraph(reason.replace("_", " ").title(), small)])
+        missed_rows.append([item["benchmark_rank"], item["ticker"], _pct(item["scout_score_pct"]), item["miss_classification"].replace("_", " "), Paragraph(reason.replace("_", " ").title(), small)])
     missed = Table(missed_rows, colWidths=[0.55*inch,0.75*inch,0.95*inch,1.85*inch,6.0*inch], repeatRows=1)
     missed.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),blue),("TEXTCOLOR",(0,0),(-1,0),colors.white),("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),("FONTSIZE",(0,0),(-1,-1),7),("GRID",(0,0),(-1,-1),0.35,colors.HexColor("#D1D5DB")),("VALIGN",(0,0),(-1,-1),"MIDDLE")]))
     story.extend([missed, Spacer(1, 8), Paragraph("Trainer boundary: diagnoses are hypotheses only. No weights, thresholds, guardrails, or Production Scout files were changed.", small)])

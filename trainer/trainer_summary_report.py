@@ -28,6 +28,10 @@ pdfmetrics.registerFont(TTFont(FONT_BOLD, "/usr/share/fonts/truetype/dejavu/Deja
 pdfmetrics.registerFontFamily(FONT, normal=FONT, bold=FONT_BOLD, italic=FONT, boldItalic=FONT_BOLD)
 
 
+def _pct(value: Any) -> str:
+    return "N/A" if value is None else f"{float(value):.2f}%"
+
+
 def _footer(canvas, doc) -> None:
     canvas.saveState()
     canvas.setFont(FONT, 8)
@@ -86,9 +90,10 @@ def generate_trainer_summary_pdf(state: dict[str, Any], output_path: Path) -> Pa
         ),
         Spacer(1, 0.18 * inch),
     ]
+    capture = agg["realized_pnl_capture_pct"]
     cards = [
-        [Paragraph("DAYS", center), Paragraph("SCOUT P&L", center), Paragraph("BENCHMARK P&L", center), Paragraph("TOP-10 CAPTURE", center)],
-        [Paragraph(f"<b>{agg['days_processed']}</b>", center), Paragraph(f"<b>${agg['scout_total_realized_pnl_usd']:,.2f}</b>", center), Paragraph(f"<b>${agg['benchmark_total_realized_pnl_usd']:,.2f}</b>", center), Paragraph(f"<b>{agg['average_top_10_capture_rate_pct']:.1f}%</b>", center)],
+        [Paragraph('<font color="#FFFFFF"><b>DAYS</b></font>', center), Paragraph('<font color="#FFFFFF"><b>QUALIFYING RETURN</b></font>', center), Paragraph('<font color="#FFFFFF"><b>MONEY CAPTURE</b></font>', center), Paragraph('<font color="#FFFFFF"><b>QUALIFYING DRAWDOWN</b></font>', center)],
+        [Paragraph(f"<b>{agg['days_processed']}</b>", center), Paragraph(f"<b>{agg['scout_cumulative_return_pct']:.2f}%</b>", center), Paragraph(f"<b>{capture:.1f}%</b>" if capture is not None else "N/A", center), Paragraph(f"<b>{agg['scout_max_drawdown_pct']:.2f}%</b>", center)],
     ]
     card_table = Table(cards, colWidths=[1.83 * inch] * 4, rowHeights=[0.3 * inch, 0.52 * inch])
     card_table.setStyle(TableStyle([
@@ -100,33 +105,51 @@ def generate_trainer_summary_pdf(state: dict[str, Any], output_path: Path) -> Pa
     ]))
     story += [card_table, Spacer(1, 0.2 * inch), Paragraph("Cumulative comparison", h2)]
     comparison = [
-        ["Measure", "Scout", "Benchmark"],
-        ["Average daily return", f"{agg['scout_average_daily_return_pct']:.3f}%", f"{agg['benchmark_average_daily_return_pct']:.3f}%"],
-        ["Total realized P&L", f"${agg['scout_total_realized_pnl_usd']:,.2f}", f"${agg['benchmark_total_realized_pnl_usd']:,.2f}"],
-        ["Daily result count", f"{agg['scout_wins']} wins / {agg['ties']} ties", f"{agg['misses']} Scout misses"],
-        ["Top-10 representation", f"{agg['average_top_10_capture_rate_pct']:.1f}%", f"Target {agg['top_10_capture_target_pct']:.0f}%"],
+        ["Measure", "Qualifying", "Exploration", "Combined", "Baseline"],
+        ["Avg daily return", f"{agg['scout_average_daily_return_pct']:.3f}%", f"{agg['exploration_average_daily_return_pct']:.3f}%", f"{agg['combined_average_daily_return_pct']:.3f}%", f"{agg['benchmark_average_daily_return_pct']:.3f}%"],
+        ["Cumulative return", f"{agg['scout_cumulative_return_pct']:.3f}%", f"{agg['exploration_cumulative_return_pct']:.3f}%", f"{agg['combined_cumulative_return_pct']:.3f}%", f"{agg['benchmark_cumulative_return_pct']:.3f}%"],
+        ["Total realized P&L", f"${agg['scout_total_realized_pnl_usd']:,.2f}", f"${agg['exploration_total_realized_pnl_usd']:,.2f}", f"${agg['combined_total_realized_pnl_usd']:,.2f}", f"${agg['benchmark_total_realized_pnl_usd']:,.2f}"],
+        ["Maximum drawdown", f"{agg['scout_max_drawdown_pct']:.3f}%", f"{agg['exploration_max_drawdown_pct']:.3f}%", f"{agg['combined_max_drawdown_pct']:.3f}%", f"{agg['benchmark_max_drawdown_pct']:.3f}%"],
+        ["Daily volatility", f"{agg['scout_daily_return_stddev_pct']:.3f}%", f"{agg['exploration_daily_return_stddev_pct']:.3f}%", f"{agg['combined_daily_return_stddev_pct']:.3f}%", f"{agg['benchmark_daily_return_stddev_pct']:.3f}%"],
+        ["Positive-day rate", f"{agg['scout_positive_day_rate_pct']:.1f}%", f"{agg['exploration_positive_day_rate_pct']:.1f}%", f"{agg['combined_positive_day_rate_pct']:.1f}%", f"{agg['benchmark_positive_day_rate_pct']:.1f}%"],
+        ["Verdict count", f"{agg['scout_wins']}W / {agg['ties']}T / {agg['misses']}M", "Not graded", "Reference only", "Random draw"],
+        ["Top-10 diagnostic", f"{agg['average_top_10_capture_rate_pct']:.1f}%", "Reported daily", "Reported daily", "No verdict effect"],
+        ["Unreachable movers", str(agg["unreachable_mover_count"]), "-", "-", f"{agg['unreachable_pct']:.1f}%"],
+        ["Execution reviews", str(agg["execution_policy_review_count"]), "Tracked separately", "Reference only", "No hypotheses"],
     ]
-    story += [_table(comparison, [2.8 * inch, 2.25 * inch, 2.25 * inch]), Spacer(1, 0.18 * inch)]
-    target_color = GREEN if agg["top_10_capture_target_met"] else RED
-    story += [Paragraph(f"<font color='{target_color.hexval()}'><b>Top-10 target {'met' if agg['top_10_capture_target_met'] else 'not yet met'}.</b></font> Evidence continues to accumulate without changing Production Scout.", body)]
+    story += [_table(comparison, [1.75 * inch, 1.38 * inch, 1.38 * inch, 1.38 * inch, 1.38 * inch], font_size=6.8), Spacer(1, 0.18 * inch)]
+    story += [Paragraph("Only QUALIFYING_THRESHOLD candidates determine Scout return, P&amp;L, win rate, and the daily WIN/TIE/MISS verdict. Exploration is simulated after qualifying positions and is reported separately; combined performance is reference-only. Top-10 representation never controls the verdict.", body)]
 
     story += [PageBreak(), Paragraph("Daily replay ledger", title), Paragraph("Every row links one frozen historical decision to its persisted outcome, benchmark, and postmortem artifacts.", body), Spacer(1, 0.16 * inch)]
-    day_rows = [["Date", "Status", "Scored", "Skipped", "Artifact directory"]]
+    day_rows = [["Date", "Partition", "Status", "Scored", "Unreachable", "Execution review"]]
     for item in state["days"]:
-        day_rows.append([item["trading_date"], item["status"], str(item["scored_ticker_count"]), str(item["skipped_ticker_count"]), item["artifact_directory"]])
-    story += [_table(day_rows, [1.05 * inch, 1.0 * inch, 0.7 * inch, 0.7 * inch, 3.85 * inch])]
+        day_rows.append([item["trading_date"], item["partition"], item["status"], str(item["scored_ticker_count"]), f"{item['unreachable_mover_count']} ({item['unreachable_pct']:.1f}%)", str(item["execution_policy_review_count"])])
+    story += [_table(day_rows, [0.95 * inch, 1.15 * inch, 0.85 * inch, 0.75 * inch, 1.65 * inch, 1.95 * inch], font_size=7.2)]
     if state["failed_dates"]:
         story += [Spacer(1, 0.18 * inch), Paragraph("Failures requiring retry", h2)]
         for trading_date, error in sorted(state["failed_dates"].items()):
             story.append(Paragraph(f"<b>{trading_date}</b>: {error}", small))
 
-    story += [PageBreak(), Paragraph("Cumulative hypotheses", title), Paragraph("Counts are independent date/ticker occurrences. Thirty observations unlock validation only; they do not authorize a model change.", body), Spacer(1, 0.16 * inch)]
-    hypothesis_rows = [["Hypothesis", "Occurrences", "Status", "Production"]]
+    story += [PageBreak(), Paragraph("Cumulative hypotheses", title), Paragraph("Only development date/ticker occurrences train a hypothesis. Thirty development observations unlock validation only; they do not authorize a model change.", body), Spacer(1, 0.16 * inch)]
+    hypothesis_rows = [["Hypothesis", "Dev evidence", "Status", "Production"]]
     for item in state["hypotheses"]:
         hypothesis_rows.append([Paragraph(item["hypothesis"], small), f"{item['independent_occurrence_count']} / {item['minimum_required_occurrences']}", item["status"], "LOCKED"])
     if len(hypothesis_rows) == 1:
         hypothesis_rows.append(["No missed-opportunity hypotheses recorded yet.", "0 / 30", "COLLECTING_EVIDENCE", "LOCKED"])
-    story += [_table(hypothesis_rows, [3.6 * inch, 1.0 * inch, 1.55 * inch, 1.15 * inch], font_size=7.5), Spacer(1, 0.22 * inch), Paragraph("Safety boundary", h2)]
+    story += [_table(hypothesis_rows, [3.6 * inch, 1.0 * inch, 1.55 * inch, 1.15 * inch], font_size=7.5), Spacer(1, 0.18 * inch), Paragraph("Candidate threshold reviews", h2)]
+    threshold_rows = [["Metric", "0/1 frequency", "Misses", "Observed raw-value range"]]
+    for item in state["candidate_threshold_reviews"]:
+        raw_range = f"{item['observed_raw_value_min']} to {item['observed_raw_value_max']}"
+        threshold_rows.append([item["metric_id"], str(item["low_score_frequency"]), str(item["missed_ticker_count"]), Paragraph(raw_range, small)])
+    if len(threshold_rows) == 1:
+        threshold_rows.append(["No visible low-score evidence", "0", "0", "-"])
+    story += [_table(threshold_rows, [2.0 * inch, 1.2 * inch, 0.8 * inch, 3.3 * inch], font_size=7.2), Spacer(1, 0.18 * inch), Paragraph("Execution-policy review", h2)]
+    execution_rows = [["Date", "Ticker", "Rank", "Realized", "Capturable", "Exit"]]
+    for item in state["execution_policy_review"]:
+        execution_rows.append([item["trading_date"], item["ticker"], str(item["benchmark_rank"]), _pct(item["realized_return_pct"]), _pct(item["maximum_capturable_move_pct"]), item["exit_reason"] or "-"])
+    if len(execution_rows) == 1:
+        execution_rows.append(["No execution-policy losses", "-", "-", "-", "-", "-"])
+    story += [_table(execution_rows, [1.15 * inch, 0.85 * inch, 0.55 * inch, 1.1 * inch, 1.1 * inch, 2.55 * inch], font_size=7.2), Spacer(1, 0.22 * inch), Paragraph("Safety boundary", h2)]
     controls = state["controls"]
     safeguards = [
         ["Control", "Enforced"],
@@ -138,5 +161,31 @@ def generate_trainer_summary_pdf(state: dict[str, Any], output_path: Path) -> Pa
         ["Final promotion", "Manual approval required"],
     ]
     story += [_table(safeguards, [3.65 * inch, 3.65 * inch])]
+
+    story += [PageBreak(), Paragraph("Cross-day feature evidence", title), Paragraph("D / V / H separates development, validation, and holdout observations. Only development evidence advances a feature toward validation; holdout data remains isolated unless explicitly authorized.", body), Spacer(1, 0.16 * inch)]
+    feature_rows = [["Feature", "D / V / H", "Dev observed", "Dev positive", "Avg dev pts", "Status"]]
+    for item in state["feature_evidence"]:
+        average = "MISSING" if item["average_points"] is None else f"{item['average_points']:.2f}"
+        partitions = (
+            f"{item['independent_occurrence_count']} / "
+            f"{item['validation_occurrence_count']} / "
+            f"{item['holdout_occurrence_count']}"
+        )
+        feature_rows.append([item["metric_id"], partitions, str(item["observed_count"]), str(item["positive_count"]), average, item["status"]])
+    if len(feature_rows) == 1:
+        feature_rows.append(["No shadow evidence recorded", "0", "0", "0", "MISSING", "COLLECTING_EVIDENCE"])
+    story += [_table(feature_rows, [1.75 * inch, 0.9 * inch, 0.9 * inch, 0.85 * inch, 0.85 * inch, 2.05 * inch], font_size=7.2), Spacer(1, 0.2 * inch), Paragraph("Dataset isolation", h2)]
+    policy = state["dataset_policy"]
+    partition_counts = {
+        name: sum(value == name for value in policy["date_partitions"].values())
+        for name in ("DEVELOPMENT", "VALIDATION", "HOLDOUT")
+    }
+    isolation = [
+        ["Partition", "Dates", "Access"],
+        ["Development", str(partition_counts["DEVELOPMENT"]), "Enabled" if "DEVELOPMENT" in policy["allowed_partitions"] else "Locked"],
+        ["Validation", str(partition_counts["VALIDATION"]), "Enabled" if "VALIDATION" in policy["allowed_partitions"] else "Locked"],
+        ["Holdout", str(partition_counts["HOLDOUT"]), "Explicitly unlocked" if policy["holdout_unlocked"] else "Locked"],
+    ]
+    story += [_table(isolation, [2.5 * inch, 1.2 * inch, 3.6 * inch])]
     doc.build(story)
     return output_path

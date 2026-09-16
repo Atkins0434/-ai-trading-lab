@@ -16,6 +16,11 @@
     "execution_policy_version",
     "feature_registry_version",
     "data_source",
+    "universe_mode",
+    "universe_manifest_hash",
+    "universe_coverage",
+    "research_evidence",
+    "promotion_eligible",
     "securities"
   ],
 
@@ -70,6 +75,12 @@
         }
       }
     },
+
+    "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
+    "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
+    "research_evidence": {"type": "boolean"},
+    "promotion_eligible": {"type": "boolean"},
 
     "securities": {
       "type": "array",
@@ -152,6 +163,10 @@
             },
 
             "relative_volume": {
+              "$ref": "#/$defs/marketObservation"
+            },
+
+            "padded_bar_count": {
               "$ref": "#/$defs/marketObservation"
             },
 

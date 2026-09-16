@@ -1,0 +1,20 @@
+{
+  "coverage_reasons": [],
+  "coverage_status": "complete",
+  "eligible_symbol_count": 1,
+  "excluded_symbol_count": 0,
+  "information_cutoff": "2024-06-10T07:00:00-04:00",
+  "manifest_hash": "sha256:5bcf5bc8f99eaf4ae0d59708f414ee5ba96998a9ceb11a60a1f646cfa3ad4a07",
+  "promotion_eligible": true,
+  "replay_id": "sample-research-2024-06-10",
+  "research_evidence": true,
+  "ruleset": {"name": "us_listed_common_equity", "version": "1.0"},
+  "securities": [
+    {"delisting_date": null, "inclusion": true, "listing_date": "2010-01-01", "listing_venue": "XNYS", "reason_codes": ["ELIGIBLE"], "security_type": "CS", "stable_security_id": "FIGI-DELISTED-EXAMPLE", "ticker": "OLDCO"}
+  ],
+  "source": {"feed_version": "sample_v1", "provider": "SYNTHETIC_SECURITY_MASTER", "query_parameters": {"active": "all", "date": "2024-06-10"}, "retrieved_at": "2026-09-16T00:00:00+00:00"},
+  "timezone": "America/New_York",
+  "trading_date": "2024-06-10",
+  "universe_mode": "historical_research",
+  "version": "daily_universe_manifest_v1.0"
+}
