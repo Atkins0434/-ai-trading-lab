@@ -3,6 +3,21 @@
 PR #13 accelerates historical research replays. It does not add brokerage,
 paper-order, or live-order capability.
 
+For Stocks Developer bulk history, prefer the flat-file driver. It downloads
+each market-wide daily file once and reuses the verified local copy:
+
+```bash
+python -m trainer.flatfile_replay \
+  --start 2018-01-02 \
+  --end 2018-01-31
+```
+
+The REST accelerator remains supported for fixtures, capability checks, and
+targeted investigations. It is no longer the preferred source of minute bars
+for broad historical replay. Use `python -m trainer.flatfile_coverage --start
+2018-01-02 --end 2018-01-31` to list locally present, missing, and corrupt daily
+files without contacting S3.
+
 ## Execution model
 
 The command accepts either explicit sessions or an inclusive date range:

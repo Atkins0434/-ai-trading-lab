@@ -90,14 +90,34 @@ interval reconstruction relies on an experimental ticker-events endpoint.
 Ticker Overview also does not provide a safe filing-availability timestamp for
 derived fundamentals.
 
-Consequently the Massive adapter declares those capabilities unavailable. A
-`historical_research` run writes an `incomplete` manifest and an `UNSUPPORTED`
-batch without creating Scout performance, benchmark, Trainer, or promotion
-evidence. A provider error behaves the same way. There is no fallback to the
-current active list or the static CI list.
+Consequently the legacy REST-only universe adapter declares those capabilities
+unavailable. A REST `historical_research` run writes an `incomplete` manifest
+and an `UNSUPPORTED` batch without creating Scout performance, benchmark,
+Trainer, or promotion evidence. A provider error behaves the same way. There
+is no fallback to the current active list or the static CI list.
 
 Provider plan depth is a separate constraint: the configured Massive Developer
 plan exposes ten years of history and flat files. Those capabilities do not by
 themselves resolve the availability-time and ticker-history proof gaps above.
 Every universe and replay manifest records the active plan so evidence cannot
 be confused with an earlier free-plan run.
+
+The flat-file replay path closes the price-history scaling gap and can derive
+market capitalization from shares outstanding and the prior session's
+`day_aggs_v1` close without changing the cutoff. For each date it requests the
+Massive reference ticker list with `date=D&active=true`, ignores present-day
+active state, and persists the result through the same immutable daily manifest
+and hash controls. Exchange, security-type, shell, unit, warrant, and
+SPAC-suffix exclusions are versioned in `config/universe.json`.
+
+Massive documents an important availability caveat for Ticker Overview: a
+query dated at a filing's period-of-report date can include values from an SEC
+filing submitted later. Therefore a dated response alone is not proof that its
+shares-outstanding value was knowable at the replay cutoff. The builder accepts
+an explicit normalized `shares_outstanding_available_at` value from a provider
+adapter, but the raw Massive response does not currently supply that proof.
+Without it, the manifest is incomplete and the replay stops before Scout. It
+never relabels a retrospective fundamental value as point-in-time evidence.
+Missing reference metadata, stable identity, shell status, shares availability,
+or prior close likewise fails the daily evidence gate rather than being filled
+from current data.

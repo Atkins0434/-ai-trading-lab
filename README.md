@@ -109,6 +109,50 @@ Passing on a recent day proves the adapter and premarket feed shape. The
 Developer plan records ten years of history and flat-file access. Point-in-time
 universe proof remains a separate provider-capability gate.
 
+## Massive flat-file historical replay
+
+Bulk replay uses Massive's S3-compatible flat files instead of requesting
+minute aggregates one ticker at a time. Configure the REST credential used for
+date-scoped reference data separately from the S3 credentials used for files:
+
+```text
+MASSIVE_API_KEY=...
+MASSIVE_S3_ACCESS_KEY_ID=...
+MASSIVE_S3_SECRET_ACCESS_KEY=...
+```
+
+The loader lists each dataset's year/month prefix and resolves the dated file
+from the returned objects. It never assumes a fixed daily object filename.
+Verified files are cached below `data/flatfiles/`, excluded from Git, and reused
+when their S3 size and local checksum still match.
+
+Run a resumable replay:
+
+```bash
+python -m trainer.flatfile_replay \
+  --start 2018-01-02 \
+  --end 2018-01-31
+```
+
+Report local coverage without downloading:
+
+```bash
+python -m trainer.flatfile_coverage \
+  --start 2018-01-02 \
+  --end 2018-01-31
+```
+
+The point-in-time universe still starts with Massive's date-scoped reference
+endpoint. Market capitalization is recomputed from shares outstanding and the
+prior session close in `day_aggs_v1`; no present-day active list or current
+market capitalization is substituted. Because Massive may associate SEC values
+with the filing's earlier report-period date, shares outstanding must also carry
+an independently proven availability timestamp. Raw responses currently lack
+that proof, so those dates fail closed before Scout instead of becoming biased
+research evidence. Each immutable manifest records this status, while the
+flat-file replay manifest records dataset keys, byte sizes, SHA-256 checksums,
+universe sizes, and padded-bar counts.
+
 ## Research Scout Alpha
 
 Research Scout Alpha is isolated from Production Scout. It scores only the

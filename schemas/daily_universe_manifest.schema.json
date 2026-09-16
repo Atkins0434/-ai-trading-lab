@@ -46,6 +46,13 @@
         "security_type": {"type": "string"},
         "listing_date": {"type": ["string", "null"], "format": "date"},
         "delisting_date": {"type": ["string", "null"], "format": "date"},
+        "reference_data_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
+        "market_cap_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
+        "shares_outstanding": {"type": ["number", "null"], "minimum": 0},
+        "shares_outstanding_available_at": {"type": ["string", "null"], "format": "date-time"},
+        "prior_close": {"type": ["number", "null"], "minimum": 0},
+        "prior_close_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
+        "market_cap_usd": {"type": ["number", "null"], "minimum": 0},
         "inclusion": {"type": "boolean"},
         "reason_codes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}
       }
