@@ -1,7 +1,7 @@
 name: Multi-Day Research Trainer
 
 concurrency:
-  group: massive-provider-${{ github.repository }}
+  group: multi-day-trainer-${{ github.repository }}
   cancel-in-progress: false
 
 on:

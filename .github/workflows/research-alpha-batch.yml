@@ -1,7 +1,7 @@
 name: Research Alpha Universe-Gated Replay
 
 concurrency:
-  group: massive-provider-${{ github.repository }}
+  group: research-alpha-${{ github.repository }}
   cancel-in-progress: false
 
 on:

@@ -1,7 +1,7 @@
 name: Massive Universe Collector Check
 
 concurrency:
-  group: massive-provider-${{ github.repository }}
+  group: massive-universe-${{ github.repository }}
   cancel-in-progress: false
 
 on:

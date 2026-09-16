@@ -7,12 +7,12 @@ from trainer.rate_control import AdaptiveRateLimiter, load_massive_plan
 
 
 ROOT = Path(__file__).resolve().parent.parent
-MASSIVE_WORKFLOWS = (
-    "massive-smoke.yml",
-    "massive-universe-smoke.yml",
-    "research-alpha-batch.yml",
-    "multi-day-trainer.yml",
-)
+MASSIVE_WORKFLOWS = {
+    "massive-smoke.yml": "massive-capability-${{ github.repository }}",
+    "massive-universe-smoke.yml": "massive-universe-${{ github.repository }}",
+    "research-alpha-batch.yml": "research-alpha-${{ github.repository }}",
+    "multi-day-trainer.yml": "multi-day-trainer-${{ github.repository }}",
+}
 
 
 def test_active_massive_plan_matches_developer_contract():
@@ -54,11 +54,11 @@ def test_finite_plan_config_preserves_request_pacing(tmp_path: Path):
     assert slept == [12.0]
 
 
-def test_massive_workflows_share_one_non_overlapping_group_without_sleeps():
-    for filename in MASSIVE_WORKFLOWS:
+def test_massive_workflows_use_distinct_non_overlapping_groups_without_sleeps():
+    for filename, concurrency_group in MASSIVE_WORKFLOWS.items():
         workflow = (ROOT / ".github" / "workflows" / filename).read_text(
             encoding="utf-8"
         )
-        assert "group: massive-provider-${{ github.repository }}" in workflow
+        assert f"group: {concurrency_group}" in workflow
         assert "cancel-in-progress: false" in workflow
         assert "sleep " not in workflow
