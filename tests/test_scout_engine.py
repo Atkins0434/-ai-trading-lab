@@ -1,9 +1,17 @@
+from copy import deepcopy
 from pathlib import Path
+
+import pytest
 
 from trainer.replay_engine import load_historical_snapshot
 from trainer.scout_engine import (
+    evaluate_order_book_depth_guardrail,
+    evaluate_spread_guardrail,
+    load_feature_registry,
+    load_scout_config,
     minimum_points_for_threshold,
     run_scout,
+    score_security,
 )
 
 
@@ -119,3 +127,69 @@ def test_only_selected_candidates_receive_rank():
     assert candidates["WIDE"]["rank"] is None
     assert candidates["THIN"]["rank"] is None
     assert candidates["MEH"]["rank"] is None
+
+
+@pytest.mark.parametrize(
+    ("policy", "expected_action", "expected_passed"),
+    [
+        ("NOT_EVALUATED", "NOT_EVALUATED", None),
+        ("REJECT", "REJECT", False),
+    ],
+)
+def test_missing_spread_quotes_follow_configured_policy(
+    policy, expected_action, expected_passed
+):
+    config = load_scout_config()
+    config["spread"]["missing_quotes_policy"] = policy
+
+    result = evaluate_spread_guardrail({}, config)
+
+    assert result["action"] == expected_action
+    assert result["passed"] is expected_passed
+    assert result["reason_code"] == "SPREAD_QUOTES_UNAVAILABLE"
+
+
+@pytest.mark.parametrize(
+    ("policy", "expected_action", "expected_passed"),
+    [
+        ("NOT_EVALUATED", "NOT_EVALUATED", None),
+        ("REJECT", "REJECT", False),
+    ],
+)
+def test_missing_order_book_depth_follows_configured_policy(
+    policy, expected_action, expected_passed
+):
+    config = load_scout_config()
+    config["order_book_depth"]["missing_depth_policy"] = policy
+
+    result = evaluate_order_book_depth_guardrail({}, config)
+
+    assert result["action"] == expected_action
+    assert result["passed"] is expected_passed
+    assert result["reason_code"] == "ORDER_BOOK_DEPTH_UNAVAILABLE"
+
+
+def test_passing_candidate_with_only_missing_market_guardrails_is_selected():
+    snapshot = load_historical_snapshot(FIXTURE)
+    security = deepcopy(snapshot["securities"][0])
+    security["market_data"].pop("bid", None)
+    security["market_data"].pop("ask", None)
+
+    candidate = score_security(
+        security,
+        load_scout_config(),
+        threshold_pct=0,
+        timestamp=snapshot["freeze_timestamp"],
+        registry=load_feature_registry(),
+    )
+
+    assert candidate["selected"] is True
+    assert candidate["guardrails"]["spread"]["action"] == "NOT_EVALUATED"
+    assert candidate["guardrails"]["spread"]["passed"] is None
+    assert candidate["guardrails"]["order_book_depth"]["action"] == (
+        "NOT_EVALUATED"
+    )
+    assert "SPREAD_QUOTES_UNAVAILABLE" in candidate["reason_codes"]
+    assert "ORDER_BOOK_DEPTH_UNAVAILABLE" in candidate["reason_codes"]
+    assert "SPREAD_QUOTES_UNAVAILABLE" not in candidate["rejection_reasons"]
+    assert "ORDER_BOOK_DEPTH_UNAVAILABLE" not in candidate["rejection_reasons"]

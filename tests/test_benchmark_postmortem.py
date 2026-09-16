@@ -225,6 +225,23 @@ def test_visible_guardrail_reject_classification():
     )
 
 
+def test_not_evaluated_guardrail_is_not_classified_as_rejection():
+    candidate = _candidate(total_score=35, guardrail_action="NOT_EVALUATED")
+    candidate["guardrails"]["historical_spread"] = {
+        "passed": None,
+        "action": "NOT_EVALUATED",
+        "observed_value": None,
+        "threshold": 0.4,
+        "reason_code": "SPREAD_QUOTES_UNAVAILABLE",
+    }
+
+    result = _postmortem(candidate=candidate)
+
+    miss = result["missed_opportunities"][0]
+    assert miss["miss_classification"] == "UNCLASSIFIED"
+    assert "SPREAD_QUOTES_UNAVAILABLE" not in miss["failure_reason_codes"]
+
+
 def test_unclassifiable_visible_miss_is_persisted_without_hypothesis():
     candidate = _candidate(total_score=35)
     candidate["rejection_reasons"] = ["UPSTREAM_SELECTION_STATE_MISMATCH"]

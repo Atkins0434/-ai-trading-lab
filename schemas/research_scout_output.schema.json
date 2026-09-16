@@ -73,7 +73,7 @@
       "additionalProperties": false,
       "required": ["passed", "action", "observed_value", "threshold", "reason_code"],
       "properties": {
-        "passed": {"type": "boolean"},
+        "passed": {"type": ["boolean", "null"]},
         "action": {"enum": ["PASS", "REJECT", "NOT_EVALUATED"]},
         "observed_value": {},
         "threshold": {},

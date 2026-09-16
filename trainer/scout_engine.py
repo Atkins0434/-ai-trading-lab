@@ -125,6 +125,27 @@ def calculate_spread_pct(
     return ((ask - bid) / midpoint) * 100
 
 
+def _missing_market_data_guardrail(
+    policy: str,
+    reason_code: str,
+    threshold: float | str | None,
+) -> dict[str, Any]:
+    """Return the configured result for an unavailable market-data check."""
+    if policy not in {"NOT_EVALUATED", "REJECT"}:
+        raise ScoutError(
+            "Missing market-data policy must be NOT_EVALUATED or REJECT."
+        )
+
+    rejected = policy == "REJECT"
+    return {
+        "passed": False if rejected else None,
+        "action": "REJECT" if rejected else "NOT_EVALUATED",
+        "observed_value": None,
+        "threshold": threshold,
+        "reason_code": reason_code,
+    }
+
+
 def score_relative_volume(relative_volume: float | None) -> int:
     """
     Score relative volume on the Scout 0-4 scale.
@@ -237,13 +258,20 @@ def evaluate_spread_guardrail(
     config: dict[str, Any],
 ) -> dict[str, Any]:
     """Apply Scout's 0.20% penalty and 0.40% rejection rules."""
-    spread_pct = calculate_spread_pct(
-        observed_value(market_data.get("bid")),
-        observed_value(market_data.get("ask")),
-    )
+    rules = config["spread"]
+    bid = observed_value(market_data.get("bid"))
+    ask = observed_value(market_data.get("ask"))
+    reject_at = rules["hard_reject_pct"]
 
-    penalty_start = config["spread"]["penalty_starts_pct"]
-    reject_at = config["spread"]["hard_reject_pct"]
+    if bid is None or ask is None:
+        return _missing_market_data_guardrail(
+            rules.get("missing_quotes_policy", "NOT_EVALUATED"),
+            "SPREAD_QUOTES_UNAVAILABLE",
+            reject_at,
+        )
+
+    spread_pct = calculate_spread_pct(bid, ask)
+    penalty_start = rules["penalty_starts_pct"]
 
     if spread_pct is None:
         return {
@@ -281,6 +309,51 @@ def evaluate_spread_guardrail(
     }
 
 
+def evaluate_order_book_depth_guardrail(
+    market_data: dict[str, Any],
+    config: dict[str, Any],
+) -> dict[str, Any]:
+    """Evaluate the minimum required order-book depth when it is available."""
+    rules = config["order_book_depth"]
+    reject_below = rules["hard_reject_below_multiple"]
+    depth_multiple = observed_value(
+        market_data.get("order_book_depth_multiple")
+    )
+
+    if depth_multiple is None:
+        return _missing_market_data_guardrail(
+            rules.get("missing_depth_policy", "NOT_EVALUATED"),
+            "ORDER_BOOK_DEPTH_UNAVAILABLE",
+            reject_below,
+        )
+
+    if (
+        not isinstance(depth_multiple, (int, float))
+        or isinstance(depth_multiple, bool)
+        or depth_multiple < 0
+    ):
+        return {
+            "passed": False,
+            "action": "REJECT",
+            "observed_value": depth_multiple,
+            "threshold": reject_below,
+            "reason_code": "ORDER_BOOK_DEPTH_INVALID",
+        }
+
+    passed = depth_multiple >= reject_below
+    return {
+        "passed": passed,
+        "action": "PASS" if passed else "REJECT",
+        "observed_value": depth_multiple,
+        "threshold": reject_below,
+        "reason_code": (
+            "ORDER_BOOK_DEPTH_OK"
+            if passed
+            else "ORDER_BOOK_DEPTH_HARD_REJECT"
+        ),
+    }
+
+
 def score_security(
     security: dict[str, Any],
     config: dict[str, Any],
@@ -301,6 +374,10 @@ def score_security(
             config,
         ),
         "spread": evaluate_spread_guardrail(
+            market_data,
+            config,
+        ),
+        "order_book_depth": evaluate_order_book_depth_guardrail(
             market_data,
             config,
         ),

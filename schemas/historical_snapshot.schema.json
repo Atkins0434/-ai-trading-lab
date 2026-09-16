@@ -150,6 +150,10 @@
               "$ref": "#/$defs/marketObservation"
             },
 
+            "order_book_depth_multiple": {
+              "$ref": "#/$defs/marketObservation"
+            },
+
             "premarket_volume": {
               "$ref": "#/$defs/marketObservation"
             },

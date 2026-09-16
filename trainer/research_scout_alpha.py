@@ -6,7 +6,13 @@ from typing import Any
 
 from trainer.price_volume import PriceVolumeError, calculate_price_volume_metrics
 from trainer.replay_engine import ReplayError, validate_freeze_timestamp, validate_point_in_time_inputs
-from trainer.scout_engine import evaluate_liquidity_guardrail, observed_component, score_relative_volume
+from trainer.scout_engine import (
+    evaluate_liquidity_guardrail,
+    evaluate_order_book_depth_guardrail,
+    evaluate_spread_guardrail,
+    observed_component,
+    score_relative_volume,
+)
 from trainer.validate_contracts import ContractError, load_json, validate_contract
 
 
@@ -48,16 +54,6 @@ def _missing_component() -> dict[str, Any]:
     }
 
 
-def _not_evaluated(reason_code: str) -> dict[str, Any]:
-    return {
-        "passed": False,
-        "action": "NOT_EVALUATED",
-        "observed_value": None,
-        "threshold": None,
-        "reason_code": reason_code,
-    }
-
-
 def _score_security(
     security: dict[str, Any],
     config: dict[str, Any],
@@ -96,12 +92,17 @@ def _score_security(
     liquidity = evaluate_liquidity_guardrail(market_data, config)
     guardrails = {
         "aggregate_liquidity": liquidity,
-        "historical_spread": _not_evaluated("MASSIVE_FREE_HAS_NO_HISTORICAL_QUOTES"),
-        "order_book_depth": _not_evaluated("MASSIVE_FREE_HAS_NO_ORDER_BOOK_DEPTH"),
+        "historical_spread": evaluate_spread_guardrail(market_data, config),
+        "order_book_depth": evaluate_order_book_depth_guardrail(
+            market_data, config
+        ),
     }
     rejection_reasons: list[str] = []
-    if liquidity["action"] == "REJECT":
-        rejection_reasons.append(liquidity["reason_code"])
+    guardrail_reason_codes: list[str] = []
+    for guardrail in guardrails.values():
+        guardrail_reason_codes.append(guardrail["reason_code"])
+        if guardrail["action"] == "REJECT":
+            rejection_reasons.append(guardrail["reason_code"])
     if not security["eligible"]:
         rejection_reasons.extend(security.get("eligibility_reasons", ["UNIVERSE_INELIGIBLE"]))
 
@@ -109,7 +110,7 @@ def _score_security(
     threshold_points = ceil(threshold_pct / 100 * MAXIMUM_POINTS)
     research_eligible = security["eligible"] and not rejection_reasons
     research_selected = research_eligible and total_score >= threshold_points
-    reason_codes = [
+    reason_codes = guardrail_reason_codes + [
         "RESEARCH_ALPHA_SELECTED" if research_selected else "RESEARCH_ALPHA_NOT_SELECTED",
         "EXECUTION_DISABLED_RESEARCH_ONLY",
     ]
@@ -131,7 +132,7 @@ def _score_security(
         "threshold_points": threshold_points,
         "component_scores": component_scores,
         "guardrails": guardrails,
-        "reason_codes": reason_codes,
+        "reason_codes": list(dict.fromkeys(reason_codes)),
         "rejection_reasons": list(dict.fromkeys(rejection_reasons)),
         "unavailable_execution_checks": config["unavailable_execution_checks"],
     }
@@ -174,10 +175,13 @@ def run_research_scout_alpha(
     for candidate in exploration_pool:
         candidate["research_selected"] = True
         candidate["selection_basis"] = "EXPLORATION_TOP_K"
-        candidate["reason_codes"] = [
-            "RESEARCH_ALPHA_EXPLORATION_SELECTED",
-            "EXECUTION_DISABLED_RESEARCH_ONLY",
-        ]
+        candidate["reason_codes"] = list(dict.fromkeys(
+            [
+                reason for reason in candidate["reason_codes"]
+                if reason != "RESEARCH_ALPHA_NOT_SELECTED"
+            ]
+            + ["RESEARCH_ALPHA_EXPLORATION_SELECTED"]
+        ))
         candidate["rejection_reasons"] = [
             reason for reason in candidate["rejection_reasons"]
             if reason != "BELOW_RESEARCH_THRESHOLD"

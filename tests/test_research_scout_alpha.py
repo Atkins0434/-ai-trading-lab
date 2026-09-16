@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
+import trainer.research_scout_alpha as research_scout_alpha
 from trainer.massive_alpha_snapshot import build_massive_alpha_snapshot, regularize_last_premarket_hour
 from trainer.research_scout_alpha import run_research_scout_alpha
 
@@ -93,6 +95,43 @@ def test_alpha_is_48_points_and_never_execution_eligible():
     assert candidate["research_selected"] is True
     assert candidate["execution_eligible"] is False
     assert "HISTORICAL_SPREAD" in candidate["unavailable_execution_checks"]
+    assert candidate["guardrails"]["historical_spread"] == {
+        "passed": None,
+        "action": "NOT_EVALUATED",
+        "observed_value": None,
+        "threshold": 0.4,
+        "reason_code": "SPREAD_QUOTES_UNAVAILABLE",
+    }
+    assert candidate["guardrails"]["order_book_depth"]["passed"] is None
+    assert "SPREAD_QUOTES_UNAVAILABLE" in candidate["reason_codes"]
+    assert "ORDER_BOOK_DEPTH_UNAVAILABLE" in candidate["reason_codes"]
+
+
+def test_alpha_can_restore_missing_market_data_rejection(monkeypatch):
+    daily, intraday = alpha_inputs()
+    snapshot = build_massive_alpha_snapshot(
+        "TEST", "2026-09-14", daily, intraday, exchange="NASDAQ"
+    )
+    config, registry = research_scout_alpha._load_contract()
+    config = deepcopy(config)
+    config["spread"]["missing_quotes_policy"] = "REJECT"
+    config["order_book_depth"]["missing_depth_policy"] = "REJECT"
+    monkeypatch.setattr(
+        research_scout_alpha,
+        "_load_contract",
+        lambda: (config, registry),
+    )
+
+    candidate = run_research_scout_alpha(
+        snapshot, threshold_pct=0
+    )["candidates"][0]
+
+    assert candidate["research_selected"] is False
+    assert candidate["research_eligible"] is False
+    assert candidate["guardrails"]["historical_spread"]["action"] == "REJECT"
+    assert candidate["guardrails"]["order_book_depth"]["action"] == "REJECT"
+    assert "SPREAD_QUOTES_UNAVAILABLE" in candidate["rejection_reasons"]
+    assert "ORDER_BOOK_DEPTH_UNAVAILABLE" in candidate["rejection_reasons"]
 
 
 def test_pipeline_validation_symbol_can_be_scored_without_becoming_candidate():
