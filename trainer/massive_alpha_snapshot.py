@@ -144,6 +144,10 @@ def build_massive_alpha_snapshot(
     )
     relative_volume = premarket_volume / average_premarket_volume if average_premarket_volume else 0.0
     bars = regularize_last_premarket_hour(intraday_records, trading_date)
+    padded_bar_count = sum(
+        bar["source"] == "MASSIVE_ZERO_VOLUME_CARRY_FORWARD"
+        for bar in bars
+    )
     as_of = bars[-1]["timestamp"]
     prior_close_as_of = _market_datetime(previous_day, time(16, 0)).isoformat()
 
@@ -177,6 +181,11 @@ def build_massive_alpha_snapshot(
                 "premarket_dollar_volume": _observed(premarket_dollar_volume, as_of, "sum(typical_price*v)"),
                 "average_daily_dollar_volume": _observed(average_daily_dollar_volume, prior_close_as_of, "mean(c*v),20_sessions"),
                 "relative_volume": _observed(relative_volume, as_of, "premarket_volume/20_session_mean"),
+                "padded_bar_count": _observed(
+                    padded_bar_count,
+                    as_of,
+                    "count(MASSIVE_ZERO_VOLUME_CARRY_FORWARD),06:00-07:00ET",
+                ),
                 "previous_close": _observed(previous_close, prior_close_as_of, "c"),
                 "average_daily_range_pct": _observed(average_daily_range_pct, prior_close_as_of, "mean((h-l)/c),20_sessions"),
             },

@@ -54,6 +54,30 @@ def test_regularization_marks_zero_volume_carry_forward():
     assert bars[5]["source"] == "MASSIVE_ZERO_VOLUME_CARRY_FORWARD"
 
 
+def test_snapshot_records_regularization_padding_as_frozen_observation():
+    daily, intraday = alpha_inputs()
+    target = date(2026, 9, 14)
+    thinned = []
+    for record in intraday:
+        observed = datetime.fromtimestamp(record["t"] / 1000, tz=ET)
+        if (
+            observed.date() == target
+            and time(6, 0) <= observed.time() < time(6, 30)
+        ):
+            continue
+        thinned.append(record)
+
+    snapshot = build_massive_alpha_snapshot(
+        "TEST", "2026-09-14", daily, thinned, exchange="NASDAQ"
+    )
+    security = snapshot["securities"][0]
+    padding = security["market_data"]["padded_bar_count"]
+
+    assert len(security["premarket_bars"]) == 60
+    assert padding["value"] == 30
+    assert padding["as_of_timestamp"] == security["premarket_bars"][-1]["timestamp"]
+
+
 def test_alpha_is_48_points_and_never_execution_eligible():
     daily, intraday = alpha_inputs()
     snapshot = build_massive_alpha_snapshot(

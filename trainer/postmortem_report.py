@@ -53,8 +53,9 @@ def generate_postmortem_pdf(
         ["Performance", "Scout", "Random baseline"],
         ["Selected / draw size", scout["candidate_count"], baselines["random_draw_size"]],
         ["Realized P&L", f"${scout['realized_pnl_usd']:.2f}", f"${bench['realized_pnl_usd']:.2f}"],
-        ["Net realized return", _pct(scout["realized_return_pct"]), _pct(bench["realized_return_pct"])],
-        ["Eligible-ticker mean", "-", _pct(baselines["eligible_ticker_mean_realized_return_pct"])],
+        ["Gross realized return", _pct(scout["realized_return_pct"]), _pct(bench["realized_return_pct"])],
+        ["Eligible basket expected", "-", _pct(baselines["eligible_basket_expected_return_pct"])],
+        ["Eligible single-position mean", "-", _pct(baselines["eligible_single_position_mean_return_pct"])],
         ["Random draws / seed", "-", f"{baselines['random_draw_count']} / {baselines['random_seed']}"],
     ]
     comparison_table = Table(comparison_rows, colWidths=[4.1*inch,3.0*inch,3.0*inch], repeatRows=1)
@@ -73,7 +74,7 @@ def generate_postmortem_pdf(
         comparison_table,
         Spacer(1, 8),
         Paragraph(
-            "WIN/TIE/MISS compares Scout net return with 200 deterministic random same-universe baskets under the same execution policy. Top-10 capture is diagnostic only.",
+            "WIN/TIE/MISS compares Scout gross return with 200 deterministic random same-universe baskets under the same execution policy. Top-10 capture is diagnostic only.",
             small,
         ),
         PageBreak(),

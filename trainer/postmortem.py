@@ -17,6 +17,7 @@ MISS_CLASSIFICATIONS = {
     "VISIBLE_SCORED_LOW",
     "VISIBLE_GUARDRAIL_REJECT",
     "PICKED_EXECUTION_LOSS",
+    "UNCLASSIFIED",
 }
 
 
@@ -57,9 +58,21 @@ def _is_invisible_at_freeze(
     security: dict[str, Any] | None,
     candidate: dict[str, Any],
 ) -> tuple[bool, list[str]]:
-    bar_count = len((security or {}).get("premarket_bars", []))
-    if bar_count < 60:
-        return True, ["FEWER_THAN_60_PREMARKET_BARS"]
+    # A scored Alpha candidate cannot carry fewer than 60 bars:
+    # calculate_price_volume_metrics rejects it, and the Massive snapshot
+    # builder regularizes the final premarket hour to exactly 60. Sparse input
+    # therefore remains observable through the explicit padding count instead
+    # of an unreachable list-length check.
+    padded_observation = (
+        (security or {}).get("market_data", {}).get("padded_bar_count", {})
+    )
+    padded_bar_count = padded_observation.get("value")
+    if (
+        isinstance(padded_bar_count, (int, float))
+        and not isinstance(padded_bar_count, bool)
+        and float(padded_bar_count) >= 30
+    ):
+        return True, ["AT_LEAST_30_PADDED_PREMARKET_BARS"]
     relative_volume = _raw_metric(candidate, "relative_volume")
     gap_pct = _raw_metric(candidate, "premarket_gap_strength")
     if (
@@ -129,9 +142,11 @@ def _classify_miss(
     guardrail_reasons = _guardrail_reasons(candidate)
     if guardrail_reasons:
         return "VISIBLE_GUARDRAIL_REJECT", guardrail_reasons
-    raise PostmortemError(
-        f"Visible top-10 ticker {item['ticker']} was not selected despite meeting "
-        "the score threshold and having no rejecting guardrail."
+    return "UNCLASSIFIED", sorted(
+        set(
+            candidate.get("rejection_reasons", [])
+            + ["NO_KNOWN_REJECTION_PATH"]
+        )
     )
 
 

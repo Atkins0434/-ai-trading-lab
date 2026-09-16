@@ -87,7 +87,7 @@
         "miss_classification": {
           "enum": [
             "NOT_IN_UNIVERSE", "INVISIBLE_AT_FREEZE", "VISIBLE_SCORED_LOW",
-            "VISIBLE_GUARDRAIL_REJECT", "PICKED_EXECUTION_LOSS"
+            "VISIBLE_GUARDRAIL_REJECT", "PICKED_EXECUTION_LOSS", "UNCLASSIFIED"
           ]
         },
         "failure_reason_codes": {

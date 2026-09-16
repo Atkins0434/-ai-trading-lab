@@ -111,7 +111,15 @@ def _return_baselines(
 
     per_ticker_pnls = [float(item["realized_pnl_usd"]) for item in executions]
     eligible_mean_pnl = mean(per_ticker_pnls) if per_ticker_pnls else 0.0
-    eligible_mean_return = eligible_mean_pnl / strategy_capital * 100
+    eligible_single_position_mean_return = (
+        eligible_mean_pnl / strategy_capital * 100
+    )
+    eligible_basket_expected_pnl = eligible_mean_pnl * min(
+        selected_count, policy.max_positions
+    )
+    eligible_basket_expected_return = (
+        eligible_basket_expected_pnl / strategy_capital * 100
+    )
 
     rng = random.Random(RANDOM_BASELINE_SEED)
     draw_pnls: list[float] = []
@@ -129,10 +137,16 @@ def _return_baselines(
     random_mean_pnl = mean(draw_pnls)
     random_mean_return = random_mean_pnl / strategy_capital * 100
     return {
-        "return_basis": "NET_STRATEGY_RETURN_PCT",
+        "return_basis": "GROSS_STRATEGY_RETURN_PCT",
         "eligible_ticker_count": len(executions),
-        "eligible_ticker_mean_realized_return_pct": eligible_mean_return,
+        "eligible_single_position_mean_return_pct": (
+            eligible_single_position_mean_return
+        ),
         "eligible_ticker_mean_realized_pnl_usd": eligible_mean_pnl,
+        "eligible_basket_expected_return_pct": (
+            eligible_basket_expected_return
+        ),
+        "eligible_basket_expected_pnl_usd": eligible_basket_expected_pnl,
         "random_draw_count": RANDOM_BASELINE_DRAWS,
         "random_draw_size": selected_count,
         "random_seed": RANDOM_BASELINE_SEED,
@@ -326,7 +340,7 @@ def build_same_universe_benchmark(
     pnl_difference = scout_summary["realized_pnl_usd"] - random_pnl
     eligible_difference = (
         scout_summary["realized_return_pct"]
-        - baselines["eligible_ticker_mean_realized_return_pct"]
+        - baselines["eligible_basket_expected_return_pct"]
     )
     tolerance = 1e-9
     if return_difference > tolerance:

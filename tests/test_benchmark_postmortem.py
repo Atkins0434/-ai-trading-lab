@@ -7,6 +7,7 @@ import pytest
 from trainer.benchmark import (
     RANDOM_BASELINE_DRAWS,
     RANDOM_BASELINE_SEED,
+    _return_baselines,
     build_same_universe_benchmark,
 )
 from trainer.outcome_grader import grade_replay_outcomes
@@ -71,7 +72,7 @@ def _candidate(*, selected=False, total_score=20, guardrail_action="PASS"):
     }
 
 
-def _snapshot(*, eligible=True, bar_count=60):
+def _snapshot(*, eligible=True, padded_bar_count=0):
     return {
         "replay_id": "test-replay",
         "trading_date": "2026-09-14",
@@ -83,7 +84,14 @@ def _snapshot(*, eligible=True, bar_count=60):
             "eligibility_reasons": (
                 [] if eligible else ["MARKET_CAP_OUT_OF_RANGE"]
             ),
-            "premarket_bars": [{} for _ in range(bar_count)],
+            "market_data": {
+                "padded_bar_count": {
+                    "value": padded_bar_count,
+                    "as_of_timestamp": "2026-09-14T06:59:00-04:00",
+                    "source": "TEST",
+                }
+            },
+            "premarket_bars": [{} for _ in range(60)],
         }],
     }
 
@@ -128,8 +136,10 @@ def _benchmark(*, selected=False, universe_eligible=True):
             )
         ],
         "return_baselines": {
-            "eligible_ticker_mean_realized_return_pct": 1.0,
+            "eligible_single_position_mean_return_pct": 1.0,
             "eligible_ticker_mean_realized_pnl_usd": 25.0,
+            "eligible_basket_expected_return_pct": 1.0,
+            "eligible_basket_expected_pnl_usd": 25.0,
             "random_draw_mean_realized_return_pct": 1.0,
             "random_draw_mean_realized_pnl_usd": 25.0,
         },
@@ -145,7 +155,8 @@ def _benchmark(*, selected=False, universe_eligible=True):
 
 
 def _postmortem(
-    *, candidate=None, eligible=True, bar_count=60, universe_eligible=True
+    *, candidate=None, eligible=True, padded_bar_count=0,
+    universe_eligible=True
 ):
     candidate = candidate or _candidate()
     scout = {
@@ -154,7 +165,7 @@ def _postmortem(
         "candidates": [candidate],
     }
     return build_postmortem(
-        _snapshot(eligible=eligible, bar_count=bar_count),
+        _snapshot(eligible=eligible, padded_bar_count=padded_bar_count),
         scout,
         _benchmark(
             selected=candidate["research_selected"],
@@ -175,20 +186,25 @@ def test_not_in_universe_classification_includes_component_scores():
 
 
 @pytest.mark.parametrize(
-    ("bar_count", "relative_volume", "gap_pct"),
-    [(59, 2.0, 2.0), (60, 0.9, 0.5)],
+    ("padded_bar_count", "relative_volume", "gap_pct", "reason"),
+    [
+        (30, 2.0, 2.0, "AT_LEAST_30_PADDED_PREMARKET_BARS"),
+        (0, 0.9, 0.5, "LOW_RELATIVE_VOLUME_AND_SUB_1PCT_GAP"),
+    ],
 )
 def test_invisible_at_freeze_classification(
-    bar_count, relative_volume, gap_pct
+    padded_bar_count, relative_volume, gap_pct, reason
 ):
     candidate = _candidate()
     candidate["component_scores"] = _component_scores(
         relative_volume, gap_pct
     )
-    result = _postmortem(candidate=candidate, bar_count=bar_count)
-    assert result["missed_opportunities"][0]["miss_classification"] == (
-        "INVISIBLE_AT_FREEZE"
+    result = _postmortem(
+        candidate=candidate, padded_bar_count=padded_bar_count
     )
+    miss = result["missed_opportunities"][0]
+    assert miss["miss_classification"] == "INVISIBLE_AT_FREEZE"
+    assert reason in miss["failure_reason_codes"]
     assert result["unreachable_mover_count"] == 1
     assert result["unreachable_pct"] == 100.0
 
@@ -207,6 +223,21 @@ def test_visible_guardrail_reject_classification():
     assert result["missed_opportunities"][0]["miss_classification"] == (
         "VISIBLE_GUARDRAIL_REJECT"
     )
+
+
+def test_unclassifiable_visible_miss_is_persisted_without_hypothesis():
+    candidate = _candidate(total_score=35)
+    candidate["rejection_reasons"] = ["UPSTREAM_SELECTION_STATE_MISMATCH"]
+
+    result = _postmortem(candidate=candidate)
+
+    miss = result["missed_opportunities"][0]
+    assert miss["miss_classification"] == "UNCLASSIFIED"
+    assert miss["failure_reason_codes"] == [
+        "NO_KNOWN_REJECTION_PATH",
+        "UPSTREAM_SELECTION_STATE_MISMATCH",
+    ]
+    assert result["feature_failures"] == []
 
 
 def test_picked_execution_loss_is_separate_from_scout_hypotheses():
@@ -294,6 +325,13 @@ def test_random_draw_verdict_is_deterministic_and_top_10_is_diagnostic_only(
     assert first["return_baselines"]["random_seed"] == RANDOM_BASELINE_SEED
     assert first["return_baselines"]["random_draw_count"] == RANDOM_BASELINE_DRAWS
     assert first["return_baselines"]["random_draw_size"] == 1
+    assert first["return_baselines"]["return_basis"] == (
+        "GROSS_STRATEGY_RETURN_PCT"
+    )
+    assert first["comparison"]["eligible_ticker_mean_return_difference_pct"] == pytest.approx(
+        first["scout_summary"]["realized_return_pct"]
+        - first["return_baselines"]["eligible_basket_expected_return_pct"]
+    )
     assert first["comparison"]["top_10_capture_rate_pct"] == pytest.approx(
         100 / 3
     )
@@ -308,6 +346,33 @@ def test_random_draw_verdict_is_deterministic_and_top_10_is_diagnostic_only(
     report = tmp_path / "postmortem.pdf"
     generate_postmortem_pdf(first, postmortem, report)
     assert report.read_bytes().startswith(b"%PDF")
+
+
+def test_eligible_basket_baseline_scales_mean_position_to_position_cap():
+    outcomes = [
+        {
+            "ticker": f"T{index}",
+            "intraday_path": _bars(close=10.5, high=11.0, low=10.0),
+            "maximum_capturable_move_pct": 10.0,
+            "mae_pct": 0.0,
+        }
+        for index in range(6)
+    ]
+
+    baselines = _return_baselines(outcomes, 6, 2500.0)
+
+    assert baselines["eligible_ticker_mean_realized_pnl_usd"] == pytest.approx(
+        25.0
+    )
+    assert baselines["eligible_single_position_mean_return_pct"] == pytest.approx(
+        1.0
+    )
+    assert baselines["eligible_basket_expected_pnl_usd"] == pytest.approx(
+        125.0
+    )
+    assert baselines["eligible_basket_expected_return_pct"] == pytest.approx(
+        5.0
+    )
 
 
 def _benchmark_inputs_for_exploration_top_k(exploration_top_k: int):

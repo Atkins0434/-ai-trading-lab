@@ -43,8 +43,10 @@ def fake_day_runner(
         },
         "benchmark_summary": {"realized_return_pct": 2.0, "realized_pnl_usd": 50.0},
         "return_baselines": {
-            "eligible_ticker_mean_realized_return_pct": 0.4,
+            "eligible_single_position_mean_return_pct": 0.4,
             "eligible_ticker_mean_realized_pnl_usd": 10.0,
+            "eligible_basket_expected_return_pct": 0.4,
+            "eligible_basket_expected_pnl_usd": 10.0,
             "random_draw_mean_realized_return_pct": 2.0,
             "random_draw_mean_realized_pnl_usd": 50.0,
         },
@@ -79,7 +81,7 @@ def fake_day_runner(
                 "ticker": "INVISIBLE",
                 "benchmark_rank": 2,
                 "miss_classification": "INVISIBLE_AT_FREEZE",
-                "failure_reason_codes": ["FEWER_THAN_60_PREMARKET_BARS"],
+                "failure_reason_codes": ["AT_LEAST_30_PADDED_PREMARKET_BARS"],
                 "component_scores": [],
             },
             {
@@ -178,11 +180,21 @@ def test_only_visible_score_and_guardrail_misses_generate_hypotheses(
             "failure_reason_codes": ["LOW_AGGREGATE_LIQUIDITY"],
             "component_scores": [],
         })
+        postmortem["missed_opportunities"].append({
+            "ticker": "UNKNOWN",
+            "benchmark_rank": 5,
+            "miss_classification": "UNCLASSIFIED",
+            "failure_reason_codes": ["NO_KNOWN_REJECTION_PATH"],
+            "component_scores": [],
+        })
         path.write_text(json.dumps(postmortem))
         benchmark_path = kwargs["output_dir"] / "benchmark_result.json"
         benchmark = json.loads(benchmark_path.read_text())
         benchmark["benchmark_candidates"].append({
             "ticker": "GUARD", "benchmark_rank": 4
+        })
+        benchmark["benchmark_candidates"].append({
+            "ticker": "UNKNOWN", "benchmark_rank": 5
         })
         benchmark_path.write_text(json.dumps(benchmark))
         return manifest
