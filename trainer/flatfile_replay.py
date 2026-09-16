@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import date
 import json
 from pathlib import Path
+import sys
+import time
 from typing import Any, Callable
 
 from trainer.benchmark import build_same_universe_benchmark
@@ -21,7 +24,7 @@ from trainer.providers.massive_flatfiles import (
     MINUTE_AGGS_DATASET,
     MassiveFlatFileStore,
 )
-from trainer.rate_control import load_massive_plan
+from trainer.rate_control import AdaptiveRateLimiter, load_massive_plan
 from trainer.report_generator import generate_scout_pdf_report
 from trainer.research_scout_alpha import run_research_scout_alpha
 from trainer.trading_calendar import generate_trading_dates
@@ -38,6 +41,22 @@ DayRunner = Callable[..., dict[str, Any]]
 
 class FlatFileReplayError(Exception):
     """Raised when a flat-file replay run cannot safely resume."""
+
+
+@contextmanager
+def _timed_phase(trading_date: str, phase: str):
+    started = time.perf_counter()
+    try:
+        yield
+    finally:
+        elapsed = time.perf_counter() - started
+        print(
+            "[flatfile_replay] "
+            f"trading_date={trading_date} phase={phase} "
+            f"elapsed_seconds={elapsed:.2f}",
+            file=sys.stderr,
+            flush=True,
+        )
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -140,9 +159,10 @@ def run_flatfile_day(
     """Download, build, and grade one research day from flat files."""
     day_dir = output_root / "days" / trading_date
     day_dir.mkdir(parents=True, exist_ok=True)
-    _, cached_files = _ensure_day_files(
-        flatfiles, trading_date, lookback_sessions
-    )
+    with _timed_phase(trading_date, "download"):
+        _, cached_files = _ensure_day_files(
+            flatfiles, trading_date, lookback_sessions
+        )
     universe_path = day_dir / "daily_universe_manifest.json"
     snapshot_path = day_dir / "historical_snapshot.json"
     scout_path = day_dir / "research_alpha_output.json"
@@ -152,14 +172,15 @@ def run_flatfile_day(
     postmortem_path = day_dir / "postmortem.json"
     postmortem_pdf_path = day_dir / "postmortem_report.pdf"
 
-    universe = build_point_in_time_universe(
-        reference_client,
-        flatfiles,
-        trading_date,
-        universe_path,
-        replay_id=f"{trading_date}-0700-flatfile-replay",
-        reference_cache_root=reference_cache_root,
-    )
+    with _timed_phase(trading_date, "universe"):
+        universe = build_point_in_time_universe(
+            reference_client,
+            flatfiles,
+            trading_date,
+            universe_path,
+            replay_id=f"{trading_date}-0700-flatfile-replay",
+            reference_cache_root=reference_cache_root,
+        )
     reference_cache = _reference_cache_metrics(universe)
     relative = lambda path: str(path.relative_to(output_root))
     artifacts = {"daily_universe_manifest": relative(universe_path)}
@@ -181,48 +202,53 @@ def run_flatfile_day(
             or "EMPTY_ELIGIBLE_UNIVERSE",
         }
 
-    snapshot_result = build_flatfile_snapshot(
-        trading_date,
-        universe,
-        flatfiles,
-        lookback_sessions=lookback_sessions,
-    )
-    _write_json(snapshot_path, snapshot_result.snapshot)
-    scout = run_research_scout_alpha(
-        snapshot_result.snapshot,
-        threshold_pct=threshold_pct,
-        exploration_top_k=exploration_top_k,
-    )
-    _write_json(scout_path, scout)
-    generate_scout_pdf_report(scout, scout_pdf_path)
+    with _timed_phase(trading_date, "snapshot"):
+        snapshot_result = build_flatfile_snapshot(
+            trading_date,
+            universe,
+            flatfiles,
+            lookback_sessions=lookback_sessions,
+        )
+        _write_json(snapshot_path, snapshot_result.snapshot)
+    with _timed_phase(trading_date, "scoring"):
+        scout = run_research_scout_alpha(
+            snapshot_result.snapshot,
+            threshold_pct=threshold_pct,
+            exploration_top_k=exploration_top_k,
+        )
+        _write_json(scout_path, scout)
+        generate_scout_pdf_report(scout, scout_pdf_path)
 
     outcome_snapshot = deepcopy(snapshot_result.snapshot)
     outcome_snapshot["execution_policy_version"] = (
         "execution_policy_v1.0_hypothetical"
     )
-    outcome = grade_replay_outcomes(
-        outcome_snapshot,
-        scout,
-        snapshot_result.outcome_bars,
-        strategy_capital,
-    )
-    benchmark = build_same_universe_benchmark(
-        outcome_snapshot,
-        scout,
-        outcome,
-        strategy_capital,
-    )
-    postmortem = build_postmortem(
-        outcome_snapshot,
-        scout,
-        benchmark,
-    )
-    _write_json(outcome_path, outcome)
-    _write_json(benchmark_path, benchmark)
-    _write_json(postmortem_path, postmortem)
-    generate_postmortem_pdf(
-        benchmark, postmortem, postmortem_pdf_path
-    )
+    with _timed_phase(trading_date, "grading"):
+        outcome = grade_replay_outcomes(
+            outcome_snapshot,
+            scout,
+            snapshot_result.outcome_bars,
+            strategy_capital,
+        )
+        _write_json(outcome_path, outcome)
+    with _timed_phase(trading_date, "benchmark"):
+        benchmark = build_same_universe_benchmark(
+            outcome_snapshot,
+            scout,
+            outcome,
+            strategy_capital,
+        )
+        _write_json(benchmark_path, benchmark)
+    with _timed_phase(trading_date, "postmortem"):
+        postmortem = build_postmortem(
+            outcome_snapshot,
+            scout,
+            benchmark,
+        )
+        _write_json(postmortem_path, postmortem)
+        generate_postmortem_pdf(
+            benchmark, postmortem, postmortem_pdf_path
+        )
     artifacts.update({
         "historical_snapshot": relative(snapshot_path),
         "scout_output": relative(scout_path),
@@ -443,7 +469,9 @@ def main() -> None:
         Path(load_flatfile_replay_config()["output_root"])
         / f"{args.start}-to-{args.end}"
     )
-    reference_client = MassiveClient.from_environment()
+    reference_client = MassiveClient.from_environment(
+        rate_limiter=AdaptiveRateLimiter()
+    )
     flatfiles = MassiveFlatFileStore.from_environment(
         cache_root=args.cache_root
     )

@@ -20,6 +20,26 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - name: Resolve replay cache version
+        id: cache_config
+        shell: bash
+        run: |
+          cache_version="$(jq -er .cache_version config/flatfile_replay.json)"
+          echo "version=$cache_version" >> "$GITHUB_OUTPUT"
+      - name: Restore Massive flat-file cache
+        uses: actions/cache@v4
+        with:
+          path: data/flatfiles/
+          key: massive-flatfiles-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}
+          restore-keys: |
+            massive-flatfiles-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
+      - name: Restore Massive reference cache
+        uses: actions/cache@v4
+        with:
+          path: data/reference_cache/
+          key: massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}
+          restore-keys: |
+            massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -176,6 +196,22 @@ jobs:
             fi
           done
           exit "$missing"
+
+      - name: Report local cache sizes
+        if: always()
+        shell: bash
+        run: |
+          echo "GitHub Actions cache storage is limited to 10 GB per repository."
+          for directory in data/flatfiles data/reference_cache; do
+            if [ -d "$directory" ]; then
+              human_size="$(du -sh "$directory" | cut -f1)"
+              byte_size="$(du -sb "$directory" | cut -f1)"
+            else
+              human_size="0"
+              byte_size="0"
+            fi
+            echo "$directory: $human_size ($byte_size bytes)"
+          done
 
       - uses: actions/upload-artifact@v4
         if: always()

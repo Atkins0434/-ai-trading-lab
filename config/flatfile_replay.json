@@ -1,5 +1,6 @@
 {
   "version": "massive_flatfile_replay_v1.0",
+  "cache_version": "v1",
   "baseline_lookback_sessions": 20,
   "strategy_capital_usd": 2500.0,
   "cache_root": "data/flatfiles",

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from trainer.flatfile_replay import run_flatfile_replay
+from trainer.flatfile_replay import _timed_phase, run_flatfile_replay
 
 
 def test_flatfile_replay_resumes_completed_dates_without_reprocessing(tmp_path: Path):
@@ -72,3 +72,13 @@ def test_flatfile_replay_resumes_completed_dates_without_reprocessing(tmp_path: 
         "errors": 0,
     }
     assert calls == dates
+
+
+def test_phase_timing_logs_only_to_stderr(capsys):
+    with _timed_phase("2018-01-03", "snapshot"):
+        pass
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "trading_date=2018-01-03 phase=snapshot" in captured.err
+    assert "elapsed_seconds=" in captured.err
