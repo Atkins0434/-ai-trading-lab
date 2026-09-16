@@ -255,15 +255,17 @@ class MassiveClient:
             },
         )
 
-    def get_tickers(self, as_of_date: str) -> list[dict[str, Any]]:
-        """Return active US common stocks as they existed on a date."""
+    def get_tickers(
+        self, as_of_date: str, *, active: bool = True
+    ) -> list[dict[str, Any]]:
+        """Return ticker rows for a provider-documented point-in-time date."""
         date.fromisoformat(as_of_date)
         return self._get(
             "/v3/reference/tickers",
             {
                 "market": "stocks",
                 "type": "CS",
-                "active": "true",
+                "active": "true" if active else "false",
                 "date": as_of_date,
                 "order": "asc",
                 "sort": "ticker",
@@ -282,6 +284,61 @@ class MassiveClient:
             results_type="object",
         )
         return payload["results"]
+
+    def historical_universe_capabilities(self) -> dict[str, bool]:
+        """Declare only capabilities Massive can prove for this adapter.
+
+        The All Tickers endpoint is date-aware and exposes FIGIs, but the
+        current adapter cannot prove availability-time semantics for historical
+        market cap/classification fields or reconstruct every ticker-identity
+        interval (the ticker-events API is experimental). Research therefore
+        fails closed until those gaps are supplied by a security-master source.
+        """
+        return {
+            "point_in_time_listings": True,
+            "delisted_securities": True,
+            "stable_security_ids": True,
+            "ticker_history": False,
+            "point_in_time_exchange": True,
+            "point_in_time_security_type": True,
+            "historical_trading_status": True,
+            "point_in_time_market_cap": False,
+            "provider_response_complete": True,
+        }
+
+    def get_historical_universe(
+        self, trading_date: str, information_cutoff: str
+    ) -> dict[str, Any]:
+        """Normalize date-scoped ticker rows without inventing missing facts.
+
+        This is callable for capability experiments, but the resolver will not
+        admit its output as evidence while required capabilities above remain
+        false.
+        """
+        records = []
+        for raw in self.get_tickers(trading_date, active=True):
+            records.append({
+                "ticker": raw.get("ticker"),
+                "share_class_figi": raw.get("share_class_figi"),
+                "composite_figi": raw.get("composite_figi"),
+                "primary_exchange": raw.get("primary_exchange"),
+                "type": raw.get("type"),
+                "locale": raw.get("locale"),
+                "market": raw.get("market"),
+                "list_date": raw.get("list_date"),
+                "delisted_utc": raw.get("delisted_utc"),
+                "historical_active": raw.get("active"),
+            })
+        return {
+            "records": records,
+            "query_parameters": {
+                "endpoint": "/v3/reference/tickers",
+                "date": trading_date,
+                "active": True,
+                "market": "stocks",
+                "information_cutoff": information_cutoff,
+            },
+        }
 
 
 def parse_massive_timestamp(record: dict[str, Any]) -> str:

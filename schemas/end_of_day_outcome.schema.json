@@ -11,6 +11,11 @@
     "trading_date",
     "scout_version",
     "execution_policy_version",
+    "universe_mode",
+    "universe_manifest_hash",
+    "universe_coverage",
+    "research_evidence",
+    "promotion_eligible",
     "outcomes"
   ],
 
@@ -31,6 +36,12 @@
     "execution_policy_version": {
       "type": "string"
     },
+
+    "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
+    "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
+    "research_evidence": {"type": "boolean"},
+    "promotion_eligible": {"type": "boolean"},
 
     "outcomes": {
       "type": "array",

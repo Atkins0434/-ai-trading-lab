@@ -14,7 +14,7 @@ python -m trainer.run_multi_day_trainer \
   --max-workers 2 \
   --requests-per-minute 5 \
   --exploration-top-k 3 \
-  --tickers AA AAL BBAI CHWY CLOV ETSY FUBO JOBY LUNR UPST
+  --universe-mode historical_research
 ```
 
 `--dates-csv` remains available for targeted replays. Calendar generation
@@ -35,6 +35,12 @@ The Massive Free starting profile is deliberately conservative:
 
 Raising worker count improves local processing concurrency but does not bypass
 the provider-wide request limit.
+
+For a deterministic non-research smoke test only, use
+`--universe-mode ci_fixture --tickers ...`. Static symbols are rejected in
+`historical_research` mode. See `UNIVERSE_INTEGRITY.md` for the full audit,
+daily manifest contract, delisted-security convention, provider limitations,
+and evidence gates.
 
 ## Resume and cache guarantees
 

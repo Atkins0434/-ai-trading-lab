@@ -193,6 +193,11 @@ def grade_replay_outcomes(
         "trading_date": snapshot["trading_date"],
         "scout_version": snapshot["scout_version"],
         "execution_policy_version": snapshot["execution_policy_version"],
+        "universe_mode": snapshot["universe_mode"],
+        "universe_manifest_hash": snapshot["universe_manifest_hash"],
+        "universe_coverage": snapshot["universe_coverage"],
+        "research_evidence": snapshot["research_evidence"],
+        "promotion_eligible": snapshot["promotion_eligible"],
         "outcomes": outcomes,
     }
     try:

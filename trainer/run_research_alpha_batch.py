@@ -9,15 +9,17 @@ from trainer.research_alpha_batch import run_massive_alpha_batch
 from trainer.universe_collector import RequestRateLimiter
 
 
-DEFAULT_TICKERS = ["AA", "AAL", "BBAI", "CHWY", "CLOV", "ETSY", "FUBO", "JOBY", "LUNR", "UPST"]
-
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run one bounded Massive Free Research Scout Alpha batch."
     )
     parser.add_argument("--date", default="2026-09-14")
-    parser.add_argument("--tickers", nargs="+", default=DEFAULT_TICKERS)
+    parser.add_argument(
+        "--universe-mode",
+        required=True,
+        choices=["ci_fixture", "historical_research"],
+    )
+    parser.add_argument("--tickers", nargs="+", default=None)
     parser.add_argument("--threshold-pct", type=float)
     parser.add_argument("--exploration-top-k", type=int, default=0)
     parser.add_argument("--cache", type=Path, default=Path("data/cache"))
@@ -38,6 +40,7 @@ def main() -> None:
         output_dir=output_dir,
         threshold_pct=args.threshold_pct,
         exploration_top_k=args.exploration_top_k,
+        universe_mode=args.universe_mode,
     )
     print(json.dumps(manifest, indent=2, sort_keys=True))
 

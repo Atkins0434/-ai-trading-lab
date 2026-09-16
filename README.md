@@ -146,6 +146,14 @@ cross-day hypotheses, feature evidence, and dataset isolation.
 
 See `docs/HISTORICAL_REPLAY_ACCELERATOR.md` for operation and safety details.
 
+Historical universe construction is a hard evidence boundary. Static symbols
+are permitted only in explicit `ci_fixture` mode and can never feed Trainer,
+cumulative performance, or promotion. Genuine research creates an immutable
+daily point-in-time universe manifest, includes historically tradable
+securities that later delisted, uses stable security identities, and carries
+the same manifest hash through Scout and its benchmark. Incomplete provider
+coverage fails closed. See `docs/UNIVERSE_INTEGRITY.md`.
+
 ## Authoritative specifications
 
 - `SCOUT_TRAINER.md`

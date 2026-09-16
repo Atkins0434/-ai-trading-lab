@@ -12,6 +12,11 @@
     "scout_version",
     "trainer_version",
     "execution_policy_version",
+    "universe_mode",
+    "universe_manifest_hash",
+    "universe_coverage",
+    "research_evidence",
+    "promotion_eligible",
     "result",
     "scout_performance",
     "benchmark_performance",
@@ -41,6 +46,12 @@
     "execution_policy_version": {
       "type": "string"
     },
+
+    "universe_mode": {"const": "historical_research"},
+    "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "universe_coverage": {"const": "complete"},
+    "research_evidence": {"const": true},
+    "promotion_eligible": {"type": "boolean"},
 
     "result": {
       "type": "string",

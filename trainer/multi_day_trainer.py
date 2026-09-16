@@ -17,6 +17,12 @@ from trainer.replay_queue import ReplayQueue
 from trainer.research_alpha_batch import run_massive_alpha_batch
 from trainer.trainer_summary_report import generate_trainer_summary_pdf
 from trainer.validate_contracts import validate_contract
+from trainer.evidence_eligibility import (
+    EvidenceEligibilityError,
+    assert_matching_universe,
+    require_research_evidence,
+)
+from trainer.universe_manifest import CI_FIXTURE, HISTORICAL_RESEARCH
 
 
 MINIMUM_OCCURRENCES = 30
@@ -32,6 +38,19 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     temporary.replace(path)
+
+
+def _preserve_superseded(path: Path) -> None:
+    if not path.exists():
+        return
+    suffix = 0
+    while True:
+        marker = "" if suffix == 0 else f".{suffix}"
+        target = path.with_name(f"{path.stem}.superseded{marker}{path.suffix}")
+        if not target.exists():
+            path.replace(target)
+            return
+        suffix += 1
 
 
 def _validate_dates(trading_dates: list[str]) -> list[str]:
@@ -89,6 +108,11 @@ def _aggregate(
         partition = record.get("partition", "DEVELOPMENT")
         benchmark = _read_json(day_dir / "benchmark_result.json")
         postmortem = _read_json(day_dir / "postmortem.json")
+        try:
+            assert_matching_universe(benchmark, postmortem)
+            require_research_evidence(postmortem, consumer="Trainer")
+        except EvidenceEligibilityError as exc:
+            raise ValueError(str(exc)) from exc
         scout_summary = benchmark["scout_summary"]
         benchmark_summary = benchmark["benchmark_summary"]
         scout_returns.append(float(scout_summary["realized_return_pct"]))
@@ -234,10 +258,19 @@ def _build_state(
     holdout_unlocked,
     queue_snapshot,
     max_workers,
+    universe_mode,
 ) -> dict[str, Any]:
     ordered_days = [days[value] for value in dates if value in days]
     completed = [item["trading_date"] for item in ordered_days if item["status"] in {"COMPLETE", "PARTIAL"}]
-    if not completed:
+    evidence_days = [
+        item
+        for item in ordered_days
+        if item["status"] in {"COMPLETE", "PARTIAL"}
+        and item.get("research_evidence") is True
+    ]
+    if not completed and any(item["status"] == "UNSUPPORTED" for item in ordered_days):
+        status = "UNSUPPORTED"
+    elif not completed:
         status = "FAILED"
     elif failures or any(item["status"] == "PARTIAL" for item in ordered_days):
         status = "PARTIAL"
@@ -247,6 +280,18 @@ def _build_state(
         "version": "multi_day_trainer_run_v2.0",
         "run_id": f"trainer-{dates[0]}-to-{dates[-1]}",
         "mode": "RESEARCH_ONLY",
+        "universe_mode": universe_mode,
+        "research_evidence": universe_mode == HISTORICAL_RESEARCH and bool(evidence_days),
+        "promotion_eligible": (
+            universe_mode == HISTORICAL_RESEARCH
+            and bool(evidence_days)
+            and not any(
+                item.get("research_evidence") is not True
+                for item in ordered_days
+                if item["status"] in {"COMPLETE", "PARTIAL"}
+            )
+            and all(item.get("promotion_eligible") is True for item in evidence_days)
+        ),
         "trainer_version": "scout_trainer_v1.1",
         "source": "MASSIVE",
         "status": status,
@@ -270,6 +315,11 @@ def _build_state(
         "completed_dates": completed,
         "failed_dates": failures,
         "days": ordered_days,
+        "quarantined_days": [
+            item["trading_date"]
+            for item in ordered_days
+            if item.get("research_evidence") is not True
+        ],
         "aggregate_performance": aggregate,
         "hypotheses": hypotheses,
         "feature_evidence": feature_evidence,
@@ -301,7 +351,7 @@ def _build_state(
 
 def run_multi_day_trainer(
     client: Any,
-    tickers: list[str],
+    tickers: list[str] | None,
     trading_dates: list[str],
     *,
     cache_root: Path,
@@ -316,12 +366,17 @@ def run_multi_day_trainer(
         "VALIDATION",
     ),
     holdout_unlocked: bool = False,
+    universe_mode: str = CI_FIXTURE,
 ) -> dict[str, Any]:
     """Run queued historical days with bounded workers and atomic checkpoints."""
     requested_dates = _validate_dates(trading_dates)
-    requested_tickers = sorted({ticker.upper() for ticker in tickers})
-    if not requested_tickers:
-        raise ValueError("At least one ticker is required.")
+    requested_tickers = sorted({ticker.upper() for ticker in (tickers or [])})
+    if universe_mode == CI_FIXTURE and not requested_tickers:
+        raise ValueError("ci_fixture mode requires at least one ticker.")
+    if universe_mode == HISTORICAL_RESEARCH and requested_tickers:
+        raise ValueError("Hardcoded tickers are forbidden in historical_research mode.")
+    if universe_mode not in {CI_FIXTURE, HISTORICAL_RESEARCH}:
+        raise ValueError(f"Unknown universe mode: {universe_mode}")
     if not 1 <= max_workers <= 8:
         raise ValueError("max_workers must be between 1 and 8.")
 
@@ -336,7 +391,9 @@ def run_multi_day_trainer(
     if prior and (
         prior.get("selection_policy") != expected_policy
         or prior.get("requested_tickers") != requested_tickers
+        or prior.get("universe_mode") != universe_mode
     ):
+        _preserve_superseded(state_path)
         prior = {}
         reset_queue = True
     dates = _validate_dates(prior.get("requested_dates", []) + requested_dates) if prior else requested_dates
@@ -365,7 +422,7 @@ def run_multi_day_trainer(
 
     queue_path = output_root / "replay_queue.json"
     if reset_queue:
-        queue_path.unlink(missing_ok=True)
+        _preserve_superseded(queue_path)
     queue = ReplayQueue(queue_path)
     queue.enqueue(
         (
@@ -380,10 +437,15 @@ def run_multi_day_trainer(
     for trading_date in runnable_dates:
         previous = prior_days.get(trading_date)
         day_dir = output_root / "days" / trading_date
+        reusable_artifact_exists = (
+            (day_dir / "postmortem.json").exists()
+            if previous and previous.get("research_evidence") is True
+            else (day_dir / "research_alpha_batch_manifest.json").exists()
+        )
         if (
             previous
             and previous["status"] == "COMPLETE"
-            and (day_dir / "postmortem.json").exists()
+            and reusable_artifact_exists
         ):
             previous = dict(previous)
             previous["partition"] = dataset_split[trading_date]
@@ -417,6 +479,7 @@ def run_multi_day_trainer(
                 threshold_pct=threshold_pct,
                 exploration_top_k=exploration_top_k,
                 dataset_partition=dataset_split[trading_date],
+                universe_mode=universe_mode,
             )
             record = {
                 "trading_date": trading_date,
@@ -425,9 +488,23 @@ def run_multi_day_trainer(
                 "artifact_directory": f"days/{trading_date}",
                 "scored_ticker_count": len(manifest["scored_tickers"]),
                 "skipped_ticker_count": len(manifest["skipped"]),
+                "eligible_symbol_count": len(
+                    manifest.get("universe_eligible_tickers", manifest["scored_tickers"])
+                ),
+                "universe_mode": manifest["universe_mode"],
+                "universe_manifest_hash": manifest["universe_manifest_hash"],
+                "universe_coverage": manifest["universe_coverage"],
+                "research_evidence": manifest["research_evidence"],
+                "promotion_eligible": manifest["promotion_eligible"],
             }
             if manifest["status"] == "COMPLETE":
                 queue.complete(task_id)
+            elif manifest["status"] == "UNSUPPORTED":
+                queue.fail(
+                    task_id,
+                    "POINT_IN_TIME_UNIVERSE_UNSUPPORTED",
+                    retryable=False,
+                )
             else:
                 queue.fail(
                     task_id,
@@ -445,10 +522,20 @@ def run_multi_day_trainer(
                 "artifact_directory": f"days/{trading_date}",
                 "scored_ticker_count": 0,
                 "skipped_ticker_count": len(requested_tickers),
+                "eligible_symbol_count": 0,
+                "universe_mode": universe_mode,
+                "universe_manifest_hash": None,
+                "universe_coverage": "incomplete" if universe_mode == HISTORICAL_RESEARCH else "fixture",
+                "research_evidence": False,
+                "promotion_eligible": False,
             }, error
 
     def checkpoint() -> dict[str, Any]:
-        successful = [item for item in days.values() if item["status"] in {"COMPLETE", "PARTIAL"}]
+        successful = [
+            item for item in days.values()
+            if item["status"] in {"COMPLETE", "PARTIAL"}
+            and item.get("research_evidence") is True
+        ]
         aggregate, hypotheses, feature_evidence = _aggregate(
             successful, output_root
         )
@@ -467,6 +554,7 @@ def run_multi_day_trainer(
             holdout_unlocked,
             queue.snapshot(),
             max_workers,
+            universe_mode,
         )
         _write_json(state_path, state)
         return state

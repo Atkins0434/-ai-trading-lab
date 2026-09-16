@@ -18,14 +18,24 @@ def fake_day_runner(
     threshold_pct,
     exploration_top_k,
     dataset_partition,
+    universe_mode,
 ):
     output_dir.mkdir(parents=True, exist_ok=True)
+    evidence = {
+        "universe_mode": "historical_research",
+        "universe_manifest_hash": "sha256:" + trading_date.replace("-", "").ljust(64, "0"),
+        "universe_coverage": "complete",
+        "research_evidence": True,
+        "promotion_eligible": True,
+    }
     benchmark = {
+        **evidence,
         "scout_summary": {"realized_return_pct": 1.0, "realized_pnl_usd": 25.0},
         "benchmark_summary": {"realized_return_pct": 2.0, "realized_pnl_usd": 50.0},
         "comparison": {"top_10_capture_rate_pct": 40.0},
     }
     postmortem = {
+        **evidence,
         "trading_date": trading_date,
         "result": "MISS",
         "missed_opportunities": [{"ticker": "MISS", "benchmark_rank": 1, "failure_stage": "BELOW_SELECTION_THRESHOLD", "failure_reason_codes": ["BELOW_RESEARCH_THRESHOLD"]}],
@@ -43,12 +53,12 @@ def fake_day_runner(
             }],
         }],
     }))
-    return {"status": "COMPLETE", "scored_tickers": ["MISS"], "skipped": {}}
+    return {"status": "COMPLETE", "scored_tickers": ["MISS"], "skipped": {}, **evidence}
 
 
 def test_multi_day_trainer_persists_evidence_and_never_promotes(tmp_path: Path):
     dates = ["2026-09-10", "2026-09-11", "2026-09-14"]
-    state = run_multi_day_trainer(object(), ["MISS"], dates, cache_root=tmp_path / "cache", output_root=tmp_path / "reports" / "trainer", day_runner=fake_day_runner)
+    state = run_multi_day_trainer(object(), None, dates, cache_root=tmp_path / "cache", output_root=tmp_path / "reports" / "trainer", day_runner=fake_day_runner, universe_mode="historical_research")
 
     assert state["status"] == "COMPLETE"
     assert state["completed_dates"] == dates
@@ -75,7 +85,7 @@ def test_multi_day_trainer_resumes_completed_days(tmp_path: Path):
         calls.append(args[2])
         return fake_day_runner(*args, **kwargs)
 
-    common = dict(client=object(), tickers=["MISS"], trading_dates=["2026-09-14"], cache_root=tmp_path / "cache", output_root=tmp_path / "trainer", day_runner=recording_runner)
+    common = dict(client=object(), tickers=None, trading_dates=["2026-09-14"], cache_root=tmp_path / "cache", output_root=tmp_path / "trainer", day_runner=recording_runner, universe_mode="historical_research")
     run_multi_day_trainer(**common)
     run_multi_day_trainer(**common)
     assert calls == ["2026-09-14"]
@@ -92,11 +102,12 @@ def test_multi_day_trainer_reopens_partial_day_for_ticker_resume(tmp_path: Path)
 
     common = dict(
         client=object(),
-        tickers=["MISS"],
+        tickers=None,
         trading_dates=["2026-09-14"],
         cache_root=tmp_path / "cache",
         output_root=tmp_path / "trainer",
         day_runner=partial_then_complete,
+        universe_mode="historical_research",
     )
     first = run_multi_day_trainer(**common)
     second = run_multi_day_trainer(**common)
@@ -110,8 +121,8 @@ def test_multi_day_trainer_reopens_partial_day_for_ticker_resume(tmp_path: Path)
 
 def test_multi_day_trainer_carries_prior_dates_into_next_run(tmp_path: Path):
     root = tmp_path / "trainer"
-    run_multi_day_trainer(object(), ["MISS"], ["2026-09-11"], cache_root=tmp_path / "cache", output_root=root, day_runner=fake_day_runner)
-    state = run_multi_day_trainer(object(), ["MISS"], ["2026-09-14"], cache_root=tmp_path / "cache", output_root=root, day_runner=fake_day_runner)
+    run_multi_day_trainer(object(), None, ["2026-09-11"], cache_root=tmp_path / "cache", output_root=root, day_runner=fake_day_runner, universe_mode="historical_research")
+    state = run_multi_day_trainer(object(), None, ["2026-09-14"], cache_root=tmp_path / "cache", output_root=root, day_runner=fake_day_runner, universe_mode="historical_research")
 
     assert state["requested_dates"] == ["2026-09-11", "2026-09-14"]
     assert state["completed_dates"] == ["2026-09-11", "2026-09-14"]
@@ -126,7 +137,7 @@ def test_selection_policy_change_invalidates_prior_day_results(tmp_path: Path):
         return fake_day_runner(*args, **kwargs)
 
     root = tmp_path / "trainer"
-    common = dict(client=object(), tickers=["MISS"], trading_dates=["2026-09-14"], cache_root=tmp_path / "cache", output_root=root, day_runner=recording_runner)
+    common = dict(client=object(), tickers=None, trading_dates=["2026-09-14"], cache_root=tmp_path / "cache", output_root=root, day_runner=recording_runner, universe_mode="historical_research")
     run_multi_day_trainer(**common, exploration_top_k=0)
     run_multi_day_trainer(**common, exploration_top_k=3)
 
@@ -142,11 +153,12 @@ def test_holdout_dates_are_generated_but_not_executed_without_unlock(tmp_path: P
 
     dates = ["2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-14"]
     state = run_multi_day_trainer(
-        object(), ["MISS"], dates,
+        object(), None, dates,
         cache_root=tmp_path / "cache",
         output_root=tmp_path / "trainer",
         day_runner=recording_runner,
         max_workers=2,
+        universe_mode="historical_research",
     )
     assert state["dataset_policy"]["locked_holdout_dates"] == ["2026-09-14"]
     assert "2026-09-14" not in calls
@@ -181,12 +193,13 @@ def test_bounded_workers_execute_independent_dates_concurrently(tmp_path: Path):
                 active -= 1
 
     state = run_multi_day_trainer(
-        object(), ["MISS"],
+        object(), None,
         ["2026-09-10", "2026-09-11", "2026-09-14"],
         cache_root=tmp_path / "cache",
         output_root=tmp_path / "trainer",
         day_runner=concurrent_runner,
         max_workers=2,
+        universe_mode="historical_research",
     )
     assert maximum_active == 2
     assert state["accelerator"]["max_workers"] == 2
@@ -196,17 +209,19 @@ def test_frozen_dataset_partitions_cannot_shift_on_resume(tmp_path: Path):
     root = tmp_path / "trainer"
     first_dates = ["2026-09-08", "2026-09-09", "2026-09-10", "2026-09-11", "2026-09-14"]
     run_multi_day_trainer(
-        object(), ["MISS"], first_dates,
+        object(), None, first_dates,
         cache_root=tmp_path / "cache",
         output_root=root,
         day_runner=fake_day_runner,
+        universe_mode="historical_research",
     )
     import pytest
 
     with pytest.raises(ValueError, match="frozen development"):
         run_multi_day_trainer(
-            object(), ["MISS"], ["2026-09-15"],
+            object(), None, ["2026-09-15"],
             cache_root=tmp_path / "cache",
             output_root=root,
             day_runner=fake_day_runner,
+            universe_mode="historical_research",
         )

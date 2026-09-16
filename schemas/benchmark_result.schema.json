@@ -10,6 +10,11 @@
     "replay_id",
     "trading_date",
     "universe_version",
+    "universe_mode",
+    "universe_manifest_hash",
+    "universe_coverage",
+    "research_evidence",
+    "promotion_eligible",
     "execution_policy_version",
     "benchmark_method",
     "benchmark_candidates",
@@ -31,6 +36,12 @@
     "universe_version": {
       "type": "string"
     },
+
+    "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
+    "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
+    "research_evidence": {"type": "boolean"},
+    "promotion_eligible": {"type": "boolean"},
 
     "execution_policy_version": {
       "type": "string"

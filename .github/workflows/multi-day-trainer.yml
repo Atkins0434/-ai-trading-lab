@@ -25,6 +25,12 @@ on:
         description: Shared provider request ceiling
         required: true
         default: "5"
+      universe_mode:
+        description: Point-in-time research or non-research engineering fixture
+        required: true
+        type: choice
+        options: [historical_research, ci_fixture]
+        default: historical_research
   schedule:
     - cron: "30 23 * * 1-5"
   pull_request:
@@ -42,6 +48,8 @@ on:
       - "trainer/historical_cache.py"
       - "trainer/providers/massive.py"
       - "trainer/research_alpha_batch.py"
+      - "trainer/universe_manifest.py"
+      - "trainer/evidence_eligibility.py"
       - "schemas/multi_day_trainer_run.schema.json"
       - "schemas/research_alpha_batch.schema.json"
       - "schemas/catalyst_snapshot.schema.json"
@@ -93,15 +101,39 @@ jobs:
             echo "args=--dates-csv $(date -u +%F)" >> "$GITHUB_OUTPUT"
           fi
       - name: Run resumable research trainer
+        shell: bash
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
-        run: >-
-          python -m trainer.run_multi_day_trainer
-          ${{ steps.dates.outputs.args }}
-          --exploration-top-k 3
-          --max-workers "${{ inputs.max_workers || '2' }}"
-          --requests-per-minute "${{ inputs.requests_per_minute || '5' }}"
-          --tickers AA AAL BBAI CHWY CLOV ETSY FUBO JOBY LUNR UPST
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_MODE: ${{ inputs.universe_mode }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ] || [ "${REQUESTED_MODE:-historical_research}" = "ci_fixture" ]; then
+            universe_args=(--universe-mode ci_fixture --tickers AA AAL BBAI CHWY CLOV ETSY FUBO JOBY LUNR UPST)
+          else
+            universe_args=(--universe-mode historical_research)
+          fi
+          python -m trainer.run_multi_day_trainer \
+            ${{ steps.dates.outputs.args }} \
+            --exploration-top-k 3 \
+            --max-workers "${{ inputs.max_workers || '2' }}" \
+            --requests-per-minute "${{ inputs.requests_per_minute || '5' }}" \
+            "${universe_args[@]}"
+      - name: Publish universe evidence summary
+        if: always()
+        shell: bash
+        run: |
+          manifest="reports/trainer/trainer_run_state.json"
+          if [ -f "$manifest" ]; then
+            {
+              echo "### Historical replay universe gate"
+              echo "- Mode: $(jq -r .universe_mode "$manifest")"
+              echo "- Research days: $(jq -r .aggregate_performance.days_processed "$manifest")"
+              echo "- Quarantined days: $(jq -r '.quarantined_days | length' "$manifest")"
+              echo "- Research evidence: $(jq -r .research_evidence "$manifest")"
+              echo "- Promotion eligible: $(jq -r .promotion_eligible "$manifest")"
+              jq -r '.days[] | "- \(.trading_date): eligible=\(.eligible_symbol_count), coverage=\(.universe_coverage), hash=\(.universe_manifest_hash // "none"), evidence=\(.research_evidence), promotion=\(.promotion_eligible)"' "$manifest"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/cache/save@v4
         if: always()
         with:

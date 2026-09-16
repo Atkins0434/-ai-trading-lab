@@ -1,0 +1,22 @@
+{
+  "version": "legacy_result_quarantine_v1.0",
+  "policy": "All replay artifacts produced before daily_universe_manifest_v1.0, including PR13 workflow artifacts that used AA/AAL/BBAI/CHWY/CLOV/ETSY/FUBO/JOBY/LUNR/UPST, are engineering fixtures.",
+  "classification": "ENGINEERING_FIXTURE",
+  "research_evidence": false,
+  "promotion_eligible": false,
+  "strategy_performance_claim_allowed": false,
+  "artifact_groups": [
+    {
+      "path_pattern": "reports/2018-01-02/*",
+      "reason_codes": ["SYNTHETIC_FIXTURE", "UNIVERSE_MANIFEST_HASH_MISSING"]
+    },
+    {
+      "path_pattern": "GitHub Actions artifacts from research-alpha-batch.yml before daily_universe_manifest_v1.0",
+      "reason_codes": ["STATIC_SYMBOL_FIXTURE", "POINT_IN_TIME_UNIVERSE_UNPROVEN"]
+    },
+    {
+      "path_pattern": "GitHub Actions artifacts from multi-day-trainer.yml before daily_universe_manifest_v1.0",
+      "reason_codes": ["STATIC_SYMBOL_FIXTURE", "SURVIVORSHIP_BIAS_RISK", "POINT_IN_TIME_UNIVERSE_UNPROVEN"]
+    }
+  ]
+}

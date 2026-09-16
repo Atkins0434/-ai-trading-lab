@@ -1,0 +1,21 @@
+{
+  "coverage_reasons": ["STATIC_SYMBOL_FIXTURE_NOT_RESEARCH_UNIVERSE"],
+  "coverage_status": "fixture",
+  "eligible_symbol_count": 2,
+  "excluded_symbol_count": 0,
+  "information_cutoff": "2024-06-10T07:00:00-04:00",
+  "manifest_hash": "sha256:0baa5576f323b2ba3593d90ea2433b30e29f53c636312f3683ad6aa89de16439",
+  "promotion_eligible": false,
+  "replay_id": "sample-fixture-2024-06-10",
+  "research_evidence": false,
+  "ruleset": {"name": "us_listed_common_equity", "version": "1.0"},
+  "securities": [
+    {"delisting_date": null, "inclusion": true, "listing_date": null, "listing_venue": "UNKNOWN", "reason_codes": ["CI_FIXTURE_ELIGIBLE"], "security_type": "COMMON_STOCK_FIXTURE", "stable_security_id": "CI_FIXTURE:AAPL", "ticker": "AAPL"},
+    {"delisting_date": null, "inclusion": true, "listing_date": null, "listing_venue": "UNKNOWN", "reason_codes": ["CI_FIXTURE_ELIGIBLE"], "security_type": "COMMON_STOCK_FIXTURE", "stable_security_id": "CI_FIXTURE:MSFT", "ticker": "MSFT"}
+  ],
+  "source": {"feed_version": "sample_v1", "provider": "SYNTHETIC", "query_parameters": {"hardcoded_symbols": ["AAPL", "MSFT"]}, "retrieved_at": "2026-09-16T00:00:00+00:00"},
+  "timezone": "America/New_York",
+  "trading_date": "2024-06-10",
+  "universe_mode": "ci_fixture",
+  "version": "daily_universe_manifest_v1.0"
+}

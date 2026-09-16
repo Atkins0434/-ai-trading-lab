@@ -57,3 +57,25 @@ class CatalystDataProvider(Protocol):
         end_timestamp: str,
     ) -> list[dict[str, Any]]:
         ...
+
+
+class HistoricalUniverseProvider(Protocol):
+    """Point-in-time security-master boundary for research universes.
+
+    A provider must describe its capabilities independently of the returned
+    rows.  Callers fail closed when a required capability is unavailable;
+    they never replace a missing historical universe with current symbols.
+    """
+
+    provider_name: str
+    feed_version: str
+
+    def historical_universe_capabilities(self) -> dict[str, bool]:
+        ...
+
+    def get_historical_universe(
+        self,
+        trading_date: str,
+        information_cutoff: str,
+    ) -> dict[str, Any]:
+        ...

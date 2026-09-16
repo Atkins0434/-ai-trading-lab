@@ -4,6 +4,11 @@ import json
 from typing import Any
 
 from trainer.validate_contracts import ContractError, validate_contract
+from trainer.evidence_eligibility import (
+    EvidenceEligibilityError,
+    assert_matching_universe,
+    require_research_evidence,
+)
 
 
 class PostmortemError(Exception):
@@ -52,6 +57,13 @@ def build_postmortem(
     scout_result: dict[str, Any],
     benchmark_result: dict[str, Any],
 ) -> dict[str, Any]:
+    try:
+        universe_metadata = assert_matching_universe(
+            snapshot, scout_result, benchmark_result
+        )
+        require_research_evidence(benchmark_result, consumer="Trainer")
+    except EvidenceEligibilityError as exc:
+        raise PostmortemError(str(exc)) from exc
     candidates = {item["ticker"]: item for item in scout_result["candidates"]}
     missed = []
     failures: dict[tuple[str, str], dict[str, Any]] = {}
@@ -101,6 +113,7 @@ def build_postmortem(
         "scout_version": scout_result["scout_version"],
         "trainer_version": "scout_trainer_v1.0",
         "execution_policy_version": benchmark_result["execution_policy_version"],
+        **universe_metadata,
         "result": {"SCOUT_OUTPERFORMED": "WIN", "SCOUT_TIED": "TIE", "SCOUT_UNDERPERFORMED": "MISS"}[code],
         "scout_performance": {key: benchmark_result["scout_summary"].get(key) for key in ("realized_return_pct", "realized_pnl_usd", "max_drawdown_pct", "win_rate_pct", "average_capture_ratio")},
         "benchmark_performance": {key: benchmark_result["benchmark_summary"].get(key) for key in ("realized_return_pct", "realized_pnl_usd", "max_drawdown_pct", "win_rate_pct", "average_capture_ratio")},

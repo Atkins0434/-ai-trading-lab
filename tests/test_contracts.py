@@ -25,11 +25,16 @@ def test_valid_historical_snapshot_passes():
         "scout_version": "scout_v1.0",
         "execution_policy_version": "execution_policy_v1.0",
         "feature_registry_version": "feature_registry_v1.0",
-        "data_source": {
+            "data_source": {
             "provider": "TEST_FIXTURE",
             "feed_version": "fixture_v1"
-        },
-        "securities": []
+            },
+            "universe_mode": "ci_fixture",
+            "universe_manifest_hash": "sha256:" + "0" * 64,
+            "universe_coverage": "fixture",
+            "research_evidence": False,
+            "promotion_eligible": False,
+            "securities": []
     }
 
     validate_contract("historical_snapshot", payload)

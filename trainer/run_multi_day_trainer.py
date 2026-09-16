@@ -7,7 +7,6 @@ from pathlib import Path
 from trainer.multi_day_trainer import run_multi_day_trainer
 from trainer.providers.massive import MassiveClient
 from trainer.rate_control import AdaptiveRateLimiter, RetryPolicy
-from trainer.run_research_alpha_batch import DEFAULT_TICKERS
 
 
 def parse_args() -> argparse.Namespace:
@@ -15,7 +14,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dates-csv", default="", help="Comma-separated historical trading dates.")
     parser.add_argument("--start-date", help="First date for calendar-generated sessions.")
     parser.add_argument("--end-date", help="Last date for calendar-generated sessions.")
-    parser.add_argument("--tickers", nargs="+", default=DEFAULT_TICKERS)
+    parser.add_argument(
+        "--universe-mode",
+        required=True,
+        choices=["ci_fixture", "historical_research"],
+    )
+    parser.add_argument("--tickers", nargs="+", default=None)
     parser.add_argument("--threshold-pct", type=float)
     parser.add_argument("--exploration-top-k", type=int, default=0)
     parser.add_argument("--cache", type=Path, default=Path("data/cache"))
@@ -62,6 +66,7 @@ def main() -> None:
         max_workers=args.max_workers,
         allowed_partitions=args.partitions,
         holdout_unlocked=args.unlock_holdout,
+        universe_mode=args.universe_mode,
     )
     print(json.dumps(result, indent=2, sort_keys=True))
 

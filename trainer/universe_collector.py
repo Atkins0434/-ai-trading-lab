@@ -63,6 +63,9 @@ def _new_manifest(tickers: list[str], as_of_date: str) -> dict[str, Any]:
         "as_of_date": as_of_date,
         "status": "PARTIAL" if requested else "COMPLETE",
         "source": "MASSIVE",
+        "universe_mode": "ci_fixture",
+        "research_evidence": False,
+        "promotion_eligible": False,
         "requested_tickers": requested,
         "completed_tickers": [],
         "remaining_tickers": list(requested),
@@ -78,6 +81,18 @@ def _load_or_create(path: Path, tickers: list[str], as_of_date: str) -> dict[str
     if not path.exists():
         return _new_manifest(expected, as_of_date)
     manifest = json.loads(path.read_text(encoding="utf-8"))
+    if "universe_mode" not in manifest:
+        suffix = 0
+        while True:
+            marker = "" if suffix == 0 else f".{suffix}"
+            legacy = path.with_name(
+                f"{path.stem}.legacy-ci-fixture{marker}{path.suffix}"
+            )
+            if not legacy.exists():
+                path.replace(legacy)
+                break
+            suffix += 1
+        return _new_manifest(expected, as_of_date)
     validate_contract("research_universe", manifest)
     manifest.setdefault("eligible_securities", [])
     if manifest["as_of_date"] != as_of_date or manifest["requested_tickers"] != expected:

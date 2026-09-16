@@ -5,6 +5,7 @@ from typing import Any
 
 from trainer.trade_engine import load_execution_policy, simulate_trade
 from trainer.validate_contracts import ContractError, validate_contract
+from trainer.evidence_eligibility import EvidenceEligibilityError, assert_matching_universe
 
 
 class BenchmarkError(Exception):
@@ -38,6 +39,12 @@ def build_same_universe_benchmark(
     strategy_capital: float,
 ) -> dict[str, Any]:
     """Compare Scout with the top MFE movers from its exact screened universe."""
+    try:
+        universe_metadata = assert_matching_universe(
+            snapshot, scout_result, outcome_result
+        )
+    except EvidenceEligibilityError as exc:
+        raise BenchmarkError(str(exc)) from exc
     policy = load_execution_policy()
     outcomes = sorted(
         outcome_result["outcomes"],
@@ -107,6 +114,7 @@ def build_same_universe_benchmark(
         "replay_id": snapshot["replay_id"],
         "trading_date": snapshot["trading_date"],
         "universe_version": snapshot["universe_version"],
+        **universe_metadata,
         "execution_policy_version": outcome_result["execution_policy_version"],
         "benchmark_method": "TOP_10_MOVERS_SAME_UNIVERSE",
         "benchmark_candidates": benchmark_candidates,

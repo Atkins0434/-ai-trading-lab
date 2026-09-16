@@ -88,14 +88,13 @@ def test_batch_screens_scores_and_creates_auditable_artifacts(tmp_path: Path):
     assert result["mode"] == "RESEARCH_ONLY"
     assert result["candidates"][0]["execution_eligible"] is False
     assert (output_dir / "research_alpha_report.pdf").read_bytes().startswith(b"%PDF")
-    outcome = json.loads((output_dir / "end_of_day_outcome.json").read_text())
-    benchmark = json.loads((output_dir / "benchmark_result.json").read_text())
-    postmortem = json.loads((output_dir / "postmortem.json").read_text())
-    assert outcome["outcomes"][0]["mfe_pct"] > 0
-    assert benchmark["benchmark_method"] == "TOP_10_MOVERS_SAME_UNIVERSE"
-    assert postmortem["feature_proposals"] == []
-    assert "no Production Scout configuration was modified" in postmortem["notes"][0]
-    assert (output_dir / "postmortem_report.pdf").read_bytes().startswith(b"%PDF")
+    assert manifest["universe_mode"] == "ci_fixture"
+    assert manifest["research_evidence"] is False
+    assert manifest["promotion_eligible"] is False
+    assert result["universe_manifest_hash"] == manifest["universe_manifest_hash"]
+    assert not (output_dir / "end_of_day_outcome.json").exists()
+    assert not (output_dir / "benchmark_result.json").exists()
+    assert not (output_dir / "postmortem.json").exists()
     assert (output_dir / "historical_news_backfill.json").exists()
     assert (output_dir / "catalyst_shadow_metrics.json").exists()
     assert manifest["news_backfill_errors"] == {}
