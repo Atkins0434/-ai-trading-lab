@@ -1,0 +1,189 @@
+name: Flat-File Replay Day
+
+concurrency:
+  group: multi-day-trainer-${{ github.repository }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      trading_date:
+        description: Historical trading date to replay (YYYY-MM-DD)
+        required: true
+        default: "2024-03-15"
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Validate replay date and resolve paths
+        id: replay
+        shell: bash
+        env:
+          TRADING_DATE: ${{ inputs.trading_date }}
+        run: |
+          python - <<'PY'
+          import os
+          from datetime import date
+
+          from trainer.trading_calendar import generate_trading_dates
+
+          requested = os.environ["TRADING_DATE"]
+          normalized = date.fromisoformat(requested).isoformat()
+          if requested != normalized:
+              raise SystemExit(
+                  f"trading_date must use YYYY-MM-DD format: {requested!r}"
+              )
+          if generate_trading_dates(normalized, normalized) != [normalized]:
+              raise SystemExit(f"Not a supported US trading session: {normalized}")
+          PY
+          output_root="reports/flatfile_replay/${TRADING_DATE}-to-${TRADING_DATE}"
+          echo "trading_date=${TRADING_DATE}" >> "$GITHUB_OUTPUT"
+          echo "output_root=${output_root}" >> "$GITHUB_OUTPUT"
+          echo "REPLAY_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Report cached flat-file coverage
+        shell: bash
+        env:
+          TRADING_DATE: ${{ steps.replay.outputs.trading_date }}
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          mkdir -p "$OUTPUT_ROOT"
+          python -m trainer.flatfile_coverage \
+            --start "$TRADING_DATE" \
+            --end "$TRADING_DATE" \
+            | tee "$OUTPUT_ROOT/coverage_before.json"
+
+      - name: Run one-day flat-file replay
+        shell: bash
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+          MASSIVE_S3_ACCESS_KEY_ID: ${{ secrets.MASSIVE_S3_ACCESS_KEY_ID }}
+          MASSIVE_S3_SECRET_ACCESS_KEY: ${{ secrets.MASSIVE_S3_SECRET_ACCESS_KEY }}
+          TRADING_DATE: ${{ steps.replay.outputs.trading_date }}
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          python -m trainer.flatfile_replay \
+            --start "$TRADING_DATE" \
+            --end "$TRADING_DATE" \
+            --output-root "$OUTPUT_ROOT" \
+            | tee "$OUTPUT_ROOT/replay_stdout.json"
+
+      - name: Print replay summary
+        if: always()
+        shell: bash
+        env:
+          TRADING_DATE: ${{ steps.replay.outputs.trading_date }}
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          python - <<'PY' | tee "$RUNNER_TEMP/flat-file-replay-summary.txt"
+          from collections import Counter
+          import json
+          import os
+          from pathlib import Path
+          import time
+
+          trading_date = os.environ.get("TRADING_DATE", "unknown")
+          output_root = Path(os.environ.get("OUTPUT_ROOT", "missing-output-root"))
+          day_root = output_root / "days" / trading_date
+          universe_path = day_root / "daily_universe_manifest.json"
+          replay_path = output_root / "flatfile_replay_manifest.json"
+          started_at = int(os.environ.get("REPLAY_STARTED_AT", str(int(time.time()))))
+
+          print("Flat-File Replay Day summary")
+          print(f"Trading date: {trading_date}")
+
+          if universe_path.is_file():
+              universe = json.loads(universe_path.read_text(encoding="utf-8"))
+              print(f"Universe size: {universe['eligible_symbol_count']}")
+              reasons = Counter(
+                  reason
+                  for security in universe["securities"]
+                  if not security["inclusion"]
+                  for reason in security["reason_codes"]
+              )
+              print("Exclusion-reason counts:")
+              if reasons:
+                  for reason, count in sorted(reasons.items()):
+                      print(f"  {reason}: {count}")
+              else:
+                  print("  none")
+          else:
+              print(f"Universe manifest unavailable: {universe_path}")
+
+          if replay_path.is_file():
+              replay = json.loads(replay_path.read_text(encoding="utf-8"))
+              cache = replay["reference_cache_summary"]
+              print(
+                  "Reference cache: "
+                  f"hits={cache['hits']}, fetches={cache['fetches']}, "
+                  f"errors={cache['errors']}"
+              )
+              padded = (
+                  replay["days"][0].get("padded_bar_statistics")
+                  if replay.get("days")
+                  else None
+              )
+              print("Padded-bar statistics:")
+              if padded:
+                  for name, value in sorted(padded.items()):
+                      print(f"  {name}: {value}")
+              else:
+                  print("  unavailable")
+          else:
+              print(f"Replay manifest unavailable: {replay_path}")
+
+          elapsed = max(0, int(time.time()) - started_at)
+          print(f"Total wall time: {elapsed}s ({elapsed / 60:.1f}m)")
+          PY
+          {
+            echo "### Flat-File Replay Day"
+            echo '```text'
+            cat "$RUNNER_TEMP/flat-file-replay-summary.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify required replay artifacts
+        if: always()
+        shell: bash
+        env:
+          TRADING_DATE: ${{ steps.replay.outputs.trading_date }}
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          day_root="$OUTPUT_ROOT/days/$TRADING_DATE"
+          required=(
+            "$day_root/daily_universe_manifest.json"
+            "$OUTPUT_ROOT/flatfile_replay_manifest.json"
+            "$day_root/benchmark_result.json"
+            "$day_root/postmortem.json"
+          )
+          missing=0
+          for path in "${required[@]}"; do
+            if [ -f "$path" ]; then
+              echo "Artifact ready: $path"
+            else
+              echo "Missing required artifact: $path" >&2
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flat-file-replay-${{ steps.replay.outputs.trading_date }}-${{ github.run_id }}
+          if-no-files-found: error
+          path: |
+            ${{ steps.replay.outputs.output_root }}/days/${{ steps.replay.outputs.trading_date }}/daily_universe_manifest.json
+            ${{ steps.replay.outputs.output_root }}/flatfile_replay_manifest.json
+            ${{ steps.replay.outputs.output_root }}/days/${{ steps.replay.outputs.trading_date }}/benchmark_result.json
+            ${{ steps.replay.outputs.output_root }}/days/${{ steps.replay.outputs.trading_date }}/postmortem.json
