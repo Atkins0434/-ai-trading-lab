@@ -82,11 +82,12 @@ only after every qualifying name receives execution priority. Their return,
 P&L, and win rate are reported in a separate exploration summary and never
 change Scout's verdict or qualifying performance.
 
-## Massive Free capability check
+## Massive Developer capability check
 
 Massive is the provider candidate for consolidated U.S. premarket aggregates.
 Store its credential as `MASSIVE_API_KEY`; never commit or print the key. The
-free Stocks Basic plan is tested first against a recent completed trading day:
+active Stocks Developer capabilities are declared in
+`config/massive_plan.json` and tested against a recent completed trading day:
 See the official
 [Massive custom-bars documentation](https://massive.com/docs/rest/stocks/aggregates/custom-bars)
 for the upstream aggregate contract.
@@ -104,16 +105,17 @@ would contain information occurring after the exact Scout freeze. The report
 also checks a daily aggregate and writes only counts, timestamps, plan/feed
 identity, and sanitized errors to `reports/massive/capability_report.json`.
 
-Passing on a recent day proves the adapter and premarket feed shape. It does
-not make January 2, 2018 available on the two-year free plan; that historical
-milestone remains a later paid-data gate.
+Passing on a recent day proves the adapter and premarket feed shape. The
+Developer plan records ten years of history and flat-file access. Point-in-time
+universe proof remains a separate provider-capability gate.
 
 ## Research Scout Alpha
 
 Research Scout Alpha is isolated from Production Scout. It scores only the
 twelve implemented Price & Volume Dynamics metrics against a fixed 48-point
 denominator. It cannot authorize execution, and historical spread and order
-book depth remain explicitly unevaluated on Massive Free. Missing quotes or
+book depth remain explicitly unevaluated when historical quote/depth inputs are
+unavailable. Missing quotes or
 depth produce `NOT_EVALUATED` guardrails with explicit reason codes and do not
 block selection. Each Scout config can restore fail-closed behavior by setting
 the corresponding missing-data policy to `REJECT`; this changes the guardrail
@@ -126,7 +128,7 @@ python -m trainer.run_massive_alpha --ticker SPY --date 2026-09-14
 ```
 
 The universe collector supports dated common-stock discovery, point-in-time
-market-cap filtering, free-plan request pacing, and an atomic checkpoint after
+market-cap filtering, plan-aware request pacing, and an atomic checkpoint after
 every ticker. A stopped collection resumes from the checkpoint:
 
 ```bash
@@ -136,15 +138,16 @@ python -m trainer.run_universe_collection \
   --max-new 25
 ```
 
-At five calls per minute, a full universe collection is intentionally slow.
-The manifest reports remaining symbols and estimated minutes so a paid-plan
-decision can be based on measured workload rather than guesswork.
+Developer runs apply no proactive REST pacing. If
+`rest_calls_per_minute` is set to a positive number, the existing finite-tier
+spacing is restored. Provider throttles and transient failures still use
+bounded retry/backoff in either mode.
 
 ## Historical Replay Accelerator
 
 Multi-day research can run from an explicit session list or an exchange-aware
-date range with bounded concurrent date workers, a shared adaptive provider
-rate limit, resumable date/ticker queues, checksum-verified deduplicated cache
+date range with bounded concurrent date workers, plan-aware provider pacing,
+resumable date/ticker queues, checksum-verified deduplicated cache
 entries, and historical news/sentiment shadow backfills.
 
 Chronological development/validation/holdout assignments are frozen per

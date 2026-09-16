@@ -96,6 +96,8 @@ batch without creating Scout performance, benchmark, Trainer, or promotion
 evidence. A provider error behaves the same way. There is no fallback to the
 current active list or the static CI list.
 
-Provider plan depth is a separate constraint: Massive Free exposes two years
-of historical reference data. Paying for deeper history would not by itself
-resolve the availability-time and ticker-history proof gaps above.
+Provider plan depth is a separate constraint: the configured Massive Developer
+plan exposes ten years of history and flat files. Those capabilities do not by
+themselves resolve the availability-time and ticker-history proof gaps above.
+Every universe and replay manifest records the active plan so evidence cannot
+be confused with an earlier free-plan run.

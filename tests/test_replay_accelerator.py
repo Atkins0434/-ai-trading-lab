@@ -108,6 +108,18 @@ def test_adaptive_limiter_reserves_shared_slots_and_recovers():
     assert limiter.snapshot()["current_interval_seconds"] == 1.8
 
 
+def test_developer_plan_adaptive_limiter_has_no_proactive_pacing():
+    slept = []
+    limiter = AdaptiveRateLimiter(sleep=slept.append)
+
+    limiter.wait()
+    limiter.wait()
+
+    assert limiter.snapshot()["requests_per_minute"] is None
+    assert limiter.snapshot()["minimum_interval_seconds"] == 0.0
+    assert slept == []
+
+
 def test_retry_policy_is_bounded():
     policy = RetryPolicy(base_backoff_seconds=2, maximum_backoff_seconds=5)
     assert [policy.delay_for_attempt(value) for value in range(1, 5)] == [2, 4, 5, 5]

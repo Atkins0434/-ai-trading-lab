@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 from trainer.providers.base import ProviderError
 from trainer.providers.massive import MassiveClient, parse_massive_timestamp
+from trainer.rate_control import active_massive_plan
 from trainer.universe_collector import RequestRateLimiter
 
 
@@ -64,6 +65,7 @@ def build_report(
     ticker: str,
     trading_date: str,
 ) -> dict[str, Any]:
+    plan = active_massive_plan(client)
     target_date = date.fromisoformat(trading_date)
     intraday_result: dict[str, Any]
     try:
@@ -95,7 +97,8 @@ def build_report(
     return {
         "provider": client.provider_name,
         "feed_version": client.feed_version,
-        "plan_under_test": "STOCKS_BASIC_FREE",
+        "plan_under_test": plan["plan"],
+        "massive_plan": plan,
         "ticker": ticker.upper(),
         "trading_date": trading_date,
         "freeze_time": "07:00:00 America/New_York",
@@ -124,7 +127,7 @@ def write_report(report: dict[str, Any], path: Path) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Probe Massive Free historical stock capabilities."
+        description="Probe the configured Massive historical stock capabilities."
     )
     parser.add_argument("--ticker", default="SPY")
     parser.add_argument("--date", default="2026-09-14")

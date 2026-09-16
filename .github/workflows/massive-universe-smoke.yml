@@ -1,7 +1,7 @@
 name: Massive Universe Collector Check
 
 concurrency:
-  group: massive-api-${{ github.repository }}
+  group: massive-provider-${{ github.repository }}
   cancel-in-progress: false
 
 on:
@@ -10,7 +10,9 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/massive-universe-smoke.yml"
+      - "config/massive_plan.json"
       - "trainer/providers/massive.py"
+      - "trainer/rate_control.py"
       - "trainer/universe_collector.py"
       - "trainer/run_universe_collection.py"
 
@@ -39,6 +41,7 @@ jobs:
           {
             echo "### Universe collector smoke fixture"
             echo "- Universe mode: ci_fixture"
+            echo "- Massive plan: $(jq -r .massive_plan.plan reports/massive/research_universe.json)"
             echo "- Research evidence: false"
             echo "- Promotion eligible: false"
           } >> "$GITHUB_STEP_SUMMARY"

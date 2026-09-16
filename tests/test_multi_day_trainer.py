@@ -122,6 +122,11 @@ def test_multi_day_trainer_persists_evidence_and_never_promotes(tmp_path: Path):
     state = run_multi_day_trainer(object(), None, dates, cache_root=tmp_path / "cache", output_root=tmp_path / "reports" / "trainer", day_runner=fake_day_runner, universe_mode="historical_research")
 
     assert state["status"] == "COMPLETE"
+    assert state["massive_plan"]["plan"] == "DEVELOPER"
+    assert all(
+        day["massive_plan"] == state["massive_plan"]
+        for day in state["days"]
+    )
     assert state["completed_dates"] == dates
     assert state["aggregate_performance"]["days_processed"] == 3
     assert state["aggregate_performance"]["misses"] == 3

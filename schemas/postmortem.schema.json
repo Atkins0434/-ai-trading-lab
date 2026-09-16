@@ -7,7 +7,7 @@
   "additionalProperties": false,
   "required": [
     "replay_id", "trading_date", "scout_version", "trainer_version",
-    "execution_policy_version", "universe_mode", "universe_manifest_hash",
+    "execution_policy_version", "massive_plan", "universe_mode", "universe_manifest_hash",
     "universe_coverage", "research_evidence", "promotion_eligible", "result",
     "scout_performance", "benchmark_performance", "unreachable_mover_count",
     "unreachable_pct", "missed_opportunities", "execution_policy_review",
@@ -19,6 +19,7 @@
     "scout_version": {"type": "string"},
     "trainer_version": {"type": "string"},
     "execution_policy_version": {"type": "string"},
+    "massive_plan": {"$ref": "#/$defs/massivePlan"},
     "universe_mode": {"const": "historical_research"},
     "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
     "universe_coverage": {"const": "complete"},
@@ -44,6 +45,16 @@
     "notes": {"type": "array", "items": {"type": "string"}}
   },
   "$defs": {
+    "massivePlan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["plan", "rest_calls_per_minute", "history_years", "flat_files"],
+      "properties": {
+        "plan": {"type": "string", "minLength": 1},
+        "rest_calls_per_minute": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "history_years": {"type": "integer", "minimum": 1},
+        "flat_files": {"type": "boolean"}
+      }
+    },
     "nullableNumber": {"type": ["number", "null"]},
     "nullableString": {"type": ["string", "null"]},
     "performance": {

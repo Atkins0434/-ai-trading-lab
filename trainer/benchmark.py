@@ -5,6 +5,7 @@ from statistics import mean
 from typing import Any
 
 from trainer.evidence_eligibility import EvidenceEligibilityError, assert_matching_universe
+from trainer.rate_control import load_massive_plan
 from trainer.trade_engine import load_execution_policy, simulate_trade
 from trainer.validate_contracts import ContractError, validate_contract
 
@@ -354,6 +355,7 @@ def build_same_universe_benchmark(
         "replay_id": snapshot["replay_id"],
         "trading_date": snapshot["trading_date"],
         "universe_version": snapshot["universe_version"],
+        "massive_plan": snapshot.get("massive_plan", load_massive_plan()),
         **universe_metadata,
         "execution_policy_version": outcome_result["execution_policy_version"],
         "benchmark_method": "RANDOM_DRAW_BASELINE_SAME_UNIVERSE",

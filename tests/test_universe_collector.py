@@ -38,6 +38,8 @@ def test_collection_resumes_from_atomic_checkpoint(tmp_path: Path):
         client, ["GOOD", "BIG"], "2026-09-14", path, max_new=1
     )
     assert partial["status"] == "PARTIAL"
+    assert partial["massive_plan"]["plan"] == "DEVELOPER"
+    assert partial["estimated_remaining_minutes"] == 0.0
     assert partial["completed_tickers"] == ["BIG"]
 
     complete = collect_ticker_overviews(
@@ -55,7 +57,7 @@ def test_collection_resumes_from_atomic_checkpoint(tmp_path: Path):
     assert client.calls == ["BIG", "GOOD"]
 
 
-def test_free_plan_rate_limiter_waits_between_calls():
+def test_finite_plan_rate_limiter_waits_between_calls():
     now = [100.0]
     slept = []
 
@@ -66,9 +68,20 @@ def test_free_plan_rate_limiter_waits_between_calls():
         slept.append(seconds)
         now[0] += seconds
 
-    limiter = RequestRateLimiter(clock=clock, sleep=sleep)
+    limiter = RequestRateLimiter(5, clock=clock, sleep=sleep)
     limiter.wait()
     now[0] += 2
     limiter.wait()
 
     assert slept == [10.1]
+
+
+def test_developer_plan_rate_limiter_does_not_sleep():
+    slept = []
+    limiter = RequestRateLimiter(sleep=slept.append)
+
+    limiter.wait()
+    limiter.wait()
+
+    assert limiter.requests_per_minute is None
+    assert slept == []

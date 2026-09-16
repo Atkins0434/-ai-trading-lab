@@ -185,6 +185,10 @@ def generate_scout_markdown_report(
     lines.append("")
     lines.append(f"Replay ID: `{scout_result['replay_id']}`")
     lines.append(f"Scout Version: `{scout_result['scout_version']}`")
+    if scout_result.get("massive_plan"):
+        lines.append(
+            f"Massive Plan: `{scout_result['massive_plan']['plan']}`"
+        )
     lines.append(
         f"Snapshot Time: `{scout_result['snapshot_timestamp']}`"
     )
@@ -630,6 +634,11 @@ def generate_scout_pdf_report(
             subtitle_style,
         ),
     ]
+    if scout_result.get("massive_plan"):
+        story.append(Paragraph(
+            f"Massive plan: {scout_result['massive_plan']['plan']}",
+            subtitle_style,
+        ))
     if research_only:
         banner = Table(
             [[Paragraph("RESEARCH ONLY - execution is disabled", tiny_style)]],

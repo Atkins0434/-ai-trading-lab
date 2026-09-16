@@ -8,30 +8,46 @@ from typing import Any, Callable
 
 from trainer.providers.massive import MassiveClient
 from trainer.providers.base import ProviderError
+from trainer.rate_control import MASSIVE_PLAN_PATH, load_massive_plan
 from trainer.validate_contracts import validate_contract
 
 
 PRIMARY_EXCHANGES = {"XNAS", "XNYS", "XASE"}
 MIN_MARKET_CAP = 300_000_000
 MAX_MARKET_CAP = 15_000_000_000
+_USE_CONFIG = object()
 
 
 class RequestRateLimiter:
-    """Deterministic request spacing for Massive Free's five calls/minute."""
+    """Deterministic request spacing when the active Massive plan has a cap."""
 
     def __init__(
         self,
-        minimum_interval_seconds: float = 12.1,
+        requests_per_minute: float | None | object = _USE_CONFIG,
         *,
+        plan_path: Path = MASSIVE_PLAN_PATH,
         clock: Callable[[], float] = time.monotonic,
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
-        self.minimum_interval_seconds = minimum_interval_seconds
+        if requests_per_minute is _USE_CONFIG:
+            requests_per_minute = load_massive_plan(plan_path)[
+                "rest_calls_per_minute"
+            ]
+        if requests_per_minute is not None and requests_per_minute <= 0:
+            raise ValueError("requests_per_minute must be positive.")
+        self.requests_per_minute = requests_per_minute
+        self.minimum_interval_seconds = (
+            0.0
+            if requests_per_minute is None
+            else (60.0 / requests_per_minute) + 0.1
+        )
         self._clock = clock
         self._sleep = sleep
         self._last_request: float | None = None
 
     def wait(self) -> None:
+        if self.minimum_interval_seconds == 0:
+            return
         now = self._clock()
         if self._last_request is not None:
             remaining = self.minimum_interval_seconds - (now - self._last_request)
@@ -58,11 +74,14 @@ def discover_common_stocks(client: MassiveClient, as_of_date: str) -> list[str]:
 
 def _new_manifest(tickers: list[str], as_of_date: str) -> dict[str, Any]:
     requested = sorted({ticker.upper() for ticker in tickers})
+    plan = load_massive_plan()
+    rate = plan["rest_calls_per_minute"]
     return {
         "version": "research_universe_v1.0",
         "as_of_date": as_of_date,
         "status": "PARTIAL" if requested else "COMPLETE",
         "source": "MASSIVE",
+        "massive_plan": plan,
         "universe_mode": "ci_fixture",
         "research_evidence": False,
         "promotion_eligible": False,
@@ -72,21 +91,27 @@ def _new_manifest(tickers: list[str], as_of_date: str) -> dict[str, Any]:
         "eligible_tickers": [],
         "eligible_securities": [],
         "rejected": {},
-        "estimated_remaining_minutes": len(requested) / 5,
+        "estimated_remaining_minutes": (
+            len(requested) / rate if rate is not None else 0.0
+        ),
     }
 
 
 def _load_or_create(path: Path, tickers: list[str], as_of_date: str) -> dict[str, Any]:
     expected = sorted({ticker.upper() for ticker in tickers})
+    active_plan = load_massive_plan()
     if not path.exists():
         return _new_manifest(expected, as_of_date)
     manifest = json.loads(path.read_text(encoding="utf-8"))
-    if "universe_mode" not in manifest:
+    if (
+        "universe_mode" not in manifest
+        or manifest.get("massive_plan") != active_plan
+    ):
         suffix = 0
         while True:
             marker = "" if suffix == 0 else f".{suffix}"
             legacy = path.with_name(
-                f"{path.stem}.legacy-ci-fixture{marker}{path.suffix}"
+                f"{path.stem}.legacy-plan-or-fixture{marker}{path.suffix}"
             )
             if not legacy.exists():
                 path.replace(legacy)
@@ -155,7 +180,12 @@ def collect_ticker_overviews(
         manifest["completed_tickers"].append(ticker)
         manifest["completed_tickers"].sort()
         manifest["remaining_tickers"].remove(ticker)
-        manifest["estimated_remaining_minutes"] = len(manifest["remaining_tickers"]) / 5
+        rate = manifest["massive_plan"]["rest_calls_per_minute"]
+        manifest["estimated_remaining_minutes"] = (
+            len(manifest["remaining_tickers"]) / rate
+            if rate is not None
+            else 0.0
+        )
         manifest["status"] = (
             "COMPLETE" if not manifest["remaining_tickers"] else "PARTIAL"
         )

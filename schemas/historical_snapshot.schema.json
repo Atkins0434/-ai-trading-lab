@@ -81,6 +81,7 @@
     "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
     "research_evidence": {"type": "boolean"},
     "promotion_eligible": {"type": "boolean"},
+    "massive_plan": {"$ref": "#/$defs/massivePlan"},
 
     "securities": {
       "type": "array",
@@ -91,6 +92,17 @@
   },
 
   "$defs": {
+    "massivePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan", "rest_calls_per_minute", "history_years", "flat_files"],
+      "properties": {
+        "plan": {"type": "string", "minLength": 1},
+        "rest_calls_per_minute": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "history_years": {"type": "integer", "minimum": 1},
+        "flat_files": {"type": "boolean"}
+      }
+    },
     "securitySnapshot": {
       "type": "object",
       "additionalProperties": false,

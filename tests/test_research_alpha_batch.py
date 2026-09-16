@@ -83,6 +83,8 @@ def test_batch_screens_scores_and_creates_auditable_artifacts(tmp_path: Path):
 
     result = json.loads((output_dir / "research_alpha_output.json").read_text())
     assert manifest["status"] == "COMPLETE"
+    assert manifest["massive_plan"]["plan"] == "DEVELOPER"
+    assert manifest["massive_plan"]["rest_calls_per_minute"] is None
     assert manifest["scored_tickers"] == ["GOOD"]
     assert manifest["universe_rejections"] == {"BIG": "MARKET_CAP_OUT_OF_RANGE"}
     assert result["mode"] == "RESEARCH_ONLY"

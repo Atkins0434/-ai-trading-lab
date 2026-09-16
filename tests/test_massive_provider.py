@@ -151,6 +151,13 @@ def test_capability_report_requires_sixty_premarket_bars():
     )
 
     assert report["selection_contract_passed"] is True
+    assert report["plan_under_test"] == "DEVELOPER"
+    assert report["massive_plan"] == {
+        "plan": "DEVELOPER",
+        "rest_calls_per_minute": None,
+        "history_years": 10,
+        "flat_files": True,
+    }
     assert (
         report["intraday"]["premarket_0400_to_0700_et"]["record_count"]
         == 60

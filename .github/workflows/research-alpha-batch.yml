@@ -1,7 +1,7 @@
 name: Research Alpha Universe-Gated Replay
 
 concurrency:
-  group: research-alpha-${{ github.repository }}
+  group: massive-provider-${{ github.repository }}
   cancel-in-progress: false
 
 on:
@@ -21,9 +21,11 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/research-alpha-batch.yml"
+      - "config/massive_plan.json"
       - "trainer/research_alpha_batch.py"
       - "trainer/run_research_alpha_batch.py"
       - "trainer/universe_collector.py"
+      - "trainer/rate_control.py"
       - "trainer/universe_manifest.py"
       - "trainer/evidence_eligibility.py"
       - "trainer/massive_alpha_snapshot.py"
@@ -51,9 +53,6 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - name: Stagger provider workflows on pull requests and pushes
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: sleep 60
       - name: Resolve explicit universe mode
         id: universe
         shell: bash
@@ -84,6 +83,7 @@ jobs:
           if [ -f "$manifest" ]; then
             {
               echo "### Daily universe gate"
+              echo "- Massive plan: $(jq -r .massive_plan.plan "$manifest")"
               echo "- Mode: $(jq -r .universe_mode "$manifest")"
               echo "- Eligible count: $(jq -r '.universe_eligible_tickers | length' "$manifest")"
               echo "- Coverage: $(jq -r .universe_coverage "$manifest")"

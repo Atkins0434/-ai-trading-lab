@@ -37,6 +37,10 @@ def generate_postmortem_pdf(
     story: list[Any] = [
         Paragraph("Scout Trainer Postmortem", title),
         Paragraph(f"{postmortem['trading_date']} | {postmortem['scout_version']} | RESEARCH ONLY - no automatic promotion", small),
+        Paragraph(
+            f"Massive plan: {postmortem['massive_plan']['plan']}",
+            small,
+        ),
         Spacer(1, 8),
     ]
     kpis = [

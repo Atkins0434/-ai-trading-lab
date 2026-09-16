@@ -24,6 +24,7 @@ from trainer.evidence_eligibility import (
     require_research_evidence,
 )
 from trainer.universe_manifest import CI_FIXTURE, HISTORICAL_RESEARCH
+from trainer.rate_control import load_massive_plan
 
 
 MINIMUM_OCCURRENCES = 30
@@ -417,6 +418,7 @@ def _build_state(
         ),
         "trainer_version": "scout_trainer_v1.2",
         "source": "MASSIVE",
+        "massive_plan": load_massive_plan(),
         "status": status,
         "requested_dates": dates,
         "requested_tickers": tickers,
@@ -508,6 +510,7 @@ def run_multi_day_trainer(
     output_root.mkdir(parents=True, exist_ok=True)
     state_path = output_root / "trainer_run_state.json"
     prior = _read_json(state_path) if resume and state_path.exists() else {}
+    active_plan = load_massive_plan()
     expected_policy = {
         "scoring_threshold_pct_override": threshold_pct,
         "exploration_top_k": exploration_top_k,
@@ -518,6 +521,7 @@ def run_multi_day_trainer(
         or prior.get("selection_policy") != expected_policy
         or prior.get("requested_tickers") != requested_tickers
         or prior.get("universe_mode") != universe_mode
+        or prior.get("massive_plan") != active_plan
     ):
         quarantine_legacy_results(output_root)
         _preserve_superseded(state_path)
@@ -626,6 +630,7 @@ def run_multi_day_trainer(
                     manifest.get("universe_eligible_tickers", manifest["scored_tickers"])
                 ),
                 "universe_mode": manifest["universe_mode"],
+                "massive_plan": manifest.get("massive_plan", active_plan),
                 "universe_manifest_hash": manifest["universe_manifest_hash"],
                 "universe_coverage": manifest["universe_coverage"],
                 "research_evidence": manifest["research_evidence"],
@@ -667,6 +672,7 @@ def run_multi_day_trainer(
                 "skipped_ticker_count": len(requested_tickers),
                 "eligible_symbol_count": 0,
                 "universe_mode": universe_mode,
+                "massive_plan": active_plan,
                 "universe_manifest_hash": None,
                 "universe_coverage": "incomplete" if universe_mode == HISTORICAL_RESEARCH else "fixture",
                 "research_evidence": False,

@@ -4,12 +4,13 @@
   "title": "Research Scout Alpha Output",
   "type": "object",
   "additionalProperties": false,
-  "required": ["replay_id", "scout_version", "mode", "snapshot_timestamp", "universe_mode", "universe_manifest_hash", "universe_coverage", "research_evidence", "promotion_eligible", "scoring_threshold_pct", "eligible_universe_count", "qualifying_candidate_count", "exploration_top_k", "exploration_candidate_count", "selected_candidate_count", "candidates"],
+  "required": ["replay_id", "scout_version", "mode", "snapshot_timestamp", "massive_plan", "universe_mode", "universe_manifest_hash", "universe_coverage", "research_evidence", "promotion_eligible", "scoring_threshold_pct", "eligible_universe_count", "qualifying_candidate_count", "exploration_top_k", "exploration_candidate_count", "selected_candidate_count", "candidates"],
   "properties": {
     "replay_id": {"type": "string"},
     "scout_version": {"const": "research_scout_alpha_v1.0"},
     "mode": {"const": "RESEARCH_ONLY"},
     "snapshot_timestamp": {"type": "string", "format": "date-time"},
+    "massive_plan": {"$ref": "#/$defs/massivePlan"},
     "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
     "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
     "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
@@ -24,6 +25,17 @@
     "candidates": {"type": "array", "items": {"$ref": "#/$defs/candidate"}}
   },
   "$defs": {
+    "massivePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan", "rest_calls_per_minute", "history_years", "flat_files"],
+      "properties": {
+        "plan": {"type": "string", "minLength": 1},
+        "rest_calls_per_minute": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "history_years": {"type": "integer", "minimum": 1},
+        "flat_files": {"type": "boolean"}
+      }
+    },
     "candidate": {
       "type": "object",
       "additionalProperties": false,

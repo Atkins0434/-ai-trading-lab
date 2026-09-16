@@ -11,7 +11,7 @@ from trainer.universe_collector import RequestRateLimiter
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run one bounded Massive Free Research Scout Alpha batch."
+        description="Run one bounded plan-aware Massive Research Scout Alpha batch."
     )
     parser.add_argument("--date", default="2026-09-14")
     parser.add_argument(

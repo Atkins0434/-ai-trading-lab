@@ -8,7 +8,7 @@
   "required": [
     "replay_id", "trading_date", "universe_version", "universe_mode",
     "universe_manifest_hash", "universe_coverage", "research_evidence",
-    "promotion_eligible", "execution_policy_version", "benchmark_method",
+    "promotion_eligible", "massive_plan", "execution_policy_version", "benchmark_method",
     "benchmark_candidates", "scout_summary", "exploration_summary",
     "combined_summary", "benchmark_summary",
     "return_baselines", "comparison"
@@ -22,6 +22,7 @@
     "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
     "research_evidence": {"type": "boolean"},
     "promotion_eligible": {"type": "boolean"},
+    "massive_plan": {"$ref": "#/$defs/massivePlan"},
     "execution_policy_version": {"type": "string"},
     "benchmark_method": {"const": "RANDOM_DRAW_BASELINE_SAME_UNIVERSE"},
     "benchmark_candidates": {
@@ -36,6 +37,16 @@
     "comparison": {"$ref": "#/$defs/comparison"}
   },
   "$defs": {
+    "massivePlan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["plan", "rest_calls_per_minute", "history_years", "flat_files"],
+      "properties": {
+        "plan": {"type": "string", "minLength": 1},
+        "rest_calls_per_minute": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "history_years": {"type": "integer", "minimum": 1},
+        "flat_files": {"type": "boolean"}
+      }
+    },
     "nullableNumber": {"type": ["number", "null"]},
     "nullableString": {"type": ["string", "null"]},
     "benchmarkCandidate": {

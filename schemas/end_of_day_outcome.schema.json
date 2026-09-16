@@ -11,6 +11,7 @@
     "trading_date",
     "scout_version",
     "execution_policy_version",
+    "massive_plan",
     "universe_mode",
     "universe_manifest_hash",
     "universe_coverage",
@@ -37,6 +38,8 @@
       "type": "string"
     },
 
+    "massive_plan": {"$ref": "#/$defs/massivePlan"},
+
     "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
     "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
     "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
@@ -52,6 +55,17 @@
   },
 
   "$defs": {
+    "massivePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan", "rest_calls_per_minute", "history_years", "flat_files"],
+      "properties": {
+        "plan": {"type": "string", "minLength": 1},
+        "rest_calls_per_minute": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "history_years": {"type": "integer", "minimum": 1},
+        "flat_files": {"type": "boolean"}
+      }
+    },
     "securityOutcome": {
       "type": "object",
       "additionalProperties": false,

@@ -4,12 +4,13 @@
   "title": "Research Universe Collection Checkpoint",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "as_of_date", "status", "source", "universe_mode", "research_evidence", "promotion_eligible", "requested_tickers", "completed_tickers", "remaining_tickers", "eligible_tickers", "rejected", "estimated_remaining_minutes"],
+  "required": ["version", "as_of_date", "status", "source", "massive_plan", "universe_mode", "research_evidence", "promotion_eligible", "requested_tickers", "completed_tickers", "remaining_tickers", "eligible_tickers", "rejected", "estimated_remaining_minutes"],
   "properties": {
     "version": {"const": "research_universe_v1.0"},
     "as_of_date": {"type": "string", "format": "date"},
     "status": {"enum": ["PARTIAL", "COMPLETE"]},
     "source": {"const": "MASSIVE"},
+    "massive_plan": {"$ref": "#/$defs/massivePlan"},
     "universe_mode": {"const": "ci_fixture"},
     "research_evidence": {"const": false},
     "promotion_eligible": {"const": false},
@@ -33,5 +34,18 @@
     },
     "rejected": {"type": "object", "additionalProperties": {"type": "string"}},
     "estimated_remaining_minutes": {"type": "number", "minimum": 0}
+  },
+  "$defs": {
+    "massivePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan", "rest_calls_per_minute", "history_years", "flat_files"],
+      "properties": {
+        "plan": {"type": "string", "minLength": 1},
+        "rest_calls_per_minute": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "history_years": {"type": "integer", "minimum": 1},
+        "flat_files": {"type": "boolean"}
+      }
+    }
   }
 }

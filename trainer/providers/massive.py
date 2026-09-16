@@ -14,6 +14,7 @@ from trainer.rate_control import (
     AdaptiveRateLimiter,
     RETRYABLE_STATUS_CODES,
     RetryPolicy,
+    load_massive_plan,
 )
 
 
@@ -44,6 +45,7 @@ class MassiveClient:
         self._rate_limiter = rate_limiter
         self._retry_policy = retry_policy or RetryPolicy()
         self._sleep = sleep
+        self.massive_plan = load_massive_plan()
 
     @classmethod
     def from_environment(
