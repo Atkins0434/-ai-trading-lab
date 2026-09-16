@@ -468,3 +468,30 @@ def test_finite_rest_plan_forces_serial_reference_fetches(
     )
 
     assert observed_workers == [1]
+
+
+def test_smoke_cap_is_sorted_before_fetch_and_disables_evidence(
+    tmp_path: Path,
+):
+    client = FakeReferenceClient()
+    manifest = build_point_in_time_universe(
+        client,
+        FakeFlatFiles(),
+        "2018-01-03",
+        tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference-cache",
+        reference_fetch_workers=1,
+        max_tickers=2,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+
+    assert [ticker for ticker, _ in client.overview_calls] == [
+        "FUTURE",
+        "OLD",
+    ]
+    assert len(manifest["securities"]) == 2
+    assert manifest["source"]["query_parameters"]["smoke_mode"] is True
+    assert manifest["source"]["query_parameters"]["max_tickers"] == 2
+    assert manifest["coverage_status"] == "complete"
+    assert manifest["research_evidence"] is False
+    assert manifest["promotion_eligible"] is False

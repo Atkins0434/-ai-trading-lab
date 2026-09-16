@@ -166,10 +166,21 @@ def build_point_in_time_universe(
     config_path: Path = CONFIG_PATH,
     reference_cache_root: Path = ROOT / "data" / "reference_cache",
     reference_fetch_workers: int | None = None,
+    max_tickers: int | None = None,
     retrieved_at: str | None = None,
 ) -> dict[str, Any]:
     """Build and persist the eligible universe using only date-D inputs."""
     date.fromisoformat(trading_date)
+    if (
+        max_tickers is not None
+        and (
+            not isinstance(max_tickers, int)
+            or isinstance(max_tickers, bool)
+            or max_tickers < 1
+        )
+    ):
+        raise UniverseBuilderError("max_tickers must be a positive integer.")
+    smoke_mode = max_tickers is not None
     config = load_universe_config(config_path)
     active_plan = load_massive_plan()
     configured_workers = (
@@ -216,6 +227,8 @@ def build_point_in_time_universe(
             or query.get("universe_config_version") != config["version"]
             or query.get("shares_outstanding_lag_days") != lag_days
             or query.get("shares_outstanding_lagged_date") != lagged_date
+            or query.get("smoke_mode", False) is not smoke_mode
+            or query.get("max_tickers") != max_tickers
         ):
             raise UniverseBuilderError(
                 "Existing universe manifest does not match this flat-file replay."
@@ -236,6 +249,18 @@ def build_point_in_time_universe(
         raise UniverseBuilderError(
             f"Massive point-in-time ticker query failed for {trading_date}: {exc}"
         ) from exc
+
+    # Smoke runs deliberately choose the first N symbols in a stable ordering
+    # before any overview request is made. The cap makes the universe
+    # incomplete by construction, so its artifacts are never research evidence.
+    if max_tickers is not None:
+        ticker_rows = sorted(
+            ticker_rows,
+            key=lambda item: (
+                str(item.get("ticker") or "").upper(),
+                str(_stable_id(item) or ""),
+            ),
+        )[:max_tickers]
 
     records: list[dict[str, Any]] = []
     provider_complete = True
@@ -389,6 +414,8 @@ def build_point_in_time_universe(
             "information_cutoff": information_cutoff(trading_date),
             "shares_outstanding_lag_days": lag_days,
             "shares_outstanding_lagged_date": lagged_date,
+            "smoke_mode": smoke_mode,
+            "max_tickers": max_tickers,
             "ticker_overview_cache": {
                 "hits": cache_hits,
                 "fetches": cache_fetches,
@@ -407,6 +434,10 @@ def build_point_in_time_universe(
             set(manifest["coverage_reasons"] + ["PROVIDER_RESPONSE_INCOMPLETE"])
         )
         manifest["coverage_status"] = "incomplete"
+        manifest["research_evidence"] = False
+        manifest["promotion_eligible"] = False
+        manifest["manifest_hash"] = calculate_manifest_hash(manifest)
+    if smoke_mode:
         manifest["research_evidence"] = False
         manifest["promotion_eligible"] = False
         manifest["manifest_hash"] = calculate_manifest_hash(manifest)

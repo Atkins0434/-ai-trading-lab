@@ -101,3 +101,7 @@ def test_flatfile_workflow_persists_versioned_provider_caches():
     assert "path: data/reference_cache/" in workflow
     assert "restore-keys:" in workflow
     assert "10 GB per repository" in workflow
+    assert "max_tickers:" in workflow
+    assert "--max-tickers" in workflow
+    assert "Run status:" in workflow
+    assert "Current state:" in workflow
