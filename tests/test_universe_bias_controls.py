@@ -85,6 +85,7 @@ def evidence(mode="historical_research", coverage="complete", enabled=True):
 
 def test_01_security_listed_after_replay_date_is_excluded():
     result = manifest([security(list_date="2024-06-11")])
+    assert result["massive_plan"]["plan"] == "DEVELOPER"
     assert by_id(result, "FIGI-ONE")["inclusion"] is False
     assert "NOT_YET_LISTED" in by_id(result, "FIGI-ONE")["reason_codes"]
 

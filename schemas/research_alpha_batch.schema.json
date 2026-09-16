@@ -5,7 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "version", "trading_date", "dataset_partition", "status", "mode", "source",
+    "version", "trading_date", "dataset_partition", "status", "mode", "source", "massive_plan",
     "universe_mode", "universe_manifest_hash", "universe_coverage", "research_evidence", "promotion_eligible", "evidence_ineligibility_reasons",
     "requested_tickers", "universe_eligible_tickers", "scored_tickers",
     "universe_rejections", "skipped", "news_backfill_errors", "ticker_queue", "artifacts"
@@ -17,6 +17,7 @@
     "status": {"enum": ["COMPLETE", "PARTIAL", "FAILED", "UNSUPPORTED"]},
     "mode": {"const": "RESEARCH_ONLY"},
     "source": {"const": "MASSIVE"},
+    "massive_plan": {"$ref": "#/$defs/massivePlan"},
     "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
     "universe_manifest_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
     "universe_coverage": {"enum": ["complete", "incomplete", "fixture"]},
@@ -69,6 +70,17 @@
     }
   },
   "$defs": {
+    "massivePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan", "rest_calls_per_minute", "history_years", "flat_files"],
+      "properties": {
+        "plan": {"type": "string", "minLength": 1},
+        "rest_calls_per_minute": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "history_years": {"type": "integer", "minimum": 1},
+        "flat_files": {"type": "boolean"}
+      }
+    },
     "task": {
       "type": "object",
       "additionalProperties": false,

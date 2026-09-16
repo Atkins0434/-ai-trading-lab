@@ -81,6 +81,7 @@ def test_single_day_replay_runs_scout_trade_and_outcome_contract():
 
     candidate = result["scout_output"]["candidates"][0]
     outcome = result["end_of_day_outcome"]["outcomes"][0]
+    assert result["massive_plan"]["plan"] == "DEVELOPER"
     assert candidate["selected"] is True
     assert sum(
         component["status"] == "OBSERVED"

@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from trainer.providers.base import ProviderError
 from trainer.providers.massive import MassiveClient, canonical_price_bar, parse_massive_timestamp
+from trainer.rate_control import load_massive_plan
 from trainer.validate_contracts import validate_contract
 
 
@@ -152,6 +153,7 @@ def build_massive_alpha_snapshot(
     prior_close_as_of = _market_datetime(previous_day, time(16, 0)).isoformat()
 
     universe_metadata = universe_metadata or {
+        "massive_plan": load_massive_plan(),
         "universe_mode": "ci_fixture",
         "universe_manifest_hash": "sha256:" + "0" * 64,
         "universe_coverage": "fixture",
@@ -168,6 +170,9 @@ def build_massive_alpha_snapshot(
         "execution_policy_version": "execution_disabled",
         "feature_registry_version": "feature_registry_alpha_v1.0",
         "data_source": {"provider": "MASSIVE", "feed_version": MassiveClient.feed_version},
+        "massive_plan": universe_metadata.get(
+            "massive_plan", load_massive_plan()
+        ),
         **universe_metadata,
         "securities": [{
             "ticker": ticker.upper(),

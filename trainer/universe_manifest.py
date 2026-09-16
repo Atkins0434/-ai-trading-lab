@@ -8,6 +8,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from trainer.providers.base import ProviderError
+from trainer.rate_control import load_massive_plan
 from trainer.validate_contracts import validate_contract
 
 
@@ -99,6 +100,7 @@ def verify_manifest(manifest: dict[str, Any]) -> None:
 
 def evidence_metadata(manifest: dict[str, Any]) -> dict[str, Any]:
     return {
+        "massive_plan": manifest["massive_plan"],
         "universe_mode": manifest["universe_mode"],
         "universe_manifest_hash": manifest["manifest_hash"],
         "universe_coverage": manifest["coverage_status"],
@@ -241,6 +243,7 @@ def _base_manifest(
         "information_cutoff": information_cutoff(trading_date),
         "timezone": "America/New_York",
         "universe_mode": universe_mode,
+        "massive_plan": load_massive_plan(),
         "ruleset": {"name": RULESET_NAME, "version": RULESET_VERSION},
         "source": {
             "provider": provider,
@@ -401,6 +404,10 @@ def load_or_resolve_manifest(
         )
     if path.exists():
         manifest = json.loads(path.read_text(encoding="utf-8"))
+        if manifest.get("massive_plan") != load_massive_plan():
+            raise UniverseManifestError(
+                "Existing universe manifest uses a different Massive plan."
+            )
         verify_manifest(manifest)
         if (
             manifest["replay_id"] != replay_id

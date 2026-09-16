@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from trainer.outcome_grader import grade_replay_outcomes
+from trainer.rate_control import load_massive_plan
 from trainer.replay_engine import (
     validate_freeze_timestamp,
     validate_point_in_time_inputs,
@@ -28,6 +29,7 @@ def run_single_day_replay(
         strategy_capital,
     )
     return {
+        "massive_plan": load_massive_plan(),
         "snapshot": snapshot,
         "scout_output": scout_result,
         "end_of_day_outcome": outcomes,

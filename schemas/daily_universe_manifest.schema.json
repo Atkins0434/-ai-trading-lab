@@ -4,7 +4,7 @@
   "title": "Immutable Daily Point-in-Time Universe Manifest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "replay_id", "trading_date", "information_cutoff", "timezone", "universe_mode", "ruleset", "source", "coverage_status", "coverage_reasons", "securities", "eligible_symbol_count", "excluded_symbol_count", "manifest_hash", "research_evidence", "promotion_eligible"],
+  "required": ["version", "replay_id", "trading_date", "information_cutoff", "timezone", "universe_mode", "massive_plan", "ruleset", "source", "coverage_status", "coverage_reasons", "securities", "eligible_symbol_count", "excluded_symbol_count", "manifest_hash", "research_evidence", "promotion_eligible"],
   "properties": {
     "version": {"const": "daily_universe_manifest_v1.0"},
     "replay_id": {"type": "string", "minLength": 1},
@@ -12,6 +12,7 @@
     "information_cutoff": {"type": "string", "format": "date-time"},
     "timezone": {"const": "America/New_York"},
     "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
+    "massive_plan": {"$ref": "#/$defs/massivePlan"},
     "ruleset": {"type": "object", "additionalProperties": false, "required": ["name", "version"], "properties": {"name": {"type": "string"}, "version": {"type": "string"}}},
     "source": {"type": "object", "additionalProperties": false, "required": ["provider", "feed_version", "query_parameters", "retrieved_at"], "properties": {"provider": {"type": "string"}, "feed_version": {"type": "string"}, "query_parameters": {"type": "object"}, "retrieved_at": {"type": "string", "format": "date-time"}}},
     "coverage_status": {"enum": ["complete", "incomplete", "fixture"]},
@@ -24,6 +25,17 @@
     "promotion_eligible": {"type": "boolean"}
   },
   "$defs": {
+    "massivePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan", "rest_calls_per_minute", "history_years", "flat_files"],
+      "properties": {
+        "plan": {"type": "string", "minLength": 1},
+        "rest_calls_per_minute": {"type": ["number", "null"], "exclusiveMinimum": 0},
+        "history_years": {"type": "integer", "minimum": 1},
+        "flat_files": {"type": "boolean"}
+      }
+    },
     "security": {
       "type": "object", "additionalProperties": false,
       "required": ["stable_security_id", "ticker", "listing_venue", "security_type", "listing_date", "delisting_date", "inclusion", "reason_codes"],

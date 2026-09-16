@@ -8,6 +8,7 @@ from trainer.evidence_eligibility import (
     assert_matching_universe,
     require_research_evidence,
 )
+from trainer.rate_control import load_massive_plan
 from trainer.validate_contracts import ContractError, validate_contract
 
 
@@ -277,6 +278,7 @@ def build_postmortem(
         "scout_version": scout_result["scout_version"],
         "trainer_version": "scout_trainer_v1.1",
         "execution_policy_version": benchmark_result["execution_policy_version"],
+        "massive_plan": snapshot.get("massive_plan", load_massive_plan()),
         **universe_metadata,
         "result": {
             "SCOUT_OUTPERFORMED": "WIN",

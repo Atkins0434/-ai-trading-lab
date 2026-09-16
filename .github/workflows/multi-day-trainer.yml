@@ -21,10 +21,6 @@ on:
         description: Bounded concurrent date workers (1-8)
         required: true
         default: "2"
-      requests_per_minute:
-        description: Shared provider request ceiling
-        required: true
-        default: "5"
       universe_mode:
         description: Point-in-time research or non-research engineering fixture
         required: true
@@ -37,6 +33,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/multi-day-trainer.yml"
+      - "config/massive_plan.json"
       - "trainer/multi_day_trainer.py"
       - "trainer/trainer_summary_report.py"
       - "trainer/run_multi_day_trainer.py"
@@ -72,9 +69,6 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - name: Stagger provider workflows on pull requests and pushes
-        if: github.event_name == 'pull_request' || github.event_name == 'push'
-        run: sleep 900
       - uses: actions/cache/restore@v4
         with:
           path: |
@@ -116,7 +110,6 @@ jobs:
             ${{ steps.dates.outputs.args }} \
             --exploration-top-k 3 \
             --max-workers "${{ inputs.max_workers || '2' }}" \
-            --requests-per-minute "${{ inputs.requests_per_minute || '5' }}" \
             "${universe_args[@]}"
       - name: Publish universe evidence summary
         if: always()
@@ -126,6 +119,7 @@ jobs:
           if [ -f "$manifest" ]; then
             {
               echo "### Historical replay universe gate"
+              echo "- Massive plan: $(jq -r .massive_plan.plan "$manifest")"
               echo "- Mode: $(jq -r .universe_mode "$manifest")"
               echo "- Research days: $(jq -r .aggregate_performance.days_processed "$manifest")"
               echo "- Quarantined days: $(jq -r '.quarantined_days | length' "$manifest")"

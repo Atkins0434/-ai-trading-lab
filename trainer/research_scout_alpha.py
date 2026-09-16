@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from trainer.price_volume import PriceVolumeError, calculate_price_volume_metrics
+from trainer.rate_control import load_massive_plan
 from trainer.replay_engine import ReplayError, validate_freeze_timestamp, validate_point_in_time_inputs
 from trainer.scout_engine import (
     evaluate_liquidity_guardrail,
@@ -216,6 +217,7 @@ def run_research_scout_alpha(
         "scout_version": config["scout_id"],
         "mode": "RESEARCH_ONLY",
         "snapshot_timestamp": snapshot["freeze_timestamp"],
+        "massive_plan": snapshot.get("massive_plan", load_massive_plan()),
         "scoring_threshold_pct": threshold,
         "universe_mode": snapshot["universe_mode"],
         "universe_manifest_hash": snapshot["universe_manifest_hash"],

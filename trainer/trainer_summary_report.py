@@ -84,6 +84,7 @@ def generate_trainer_summary_pdf(state: dict[str, Any], output_path: Path) -> Pa
     story = [
         Paragraph("Scout Trainer Multi-Day Summary", title),
         Paragraph(f"{state['run_id']} | {state['status']} | {state['mode']}", body),
+        Paragraph(f"Massive plan: {state['massive_plan']['plan']}", body),
         Paragraph(
             f"Selection policy: configured threshold plus top {state['selection_policy']['exploration_top_k']} guardrail-eligible names for research exploration",
             body,

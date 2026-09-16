@@ -26,7 +26,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-root", type=Path, default=Path("reports/trainer"))
     parser.add_argument("--no-resume", action="store_true")
     parser.add_argument("--max-workers", type=int, default=2)
-    parser.add_argument("--requests-per-minute", type=float, default=5.0)
+    parser.add_argument(
+        "--requests-per-minute",
+        type=float,
+        default=None,
+        help=(
+            "Optional runtime override; omit to use config/massive_plan.json."
+        ),
+    )
     parser.add_argument(
         "--partitions",
         nargs="+",
@@ -49,7 +56,11 @@ def main() -> None:
         dates = [value.strip() for value in args.dates_csv.split(",") if value.strip()]
     if not dates:
         raise SystemExit("Provide --dates-csv or both --start-date and --end-date.")
-    limiter = AdaptiveRateLimiter(args.requests_per_minute)
+    limiter = (
+        AdaptiveRateLimiter()
+        if args.requests_per_minute is None
+        else AdaptiveRateLimiter(args.requests_per_minute)
+    )
     client = MassiveClient.from_environment(
         rate_limiter=limiter,
         retry_policy=RetryPolicy(),

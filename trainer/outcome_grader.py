@@ -8,6 +8,7 @@ from trainer.trade_engine import (
     load_execution_policy,
     simulate_trade,
 )
+from trainer.rate_control import load_massive_plan
 from trainer.validate_contracts import ContractError, validate_contract
 
 
@@ -229,6 +230,7 @@ def grade_replay_outcomes(
         "trading_date": snapshot["trading_date"],
         "scout_version": snapshot["scout_version"],
         "execution_policy_version": snapshot["execution_policy_version"],
+        "massive_plan": snapshot.get("massive_plan", load_massive_plan()),
         "universe_mode": snapshot["universe_mode"],
         "universe_manifest_hash": snapshot["universe_manifest_hash"],
         "universe_coverage": snapshot["universe_coverage"],

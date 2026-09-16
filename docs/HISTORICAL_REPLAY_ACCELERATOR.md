@@ -12,7 +12,6 @@ python -m trainer.run_multi_day_trainer \
   --start-date 2024-09-16 \
   --end-date 2026-09-15 \
   --max-workers 2 \
-  --requests-per-minute 5 \
   --exploration-top-k 3 \
   --universe-mode historical_research
 ```
@@ -23,18 +22,21 @@ exchange-wide exceptional closures. Extra closures or sessions can be supplied
 to the calendar function when a historical correction is required.
 
 Workers are bounded to 1-8 concurrent trading dates. All provider requests
-share one thread-safe adaptive limiter. HTTP 429, transient server responses,
-and timeout-class responses use bounded exponential retries and honor
-`Retry-After`; throttling slows the shared request pace and successful requests
-gradually return it to the configured ceiling.
+share one thread-safe adaptive limiter configured by `config/massive_plan.json`.
+The Developer plan's null REST ceiling applies no proactive pacing. HTTP 429,
+transient server responses, and timeout-class responses still use bounded
+exponential retries and honor `Retry-After`.
 
-The Massive Free starting profile is deliberately conservative:
+The Massive Developer profile is:
 
 - `--max-workers 2`
-- `--requests-per-minute 5`
+- `rest_calls_per_minute: null`
+- ten years of history
+- flat-file access available
 
-Raising worker count improves local processing concurrency but does not bypass
-the provider-wide request limit.
+Setting `rest_calls_per_minute` to a positive number restores the same shared
+pacing used for finite plans. `--requests-per-minute` remains an optional local
+override for controlled tests or a future plan downgrade.
 
 `--exploration-top-k` adds only below-threshold, guardrail-eligible research
 names. Qualifying-threshold candidates always consume simulated position slots
