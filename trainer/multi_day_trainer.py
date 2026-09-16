@@ -578,5 +578,6 @@ def run_multi_day_trainer(
     state = checkpoint()
     validate_contract("multi_day_trainer_run", state)
     _write_json(state_path, state)
+    quarantine_legacy_results(output_root)
     generate_trainer_summary_pdf(state, output_root / "trainer_summary_report.pdf")
     return state

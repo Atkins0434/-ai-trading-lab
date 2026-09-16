@@ -295,6 +295,13 @@ def test_16_cumulative_report_quarantines_fixture_days(tmp_path: Path):
     assert state["aggregate_performance"]["days_processed"] == 0
     assert state["quarantined_days"] == [DAY]
     assert state["research_evidence"] is False
+    registry = json.loads(
+        (tmp_path / "trainer" / "LEGACY_RESEARCH_QUARANTINE.json").read_text()
+    )
+    assert any(
+        entry["artifact"] == "trainer_run_state.json"
+        for entry in registry["entries"]
+    )
 
 
 def test_17_deterministic_ci_fixture_remains_available_for_engineering():
