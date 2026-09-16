@@ -84,6 +84,15 @@ class ReplayQueue:
     def complete(self, task_id: str) -> None:
         self._finish(task_id, "COMPLETE", None)
 
+    def reopen(self, task_id: str, reason: str) -> None:
+        """Return a terminal parent task to pending when child work remains."""
+        with self._lock:
+            task = self._state["tasks"][task_id]
+            task["status"] = "PENDING"
+            task["last_error"] = reason
+            task["updated_at"] = datetime.now(timezone.utc).isoformat()
+            self._save_unlocked()
+
     def fail(self, task_id: str, error: str, *, retryable: bool = True) -> None:
         with self._lock:
             task = self._state["tasks"][task_id]

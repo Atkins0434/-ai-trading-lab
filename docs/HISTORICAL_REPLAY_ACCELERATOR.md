@@ -41,7 +41,8 @@ the provider-wide request limit.
 The run persists an atomic date queue at `replay_queue.json`. Each day also
 persists an atomic ticker queue and a completed result checkpoint per ticker.
 Interrupted `IN_PROGRESS` tasks are returned to `PENDING` on restart; completed
-work is reused.
+work is reused. A partial day keeps its parent date task retryable so a later
+run reuses completed ticker checkpoints and claims only the unfinished tickers.
 
 Historical responses are stored through the checksum-protected cache. Cache
 manifests record the source count, canonical record count, removed duplicate
@@ -91,4 +92,3 @@ four-page `trainer_summary_report.pdf` presents:
 
 All outputs remain research-only. Real-money execution, automatic production
 mutation, and automatic promotion are disabled.
-

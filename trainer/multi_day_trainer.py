@@ -382,7 +382,7 @@ def run_multi_day_trainer(
         day_dir = output_root / "days" / trading_date
         if (
             previous
-            and previous["status"] in {"COMPLETE", "PARTIAL"}
+            and previous["status"] == "COMPLETE"
             and (day_dir / "postmortem.json").exists()
         ):
             previous = dict(previous)
@@ -390,6 +390,14 @@ def run_multi_day_trainer(
             days[trading_date] = previous
             queue.complete(
                 ReplayQueue.task_id(trading_date, None, "DAY_REPLAY")
+            )
+        elif previous and previous["status"] == "PARTIAL":
+            # A partial day may contain completed ticker checkpoints alongside
+            # retryable ticker failures. Reopen the parent so the day runner
+            # can reuse completed children and claim the remaining ticker work.
+            queue.reopen(
+                ReplayQueue.task_id(trading_date, None, "DAY_REPLAY"),
+                "PARTIAL_DAY_REQUIRES_TICKER_RESUME",
             )
 
     def run_task(task: dict[str, Any]) -> tuple[str, dict[str, Any] | None, str | None]:
@@ -418,7 +426,14 @@ def run_multi_day_trainer(
                 "scored_ticker_count": len(manifest["scored_tickers"]),
                 "skipped_ticker_count": len(manifest["skipped"]),
             }
-            queue.complete(task_id)
+            if manifest["status"] == "COMPLETE":
+                queue.complete(task_id)
+            else:
+                queue.fail(
+                    task_id,
+                    "PARTIAL_DAY_REQUIRES_TICKER_RESUME",
+                    retryable=True,
+                )
             return trading_date, record, None
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"

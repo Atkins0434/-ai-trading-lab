@@ -63,6 +63,19 @@ def test_queue_resumes_interrupted_date_and_ticker_tasks(tmp_path: Path):
     assert resumed.snapshot()["counts"]["FAILED"] == 1
 
 
+def test_queue_can_reopen_completed_parent_with_pending_children(tmp_path: Path):
+    queue = ReplayQueue(tmp_path / "queue.json")
+    queue.enqueue([("2026-09-14", None, "DAY_REPLAY", "DEVELOPMENT")])
+    task_id = ReplayQueue.task_id("2026-09-14", None, "DAY_REPLAY")
+    queue.claim(task_id)
+    queue.complete(task_id)
+
+    queue.reopen(task_id, "PARTIAL_DAY_REQUIRES_TICKER_RESUME")
+
+    assert queue.snapshot()["counts"]["PENDING"] == 1
+    assert queue.pending()[0]["last_error"] == "PARTIAL_DAY_REQUIRES_TICKER_RESUME"
+
+
 def test_queue_is_idempotent_and_atomic(tmp_path: Path):
     path = tmp_path / "queue.json"
     queue = ReplayQueue(path)

@@ -81,6 +81,33 @@ def test_multi_day_trainer_resumes_completed_days(tmp_path: Path):
     assert calls == ["2026-09-14"]
 
 
+def test_multi_day_trainer_reopens_partial_day_for_ticker_resume(tmp_path: Path):
+    calls = []
+
+    def partial_then_complete(*args, **kwargs):
+        calls.append(args[2])
+        manifest = fake_day_runner(*args, **kwargs)
+        manifest["status"] = "PARTIAL" if len(calls) == 1 else "COMPLETE"
+        return manifest
+
+    common = dict(
+        client=object(),
+        tickers=["MISS"],
+        trading_dates=["2026-09-14"],
+        cache_root=tmp_path / "cache",
+        output_root=tmp_path / "trainer",
+        day_runner=partial_then_complete,
+    )
+    first = run_multi_day_trainer(**common)
+    second = run_multi_day_trainer(**common)
+
+    assert first["status"] == "PARTIAL"
+    assert first["queue"]["counts"]["PENDING"] == 1
+    assert second["status"] == "COMPLETE"
+    assert second["queue"]["counts"]["COMPLETE"] == 1
+    assert calls == ["2026-09-14", "2026-09-14"]
+
+
 def test_multi_day_trainer_carries_prior_dates_into_next_run(tmp_path: Path):
     root = tmp_path / "trainer"
     run_multi_day_trainer(object(), ["MISS"], ["2026-09-11"], cache_root=tmp_path / "cache", output_root=root, day_runner=fake_day_runner)
