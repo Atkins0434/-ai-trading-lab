@@ -5,3 +5,4 @@ __pycache__/
 reports/**/*.pdf
 data/cache/
 data/flatfiles/
+data/reference_cache/

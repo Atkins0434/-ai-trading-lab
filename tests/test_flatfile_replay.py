@@ -32,6 +32,12 @@ def test_flatfile_replay_resumes_completed_dates_without_reprocessing(tmp_path: 
                 "regular_padded_bar_count": 0,
             },
             "files": [],
+            "reference_cache": {
+                "hits": 2,
+                "fetches": 1,
+                "quarter_reuse_hits": 1,
+                "errors": 0,
+            },
             "artifacts": {
                 "marker": str(marker.relative_to(output_root)),
             },
@@ -59,4 +65,10 @@ def test_flatfile_replay_resumes_completed_dates_without_reprocessing(tmp_path: 
     assert first["status"] == "COMPLETE"
     assert second["status"] == "COMPLETE"
     assert second["completed_dates"] == dates
+    assert second["reference_cache_summary"] == {
+        "hits": 4,
+        "fetches": 2,
+        "quarter_reuse_hits": 2,
+        "errors": 0,
+    }
     assert calls == dates

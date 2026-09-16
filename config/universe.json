@@ -1,5 +1,6 @@
 {
-  "version": "massive_point_in_time_universe_v1.0",
+  "version": "massive_point_in_time_universe_v1.1",
+  "shares_outstanding_lag_days": 120,
   "allowed_exchanges": ["XNAS", "XNYS", "XASE"],
   "included_security_types": ["CS", "COMMON_STOCK", "COMMON_EQUITY"],
   "market_cap_usd": {

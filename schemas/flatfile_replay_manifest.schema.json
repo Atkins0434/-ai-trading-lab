@@ -7,8 +7,8 @@
   "required": [
     "version", "run_id", "start_date", "end_date", "status", "massive_plan",
     "datasets", "baseline_lookback_sessions", "strategy_capital_usd",
-    "selection_policy", "requested_dates",
-    "completed_dates", "failed_dates", "days"
+    "selection_policy", "universe_policy", "requested_dates",
+    "completed_dates", "failed_dates", "reference_cache_summary", "days"
   ],
   "properties": {
     "version": {"const": "flatfile_replay_manifest_v1.0"},
@@ -34,6 +34,21 @@
         "exploration_top_k": {"type": "integer", "minimum": 0, "maximum": 5}
       }
     },
+    "universe_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version", "shares_outstanding_lag_days",
+        "ticker_overview_cache_policy"
+      ],
+      "properties": {
+        "version": {"type": "string", "minLength": 1},
+        "shares_outstanding_lag_days": {"type": "integer", "minimum": 1},
+        "ticker_overview_cache_policy": {
+          "const": "EARLIER_OR_EQUAL_SAME_CALENDAR_QUARTER"
+        }
+      }
+    },
     "requested_dates": {
       "type": "array", "uniqueItems": true,
       "items": {"type": "string", "format": "date"}
@@ -46,6 +61,7 @@
       "type": "object",
       "additionalProperties": {"type": "string"}
     },
+    "reference_cache_summary": {"$ref": "#/$defs/referenceCache"},
     "days": {
       "type": "array",
       "items": {"$ref": "#/$defs/day"}
@@ -85,12 +101,24 @@
       "type": ["object", "null"],
       "additionalProperties": true
     },
+    "referenceCache": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hits", "fetches", "quarter_reuse_hits", "errors"],
+      "properties": {
+        "hits": {"type": "integer", "minimum": 0},
+        "fetches": {"type": "integer", "minimum": 0},
+        "quarter_reuse_hits": {"type": "integer", "minimum": 0},
+        "errors": {"type": "integer", "minimum": 0}
+      }
+    },
     "day": {
       "type": "object",
       "additionalProperties": false,
       "required": [
         "trading_date", "status", "universe_size", "universe_manifest_hash",
-        "scored_ticker_count", "padded_bar_statistics", "files", "artifacts", "error"
+        "scored_ticker_count", "padded_bar_statistics", "files",
+        "reference_cache", "artifacts", "error"
       ],
       "properties": {
         "trading_date": {"type": "string", "format": "date"},
@@ -103,6 +131,7 @@
         "scored_ticker_count": {"type": "integer", "minimum": 0},
         "padded_bar_statistics": {"$ref": "#/$defs/paddedStats"},
         "files": {"type": "array", "items": {"$ref": "#/$defs/file"}},
+        "reference_cache": {"$ref": "#/$defs/referenceCache"},
         "artifacts": {
           "type": "object",
           "additionalProperties": {"type": "string"}

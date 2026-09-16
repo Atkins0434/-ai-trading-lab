@@ -12,6 +12,7 @@ from trainer.providers.massive_flatfiles import (
     MassiveFlatFileStore,
 )
 from trainer.rate_control import load_massive_plan
+from trainer.reference_cache import TickerOverviewCache
 from trainer.trading_calendar import generate_trading_dates
 from trainer.universe_manifest import (
     build_research_manifest,
@@ -41,6 +42,7 @@ def load_universe_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         ) from exc
     required = {
         "version",
+        "shares_outstanding_lag_days",
         "allowed_exchanges",
         "included_security_types",
         "market_cap_usd",
@@ -50,6 +52,13 @@ def load_universe_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
     if not isinstance(payload, dict) or set(payload) != required:
         raise UniverseBuilderError(
             f"Universe config must contain exactly {sorted(required)}."
+        )
+    if (
+        not isinstance(payload["shares_outstanding_lag_days"], int)
+        or payload["shares_outstanding_lag_days"] < 1
+    ):
+        raise UniverseBuilderError(
+            "shares_outstanding_lag_days must be a positive integer."
         )
     return payload
 
@@ -96,24 +105,20 @@ def _reference_as_of(trading_date: str) -> str:
     return datetime.combine(day, time(0), tzinfo=ET).isoformat()
 
 
-def _timestamp_at_or_before(value: Any, cutoff: str) -> str | None:
-    if not isinstance(value, str) or not value.strip():
-        return None
-    try:
-        observed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        boundary = datetime.fromisoformat(cutoff)
-    except ValueError:
-        return None
-    if observed.tzinfo is None or boundary.tzinfo is None or observed > boundary:
-        return None
-    return observed.isoformat()
-
-
-def _latest_timestamp(*values: str) -> str:
-    return max(
-        datetime.fromisoformat(value.replace("Z", "+00:00"))
-        for value in values
-    ).isoformat()
+def _provider_period_date(overview: dict[str, Any]) -> str | None:
+    for field in (
+        "period_of_report_date",
+        "period_end",
+        "period_date",
+    ):
+        value = overview.get(field)
+        if isinstance(value, str) and value.strip():
+            candidate = value.strip()[:10]
+            try:
+                return date.fromisoformat(candidate).isoformat()
+            except ValueError:
+                continue
+    return None
 
 
 def _exclusion_reasons(
@@ -122,11 +127,11 @@ def _exclusion_reasons(
     config: dict[str, Any],
 ) -> tuple[list[str], bool, bool, bool]:
     ticker = str(raw.get("ticker") or overview.get("ticker") or "").upper()
-    name = str(overview.get("name") or raw.get("name") or "").upper()
+    name = str(raw.get("name") or overview.get("name") or "").upper()
     venue = str(
-        overview.get("primary_exchange") or raw.get("primary_exchange") or ""
+        raw.get("primary_exchange") or overview.get("primary_exchange") or ""
     )
-    security_type = str(overview.get("type") or raw.get("type") or "UNKNOWN").upper()
+    security_type = str(raw.get("type") or overview.get("type") or "UNKNOWN").upper()
     reasons: list[str] = []
     if venue not in set(config["allowed_exchanges"]):
         reasons.append("INELIGIBLE_LISTING_VENUE")
@@ -151,11 +156,16 @@ def build_point_in_time_universe(
     *,
     replay_id: str | None = None,
     config_path: Path = CONFIG_PATH,
+    reference_cache_root: Path = ROOT / "data" / "reference_cache",
     retrieved_at: str | None = None,
 ) -> dict[str, Any]:
     """Build and persist the eligible universe using only date-D inputs."""
     date.fromisoformat(trading_date)
     config = load_universe_config(config_path)
+    lag_days = int(config["shares_outstanding_lag_days"])
+    lagged_date = (
+        date.fromisoformat(trading_date) - timedelta(days=lag_days)
+    ).isoformat()
     previous_session = previous_trading_sessions(trading_date, 1)[0]
     expected_replay_id = replay_id or f"{trading_date}-0700-flatfile-replay"
     if manifest_path.exists():
@@ -176,6 +186,8 @@ def build_point_in_time_universe(
             or query.get("reference_date") != trading_date
             or query.get("prior_close_trading_date") != previous_session
             or query.get("universe_config_version") != config["version"]
+            or query.get("shares_outstanding_lag_days") != lag_days
+            or query.get("shares_outstanding_lagged_date") != lagged_date
         ):
             raise UniverseBuilderError(
                 "Existing universe manifest does not match this flat-file replay."
@@ -199,33 +211,42 @@ def build_point_in_time_universe(
 
     records: list[dict[str, Any]] = []
     provider_complete = True
-    point_in_time_market_cap = True
-    cutoff = information_cutoff(trading_date)
+    overview_cache = TickerOverviewCache(reference_cache_root)
+    cache_hits = 0
+    cache_fetches = 0
+    quarter_reuse_hits = 0
+    cache_errors = 0
     prior_close_as_of = datetime.combine(
         date.fromisoformat(previous_session), time(16), tzinfo=ET
     ).isoformat()
     for raw in ticker_rows:
         ticker = str(raw.get("ticker") or "").upper()
         try:
-            overview = reference_client.get_ticker_overview(ticker, trading_date)
+            cached_overview = overview_cache.get(
+                reference_client,
+                ticker,
+                lagged_date,
+            )
+            overview = cached_overview.overview
+            if cached_overview.cache_hit:
+                cache_hits += 1
+            else:
+                cache_fetches += 1
+            if cached_overview.quarter_reuse:
+                quarter_reuse_hits += 1
+            provider_query_date = cached_overview.provider_query_date
         except ProviderError:
             overview = {}
             provider_complete = False
-        combined = {**raw, **overview}
+            cache_errors += 1
+            provider_query_date = lagged_date
+        combined = {**overview, **raw}
         prior = prior_close_bars.get(ticker)
         prior_close = float(prior["close"]) if prior is not None else None
         shares = _positive_number(
-            combined.get("weighted_shares_outstanding"),
-            combined.get("share_class_shares_outstanding"),
-            combined.get("shares_outstanding"),
-        )
-        # Massive's Ticker Overview `date` parameter selects SEC-derived data
-        # by period-of-report date, which can predate the filing submission.
-        # The raw endpoint therefore cannot, by itself, prove that a historical
-        # share count was knowable at the replay cutoff. A provider adapter may
-        # supply this normalized availability field when that proof exists.
-        shares_available_at = _timestamp_at_or_before(
-            combined.get("shares_outstanding_available_at"), cutoff
+            overview.get("weighted_shares_outstanding"),
+            overview.get("share_class_shares_outstanding"),
+            overview.get("shares_outstanding"),
         )
         market_cap = (
             shares * prior_close
@@ -235,15 +256,13 @@ def build_point_in_time_universe(
         reasons, is_shell, is_spac, is_spac_suffix = _exclusion_reasons(
             raw, overview, config
         )
-        requires_fundamental_proof = not reasons
-        shell_status_known = (
-            "is_shell" in raw or "is_shell" in overview
-        )
-        if requires_fundamental_proof and not shell_status_known:
-            reasons.append("SHELL_STATUS_UNPROVEN")
-        if requires_fundamental_proof and shares_available_at is None:
-            reasons.append("SHARES_OUTSTANDING_AVAILABILITY_UNPROVEN")
-            point_in_time_market_cap = False
+        provider_period_date = _provider_period_date(overview)
+        if (
+            provider_period_date is not None
+            and date.fromisoformat(provider_period_date)
+            > date.fromisoformat(trading_date)
+        ):
+            reasons.append("SHARES_PERIOD_AFTER_REPLAY_DATE")
         if market_cap is not None:
             limits = config["market_cap_usd"]
             if not float(limits["minimum"]) <= market_cap <= float(limits["maximum"]):
@@ -272,13 +291,16 @@ def build_point_in_time_universe(
             "metadata_available_at": reference_as_of,
             "reference_data_as_of_timestamp": reference_as_of,
             "shares_outstanding": shares,
-            "shares_outstanding_available_at": shares_available_at,
+            "shares_outstanding_lag_days": lag_days,
+            "shares_outstanding_lagged_date": lagged_date,
+            "shares_outstanding_provider_query_date": provider_query_date,
+            "shares_outstanding_provider_period_date": provider_period_date,
             "prior_close": prior_close,
             "prior_close_as_of_timestamp": prior_close_as_of,
             "market_cap_usd": market_cap,
             "market_cap_available_at": (
-                _latest_timestamp(shares_available_at, prior_close_as_of)
-                if shares_available_at is not None and prior_close is not None
+                reference_as_of
+                if shares is not None and prior_close is not None
                 else None
             ),
         })
@@ -291,7 +313,7 @@ def build_point_in_time_universe(
         "point_in_time_exchange": True,
         "point_in_time_security_type": True,
         "historical_trading_status": True,
-        "point_in_time_market_cap": point_in_time_market_cap,
+        "point_in_time_market_cap": "LAGGED_PROXY",
         "provider_response_complete": provider_complete,
     }
     manifest = build_research_manifest(
@@ -307,6 +329,14 @@ def build_point_in_time_universe(
             "reference_type": None,
             "reference_data_as_of_timestamp": reference_as_of,
             "information_cutoff": information_cutoff(trading_date),
+            "shares_outstanding_lag_days": lag_days,
+            "shares_outstanding_lagged_date": lagged_date,
+            "ticker_overview_cache": {
+                "hits": cache_hits,
+                "fetches": cache_fetches,
+                "quarter_reuse_hits": quarter_reuse_hits,
+                "errors": cache_errors,
+            },
             "prior_close_dataset": DAY_AGGS_DATASET,
             "prior_close_trading_date": previous_session,
             "universe_config_version": config["version"],

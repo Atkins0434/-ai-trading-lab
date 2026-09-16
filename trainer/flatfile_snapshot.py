@@ -51,6 +51,7 @@ def load_flatfile_replay_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         "baseline_lookback_sessions",
         "strategy_capital_usd",
         "cache_root",
+        "reference_cache_root",
         "output_root",
     }
     if not isinstance(payload, dict) or set(payload) != required:

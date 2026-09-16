@@ -293,7 +293,7 @@ class MassiveClient:
         )
         return payload["results"]
 
-    def historical_universe_capabilities(self) -> dict[str, bool]:
+    def historical_universe_capabilities(self) -> dict[str, Any]:
         """Declare only capabilities Massive can prove for this adapter.
 
         The All Tickers endpoint is date-aware and exposes FIGIs, but the

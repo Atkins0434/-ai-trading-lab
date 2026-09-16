@@ -46,7 +46,8 @@ trading date at 07:00 `America/New_York`.
   securities, test issues, and non-operating placeholders with deterministic
   reason codes.
 - Enforce the configured $300 million–$15 billion point-in-time market-cap
-  range only when the value and its provider-availability time are proven.
+  range using the versioned 120-calendar-day shares-outstanding proxy and the
+  prior session close. The manifest labels this capability `LAGGED_PROXY`.
 - Use historical listing/trading status, never today’s `active` flag.
 - Preserve stable identities across ticker changes and distinguish later reuse
   of the same ticker text by a different security.
@@ -112,12 +113,24 @@ SPAC-suffix exclusions are versioned in `config/universe.json`.
 
 Massive documents an important availability caveat for Ticker Overview: a
 query dated at a filing's period-of-report date can include values from an SEC
-filing submitted later. Therefore a dated response alone is not proof that its
-shares-outstanding value was knowable at the replay cutoff. The builder accepts
-an explicit normalized `shares_outstanding_available_at` value from a provider
-adapter, but the raw Massive response does not currently supply that proof.
-Without it, the manifest is incomplete and the replay stops before Scout. It
-never relabels a retrospective fundamental value as point-in-time evidence.
-Missing reference metadata, stable identity, shell status, shares availability,
-or prior close likewise fails the daily evidence gate rather than being filled
-from current data.
+filing submitted later. The flat-file universe therefore never queries shares
+outstanding at the replay date. It subtracts the versioned
+`shares_outstanding_lag_days` value (120 calendar days) and requests Ticker
+Overview at that lagged date. The policy assumes that an SEC filing associated
+with a report period at least 120 days old was submitted before the replay day.
+This is deliberately labeled `LAGGED_PROXY`, not exact point-in-time market
+capitalization. Each security records the requested lagged date, configured
+lag, actual provider query date, and provider period date when returned.
+
+Lagged Ticker Overview responses are cached under
+`data/reference_cache/<ticker>/<lagged-date>.json`. A later replay date may
+reuse the nearest earlier cached query in the same calendar quarter. A cached
+date after the requested lagged date is never reused because doing so could
+shorten the 120-day buffer. Daily universe query metadata and the replay
+manifest report cache hits, fetches, quarter reuses, and errors.
+
+Shell exclusion uses the existing security-type, symbol-suffix, and company
+name rules. When Massive supplies `is_shell=true`, that is an additional
+exclusion. The absence of an `is_shell` field is not treated as evidence that
+the security is ineligible. Missing stable identity, lagged shares, or prior
+close remains explicit and is never replaced with present-day data.

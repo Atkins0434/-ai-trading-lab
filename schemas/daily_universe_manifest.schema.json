@@ -4,7 +4,7 @@
   "title": "Immutable Daily Point-in-Time Universe Manifest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "replay_id", "trading_date", "information_cutoff", "timezone", "universe_mode", "massive_plan", "ruleset", "source", "coverage_status", "coverage_reasons", "securities", "eligible_symbol_count", "excluded_symbol_count", "manifest_hash", "research_evidence", "promotion_eligible"],
+  "required": ["version", "replay_id", "trading_date", "information_cutoff", "timezone", "universe_mode", "massive_plan", "ruleset", "capabilities", "source", "coverage_status", "coverage_reasons", "securities", "eligible_symbol_count", "excluded_symbol_count", "manifest_hash", "research_evidence", "promotion_eligible"],
   "properties": {
     "version": {"const": "daily_universe_manifest_v1.0"},
     "replay_id": {"type": "string", "minLength": 1},
@@ -14,6 +14,7 @@
     "universe_mode": {"enum": ["ci_fixture", "historical_research"]},
     "massive_plan": {"$ref": "#/$defs/massivePlan"},
     "ruleset": {"type": "object", "additionalProperties": false, "required": ["name", "version"], "properties": {"name": {"type": "string"}, "version": {"type": "string"}}},
+    "capabilities": {"$ref": "#/$defs/capabilities"},
     "source": {"type": "object", "additionalProperties": false, "required": ["provider", "feed_version", "query_parameters", "retrieved_at"], "properties": {"provider": {"type": "string"}, "feed_version": {"type": "string"}, "query_parameters": {"type": "object"}, "retrieved_at": {"type": "string", "format": "date-time"}}},
     "coverage_status": {"enum": ["complete", "incomplete", "fixture"]},
     "coverage_reasons": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
@@ -36,6 +37,32 @@
         "flat_files": {"type": "boolean"}
       }
     },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "point_in_time_listings", "delisted_securities", "stable_security_ids",
+        "ticker_history", "point_in_time_exchange", "point_in_time_security_type",
+        "historical_trading_status", "point_in_time_market_cap",
+        "provider_response_complete"
+      ],
+      "properties": {
+        "point_in_time_listings": {"type": "boolean"},
+        "delisted_securities": {"type": "boolean"},
+        "stable_security_ids": {"type": "boolean"},
+        "ticker_history": {"type": "boolean"},
+        "point_in_time_exchange": {"type": "boolean"},
+        "point_in_time_security_type": {"type": "boolean"},
+        "historical_trading_status": {"type": "boolean"},
+        "point_in_time_market_cap": {
+          "oneOf": [
+            {"type": "boolean"},
+            {"const": "LAGGED_PROXY"}
+          ]
+        },
+        "provider_response_complete": {"type": "boolean"}
+      }
+    },
     "security": {
       "type": "object", "additionalProperties": false,
       "required": ["stable_security_id", "ticker", "listing_venue", "security_type", "listing_date", "delisting_date", "inclusion", "reason_codes"],
@@ -49,7 +76,10 @@
         "reference_data_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
         "market_cap_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
         "shares_outstanding": {"type": ["number", "null"], "minimum": 0},
-        "shares_outstanding_available_at": {"type": ["string", "null"], "format": "date-time"},
+        "shares_outstanding_lag_days": {"type": ["integer", "null"], "minimum": 1},
+        "shares_outstanding_lagged_date": {"type": ["string", "null"], "format": "date"},
+        "shares_outstanding_provider_query_date": {"type": ["string", "null"], "format": "date"},
+        "shares_outstanding_provider_period_date": {"type": ["string", "null"], "format": "date"},
         "prior_close": {"type": ["number", "null"], "minimum": 0},
         "prior_close_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
         "market_cap_usd": {"type": ["number", "null"], "minimum": 0},

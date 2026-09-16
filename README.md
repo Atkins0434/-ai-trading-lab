@@ -142,16 +142,16 @@ python -m trainer.flatfile_coverage \
   --end 2018-01-31
 ```
 
-The point-in-time universe still starts with Massive's date-scoped reference
-endpoint. Market capitalization is recomputed from shares outstanding and the
-prior session close in `day_aggs_v1`; no present-day active list or current
-market capitalization is substituted. Because Massive may associate SEC values
-with the filing's earlier report-period date, shares outstanding must also carry
-an independently proven availability timestamp. Raw responses currently lack
-that proof, so those dates fail closed before Scout instead of becoming biased
-research evidence. Each immutable manifest records this status, while the
-flat-file replay manifest records dataset keys, byte sizes, SHA-256 checksums,
-universe sizes, and padded-bar counts.
+The point-in-time universe starts with Massive's date-scoped reference endpoint.
+Market capitalization is recomputed from a 120-calendar-day lagged shares-
+outstanding query and the prior session close in `day_aggs_v1`; no present-day
+active list or current market capitalization is substituted. The manifest
+labels this policy `LAGGED_PROXY` and records the requested lagged date, actual
+provider query date, and provider period date. Ticker Overview responses are
+reused from `data/reference_cache/` within a calendar quarter only when the
+cached date is no later than the requested lagged date. The flat-file replay
+manifest records reference-cache hits/fetches alongside dataset keys, byte
+sizes, SHA-256 checksums, universe sizes, and padded-bar counts.
 
 ## Research Scout Alpha
 

@@ -48,12 +48,19 @@ REQUIRED_CAPABILITIES = {
     "historical_trading_status",
     "point_in_time_market_cap",
 }
+LAGGED_MARKET_CAP_PROXY = "LAGGED_PROXY"
 MIN_MARKET_CAP = float(_UNIVERSE_CONFIG["market_cap_usd"]["minimum"])
 MAX_MARKET_CAP = float(_UNIVERSE_CONFIG["market_cap_usd"]["maximum"])
 
 
 class UniverseManifestError(Exception):
     """Raised when a daily universe cannot be proved or reproduced."""
+
+
+def _capability_available(name: str, value: Any) -> bool:
+    if name == "point_in_time_market_cap":
+        return value is True or value == LAGGED_MARKET_CAP_PROXY
+    return value is True
 
 
 def information_cutoff(trading_date: str) -> str:
@@ -74,6 +81,9 @@ def _canonical_hash_payload(manifest: dict[str, Any]) -> dict[str, Any]:
     payload = json.loads(json.dumps(manifest))
     payload.pop("manifest_hash", None)
     payload["source"].pop("retrieved_at", None)
+    payload["source"]["query_parameters"].pop(
+        "ticker_overview_cache", None
+    )
     payload["securities"] = sorted(
         payload["securities"],
         key=lambda item: (
@@ -255,8 +265,17 @@ def _evaluate_record(
             "market_cap_available_at"
         ),
         "shares_outstanding": record.get("shares_outstanding"),
-        "shares_outstanding_available_at": record.get(
-            "shares_outstanding_available_at"
+        "shares_outstanding_lag_days": record.get(
+            "shares_outstanding_lag_days"
+        ),
+        "shares_outstanding_lagged_date": record.get(
+            "shares_outstanding_lagged_date"
+        ),
+        "shares_outstanding_provider_query_date": record.get(
+            "shares_outstanding_provider_query_date"
+        ),
+        "shares_outstanding_provider_period_date": record.get(
+            "shares_outstanding_provider_period_date"
         ),
         "prior_close": record.get("prior_close"),
         "prior_close_as_of_timestamp": record.get(
@@ -278,6 +297,7 @@ def _base_manifest(
     feed_version: str,
     query_parameters: dict[str, Any],
     retrieved_at: str,
+    capabilities: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "version": "daily_universe_manifest_v1.0",
@@ -288,6 +308,7 @@ def _base_manifest(
         "universe_mode": universe_mode,
         "massive_plan": load_massive_plan(),
         "ruleset": {"name": RULESET_NAME, "version": RULESET_VERSION},
+        "capabilities": capabilities,
         "source": {
             "provider": provider,
             "feed_version": feed_version,
@@ -329,6 +350,10 @@ def build_fixture_manifest(
         feed_version=feed_version,
         query_parameters={"hardcoded_symbols": requested},
         retrieved_at=retrieved_at or datetime.now(timezone.utc).isoformat(),
+        capabilities={
+            **{name: False for name in REQUIRED_CAPABILITIES},
+            "provider_response_complete": True,
+        },
     )
     manifest["coverage_status"] = "fixture"
     manifest["coverage_reasons"] = ["STATIC_SYMBOL_FIXTURE_NOT_RESEARCH_UNIVERSE"]
@@ -364,7 +389,7 @@ def build_research_manifest(
     provider: str,
     feed_version: str,
     query_parameters: dict[str, Any],
-    capabilities: dict[str, bool],
+    capabilities: dict[str, Any],
     retrieved_at: str | None = None,
 ) -> dict[str, Any]:
     manifest = _base_manifest(
@@ -375,11 +400,14 @@ def build_research_manifest(
         feed_version=feed_version,
         query_parameters=query_parameters,
         retrieved_at=retrieved_at or datetime.now(timezone.utc).isoformat(),
+        capabilities=capabilities,
     )
     missing_capabilities = sorted(
         capability
         for capability in REQUIRED_CAPABILITIES
-        if capabilities.get(capability) is not True
+        if not _capability_available(
+            capability, capabilities.get(capability)
+        )
     )
     cutoff = _parse_timestamp(manifest["information_cutoff"])
     assert cutoff is not None
@@ -494,7 +522,11 @@ def load_or_resolve_manifest(
         )
     else:
         capabilities = provider.historical_universe_capabilities()
-        missing = [name for name in REQUIRED_CAPABILITIES if not capabilities.get(name)]
+        missing = [
+            name
+            for name in REQUIRED_CAPABILITIES
+            if not _capability_available(name, capabilities.get(name))
+        ]
         if missing:
             payload = {
                 "records": [],

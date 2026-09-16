@@ -27,6 +27,7 @@ from trainer.research_scout_alpha import run_research_scout_alpha
 from trainer.trading_calendar import generate_trading_dates
 from trainer.universe_builder import (
     build_point_in_time_universe,
+    load_universe_config,
     previous_trading_sessions,
 )
 from trainer.validate_contracts import validate_contract
@@ -54,6 +55,47 @@ def _artifact_paths_exist(output_root: Path, day: dict[str, Any]) -> bool:
         (output_root / relative).is_file()
         for relative in day.get("artifacts", {}).values()
     )
+
+
+def _reference_cache_metrics(universe: dict[str, Any]) -> dict[str, int]:
+    raw = universe["source"]["query_parameters"].get(
+        "ticker_overview_cache", {}
+    )
+    return {
+        "hits": int(raw.get("hits", 0)),
+        "fetches": int(raw.get("fetches", 0)),
+        "quarter_reuse_hits": int(raw.get("quarter_reuse_hits", 0)),
+        "errors": int(raw.get("errors", 0)),
+    }
+
+
+def _persisted_reference_cache_metrics(
+    output_root: Path,
+    trading_date: str,
+) -> dict[str, int]:
+    path = (
+        output_root
+        / "days"
+        / trading_date
+        / "daily_universe_manifest.json"
+    )
+    if not path.is_file():
+        return {
+            "hits": 0,
+            "fetches": 0,
+            "quarter_reuse_hits": 0,
+            "errors": 0,
+        }
+    try:
+        universe = json.loads(path.read_text(encoding="utf-8"))
+        return _reference_cache_metrics(universe)
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return {
+            "hits": 0,
+            "fetches": 0,
+            "quarter_reuse_hits": 0,
+            "errors": 0,
+        }
 
 
 def _ensure_day_files(
@@ -93,6 +135,7 @@ def run_flatfile_day(
     strategy_capital: float,
     threshold_pct: float | None,
     exploration_top_k: int,
+    reference_cache_root: Path = Path("data/reference_cache"),
 ) -> dict[str, Any]:
     """Download, build, and grade one research day from flat files."""
     day_dir = output_root / "days" / trading_date
@@ -115,7 +158,9 @@ def run_flatfile_day(
         trading_date,
         universe_path,
         replay_id=f"{trading_date}-0700-flatfile-replay",
+        reference_cache_root=reference_cache_root,
     )
+    reference_cache = _reference_cache_metrics(universe)
     relative = lambda path: str(path.relative_to(output_root))
     artifacts = {"daily_universe_manifest": relative(universe_path)}
     if (
@@ -130,6 +175,7 @@ def run_flatfile_day(
             "scored_ticker_count": 0,
             "padded_bar_statistics": None,
             "files": cached_files,
+            "reference_cache": reference_cache,
             "artifacts": artifacts,
             "error": ";".join(universe["coverage_reasons"])
             or "EMPTY_ELIGIBLE_UNIVERSE",
@@ -194,6 +240,7 @@ def run_flatfile_day(
         "scored_ticker_count": len(scout["candidates"]),
         "padded_bar_statistics": snapshot_result.padded_bar_statistics,
         "files": cached_files,
+        "reference_cache": reference_cache,
         "artifacts": artifacts,
         "error": None,
     }
@@ -209,6 +256,7 @@ def run_flatfile_replay(
     strategy_capital: float = 2500.0,
     threshold_pct: float | None = None,
     exploration_top_k: int = 0,
+    reference_cache_root: Path = Path("data/reference_cache"),
     resume: bool = True,
     day_runner: DayRunner = run_flatfile_day,
 ) -> dict[str, Any]:
@@ -226,6 +274,16 @@ def run_flatfile_replay(
         "exploration_top_k": exploration_top_k,
     }
     active_plan = load_massive_plan()
+    universe_config = load_universe_config()
+    universe_policy = {
+        "version": universe_config["version"],
+        "shares_outstanding_lag_days": universe_config[
+            "shares_outstanding_lag_days"
+        ],
+        "ticker_overview_cache_policy": (
+            "EARLIER_OR_EQUAL_SAME_CALENDAR_QUARTER"
+        ),
+    }
     if active_plan["flat_files"] is not True:
         raise FlatFileReplayError(
             "The active Massive plan does not declare flat-file access."
@@ -239,6 +297,7 @@ def run_flatfile_replay(
             and prior.get("baseline_lookback_sessions") == lookback_sessions
             and prior.get("strategy_capital_usd") == strategy_capital
             and prior.get("selection_policy") == selection_policy
+            and prior.get("universe_policy") == universe_policy
         )
         if not identity:
             raise FlatFileReplayError(
@@ -275,9 +334,22 @@ def run_flatfile_replay(
             "baseline_lookback_sessions": lookback_sessions,
             "strategy_capital_usd": strategy_capital,
             "selection_policy": selection_policy,
+            "universe_policy": universe_policy,
             "requested_dates": dates,
             "completed_dates": completed,
             "failed_dates": failures,
+            "reference_cache_summary": {
+                key: sum(
+                    int(item.get("reference_cache", {}).get(key, 0))
+                    for item in ordered
+                )
+                for key in (
+                    "hits",
+                    "fetches",
+                    "quarter_reuse_hits",
+                    "errors",
+                )
+            },
             "days": ordered,
         }
         validate_contract("flatfile_replay_manifest", manifest)
@@ -304,6 +376,7 @@ def run_flatfile_replay(
                 strategy_capital=strategy_capital,
                 threshold_pct=threshold_pct,
                 exploration_top_k=exploration_top_k,
+                reference_cache_root=reference_cache_root,
             )
             days[trading_date] = record
             if record["status"] == "COMPLETE":
@@ -320,6 +393,9 @@ def run_flatfile_replay(
                 "scored_ticker_count": 0,
                 "padded_bar_statistics": None,
                 "files": [],
+                "reference_cache": _persisted_reference_cache_metrics(
+                    output_root, trading_date
+                ),
                 "artifacts": {},
                 "error": error,
             }
@@ -337,6 +413,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--end", required=True)
     parser.add_argument(
         "--cache-root", type=Path, default=Path(config["cache_root"])
+    )
+    parser.add_argument(
+        "--reference-cache-root",
+        type=Path,
+        default=Path(config["reference_cache_root"]),
     )
     parser.add_argument("--output-root", type=Path)
     parser.add_argument(
@@ -375,6 +456,7 @@ def main() -> None:
         strategy_capital=args.strategy_capital,
         threshold_pct=args.threshold_pct,
         exploration_top_k=args.exploration_top_k,
+        reference_cache_root=args.reference_cache_root,
         resume=not args.no_resume,
     )
     print(json.dumps(result, indent=2, sort_keys=True))

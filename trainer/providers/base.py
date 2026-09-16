@@ -70,7 +70,7 @@ class HistoricalUniverseProvider(Protocol):
     provider_name: str
     feed_version: str
 
-    def historical_universe_capabilities(self) -> dict[str, bool]:
+    def historical_universe_capabilities(self) -> dict[str, Any]:
         ...
 
     def get_historical_universe(

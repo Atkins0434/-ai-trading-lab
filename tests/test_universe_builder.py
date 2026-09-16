@@ -115,6 +115,7 @@ class FakeReferenceClient:
 
     def __init__(self):
         self.calls = []
+        self.overview_calls = []
 
     def get_tickers(self, as_of_date, *, active=True, security_type="CS"):
         self.calls.append((as_of_date, active, security_type))
@@ -158,13 +159,13 @@ class FakeReferenceClient:
         ]
 
     def get_ticker_overview(self, ticker, as_of_date):
+        self.overview_calls.append((ticker, as_of_date))
         result = {
             "ticker": ticker,
             "name": f"{ticker} OPERATING COMPANY",
             "list_date": "2010-01-01" if ticker == "OLD" else "2019-01-01",
             "weighted_shares_outstanding": 100_000_000,
-            "shares_outstanding_available_at": "2018-01-02T17:00:00-05:00",
-            "is_shell": False,
+            "period_of_report_date": "2017-12-01",
         }
         if ticker not in {"FUTURE"}:
             result["list_date"] = "2010-01-01"
@@ -179,6 +180,7 @@ def build_manifest(tmp_path: Path):
         FakeFlatFiles(),
         "2018-01-03",
         tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference_cache",
         retrieved_at="2018-01-03T12:00:00+00:00",
     )
 
@@ -191,26 +193,40 @@ def test_universe_uses_date_scoped_status_and_listing_boundary(tmp_path: Path):
         FakeFlatFiles(),
         "2018-01-03",
         path,
+        reference_cache_root=tmp_path / "reference_cache",
         retrieved_at="2018-01-03T12:00:00+00:00",
     )
     by_ticker = {item["ticker"]: item for item in manifest["securities"]}
 
     assert client.calls == [("2018-01-03", True, None)]
+    assert all(
+        lagged_date == "2017-09-05"
+        for _, lagged_date in client.overview_calls
+    )
     assert by_ticker["OLD"]["inclusion"] is True
     assert by_ticker["OLD"]["delisting_date"] is None
     assert by_ticker["OLD"]["market_cap_usd"] == 1_000_000_000
+    assert by_ticker["OLD"]["shares_outstanding_lag_days"] == 120
+    assert by_ticker["OLD"]["shares_outstanding_lagged_date"] == "2017-09-05"
+    assert by_ticker["OLD"]["shares_outstanding_provider_period_date"] == (
+        "2017-12-01"
+    )
     assert by_ticker["FUTURE"]["inclusion"] is False
     assert "NOT_YET_LISTED" in by_ticker["FUTURE"]["reason_codes"]
     assert "SECURITY_TYPE_WARRANT" in by_ticker["WARRANT"]["reason_codes"]
     assert "SECURITY_TYPE_UNIT" in by_ticker["UNIT"]["reason_codes"]
     assert "SPAC_SUFFIX_SECURITY" in by_ticker["SPAC.U"]["reason_codes"]
     assert "SHELL_COMPANY" in by_ticker["SHELL"]["reason_codes"]
+    assert "SHELL_STATUS_UNPROVEN" not in by_ticker["OLD"]["reason_codes"]
     assert all(
         item["reference_data_as_of_timestamp"]
         == "2018-01-03T00:00:00-05:00"
         for item in manifest["securities"]
     )
     assert manifest["coverage_status"] == "complete"
+    assert manifest["capabilities"]["point_in_time_market_cap"] == (
+        "LAGGED_PROXY"
+    )
     assert path.exists()
 
 
@@ -221,6 +237,7 @@ def test_flatfile_snapshot_preserves_sources_and_passes_freeze_checks(tmp_path: 
         flatfiles,
         "2018-01-03",
         tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference_cache",
         retrieved_at="2018-01-03T12:00:00+00:00",
     )
 
@@ -248,6 +265,7 @@ def test_universe_resume_reuses_the_immutable_manifest(tmp_path: Path):
         FakeFlatFiles(),
         "2018-01-03",
         path,
+        reference_cache_root=tmp_path / "reference_cache",
         retrieved_at="2018-01-03T12:00:00+00:00",
     )
 
@@ -262,30 +280,118 @@ def test_universe_resume_reuses_the_immutable_manifest(tmp_path: Path):
         FakeFlatFiles(),
         "2018-01-03",
         path,
+        reference_cache_root=tmp_path / "reference_cache",
     )
 
     assert resumed["manifest_hash"] == first["manifest_hash"]
 
 
-def test_unproven_shares_outstanding_availability_fails_closed(tmp_path: Path):
-    class UnprovenReferenceClient(FakeReferenceClient):
-        def get_ticker_overview(self, ticker, as_of_date):
-            result = super().get_ticker_overview(ticker, as_of_date)
-            result.pop("shares_outstanding_available_at", None)
-            return result
-
+def test_lagged_count_is_admitted_despite_later_provider_period_date(
+    tmp_path: Path,
+):
+    client = FakeReferenceClient()
     manifest = build_point_in_time_universe(
-        UnprovenReferenceClient(),
+        client,
         FakeFlatFiles(),
         "2018-01-03",
         tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference_cache",
         retrieved_at="2018-01-03T12:00:00+00:00",
     )
     old = next(
         item for item in manifest["securities"] if item["ticker"] == "OLD"
     )
 
-    assert old["inclusion"] is False
-    assert "SHARES_OUTSTANDING_AVAILABILITY_UNPROVEN" in old["reason_codes"]
-    assert manifest["coverage_status"] == "incomplete"
-    assert manifest["research_evidence"] is False
+    assert client.overview_calls[0][1] == "2017-09-05"
+    assert old["shares_outstanding_provider_period_date"] == "2017-12-01"
+    assert old["shares_outstanding"] == 100_000_000
+    assert old["inclusion"] is True
+    assert manifest["coverage_status"] == "complete"
+    assert manifest["research_evidence"] is True
+
+
+def test_quarter_bucket_cache_reuses_first_lagged_fetch(tmp_path: Path):
+    client = FakeReferenceClient()
+    flatfiles = FakeFlatFiles()
+    flatfiles.records[(DAY_AGGS_DATASET, "2018-01-09")] = [
+        bar(
+            ticker,
+            datetime(2018, 1, 9, 0, 0, tzinfo=ET),
+            trading_date="2018-01-09",
+            session="DAILY",
+        )
+        for ticker in ("OLD", "FUTURE", "WARRANT", "UNIT", "SPAC.U", "SHELL")
+    ]
+    cache_root = tmp_path / "reference_cache"
+
+    first = build_point_in_time_universe(
+        client,
+        flatfiles,
+        "2018-01-03",
+        tmp_path / "first" / "daily_universe_manifest.json",
+        reference_cache_root=cache_root,
+    )
+    calls_after_first = list(client.overview_calls)
+    second = build_point_in_time_universe(
+        client,
+        flatfiles,
+        "2018-01-10",
+        tmp_path / "second" / "daily_universe_manifest.json",
+        reference_cache_root=cache_root,
+    )
+
+    assert len(calls_after_first) == 6
+    assert client.overview_calls == calls_after_first
+    assert first["source"]["query_parameters"]["ticker_overview_cache"] == {
+        "hits": 0,
+        "fetches": 6,
+        "quarter_reuse_hits": 0,
+        "errors": 0,
+    }
+    assert second["source"]["query_parameters"]["ticker_overview_cache"] == {
+        "hits": 6,
+        "fetches": 0,
+        "quarter_reuse_hits": 6,
+        "errors": 0,
+    }
+    old = next(
+        item for item in second["securities"] if item["ticker"] == "OLD"
+    )
+    assert old["shares_outstanding_lagged_date"] == "2017-09-12"
+    assert old["shares_outstanding_provider_query_date"] == "2017-09-05"
+
+
+def test_cache_telemetry_does_not_change_universe_hash(tmp_path: Path):
+    client = FakeReferenceClient()
+    cache_root = tmp_path / "reference_cache"
+    first = build_point_in_time_universe(
+        client,
+        FakeFlatFiles(),
+        "2018-01-03",
+        tmp_path / "first" / "daily_universe_manifest.json",
+        reference_cache_root=cache_root,
+    )
+    second = build_point_in_time_universe(
+        client,
+        FakeFlatFiles(),
+        "2018-01-03",
+        tmp_path / "second" / "daily_universe_manifest.json",
+        reference_cache_root=cache_root,
+    )
+
+    assert first["manifest_hash"] == second["manifest_hash"]
+    assert first["source"]["query_parameters"]["ticker_overview_cache"][
+        "fetches"
+    ] == 6
+    assert second["source"]["query_parameters"]["ticker_overview_cache"][
+        "hits"
+    ] == 6
+
+
+def test_shell_flag_is_optional_but_true_shell_is_excluded(tmp_path: Path):
+    manifest = build_manifest(tmp_path)
+    by_ticker = {item["ticker"]: item for item in manifest["securities"]}
+
+    assert by_ticker["OLD"]["inclusion"] is True
+    assert by_ticker["SHELL"]["inclusion"] is False
+    assert "SHELL_COMPANY" in by_ticker["SHELL"]["reason_codes"]
