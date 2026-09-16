@@ -254,14 +254,18 @@
       ],
       "properties": {
         "passed": {
-          "type": "boolean"
+          "type": [
+            "boolean",
+            "null"
+          ]
         },
         "action": {
           "type": "string",
           "enum": [
             "PASS",
             "PENALIZE",
-            "REJECT"
+            "REJECT",
+            "NOT_EVALUATED"
           ]
         },
         "observed_value": {

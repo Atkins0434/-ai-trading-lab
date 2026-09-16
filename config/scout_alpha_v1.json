@@ -15,6 +15,17 @@
     "minimum_average_daily_dollar_volume_usd": 5000000,
     "minimum_premarket_dollar_volume_usd": 250000
   },
+  "spread": {
+    "enabled": true,
+    "missing_quotes_policy": "NOT_EVALUATED",
+    "penalty_starts_pct": 0.20,
+    "hard_reject_pct": 0.40
+  },
+  "order_book_depth": {
+    "enabled": true,
+    "missing_depth_policy": "NOT_EVALUATED",
+    "hard_reject_below_multiple": 2.0
+  },
   "unavailable_execution_checks": [
     "HISTORICAL_SPREAD",
     "ORDER_BOOK_DEPTH"

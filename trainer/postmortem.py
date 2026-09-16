@@ -87,8 +87,15 @@ def _is_invisible_at_freeze(
 
 def _guardrail_reasons(candidate: dict[str, Any]) -> list[str]:
     reasons = []
-    for guardrail_id in ("aggregate_liquidity", "historical_spread", "order_book_depth"):
+    for guardrail_id in (
+        "liquidity",
+        "aggregate_liquidity",
+        "spread",
+        "historical_spread",
+        "order_book_depth",
+    ):
         guardrail = candidate.get("guardrails", {}).get(guardrail_id)
+        # NOT_EVALUATED is an explicit audit state, never a rejection.
         if guardrail and guardrail.get("action") == "REJECT":
             reasons.append(guardrail.get("reason_code") or f"{guardrail_id.upper()}_REJECT")
     return sorted(set(reasons))

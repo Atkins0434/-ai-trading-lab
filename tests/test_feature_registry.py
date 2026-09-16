@@ -30,6 +30,10 @@ def test_scout_config_uses_fixed_denominator():
     assert config["scoring"]["maximum_points"] == 120
     assert config["scoring"]["denominator_policy"] == "FIXED_120"
     assert "dynamic_denominator" not in config["scoring"]
+    assert config["spread"]["missing_quotes_policy"] == "NOT_EVALUATED"
+    assert config["order_book_depth"]["missing_depth_policy"] == (
+        "NOT_EVALUATED"
+    )
 
 
 def test_all_twelve_price_volume_metrics_are_implemented():

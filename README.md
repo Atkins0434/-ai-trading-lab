@@ -113,7 +113,11 @@ milestone remains a later paid-data gate.
 Research Scout Alpha is isolated from Production Scout. It scores only the
 twelve implemented Price & Volume Dynamics metrics against a fixed 48-point
 denominator. It cannot authorize execution, and historical spread and order
-book depth remain explicitly unevaluated on Massive Free.
+book depth remain explicitly unevaluated on Massive Free. Missing quotes or
+depth produce `NOT_EVALUATED` guardrails with explicit reason codes and do not
+block selection. Each Scout config can restore fail-closed behavior by setting
+the corresponding missing-data policy to `REJECT`; this changes the guardrail
+action without concealing that the underlying market data was unavailable.
 
 Run the real-data pipeline probe with:
 

@@ -54,6 +54,6 @@ def test_determinism_hash_is_stable_for_fixture():
     audit = generate_audit_json(result)
 
     assert audit["determinism_hash"] == (
-        "9d2e287633966108932b48dbf3947146"
-        "0511afce9d7ee26300e4e031faf0b56d"
+        "c6be5839486820db67e4df56dd5232db"
+        "3fefbd92a74e895a2ede3a8349d433a1"
     )
