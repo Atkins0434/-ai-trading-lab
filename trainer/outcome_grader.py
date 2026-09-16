@@ -15,6 +15,11 @@ class OutcomeError(Exception):
     """Raised when an end-of-day path cannot be graded deterministically."""
 
 
+QUALIFYING_THRESHOLD = "QUALIFYING_THRESHOLD"
+EXPLORATION_TOP_K = "EXPLORATION_TOP_K"
+NOT_SELECTED = "NOT_SELECTED"
+
+
 def _parse_timestamp(raw: str) -> datetime:
     try:
         parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
@@ -131,17 +136,46 @@ def grade_replay_outcomes(
     def is_selected(candidate: dict[str, Any]) -> bool:
         return bool(candidate.get("selected", candidate.get("research_selected", False)))
 
-    selected_in_rank_order = sorted(
+    def selection_basis(candidate: dict[str, Any]) -> str:
+        selected = is_selected(candidate)
+        basis = candidate.get(
+            "selection_basis",
+            QUALIFYING_THRESHOLD if selected else NOT_SELECTED,
+        )
+        allowed = {QUALIFYING_THRESHOLD, EXPLORATION_TOP_K, NOT_SELECTED}
+        if basis not in allowed:
+            raise OutcomeError(
+                f"Unknown selection basis for {candidate['ticker']}: {basis}"
+            )
+        if selected != (basis != NOT_SELECTED):
+            raise OutcomeError(
+                f"Selection basis disagrees with selected state for "
+                f"{candidate['ticker']}."
+            )
+        return basis
+
+    qualifying_in_rank_order = sorted(
         (
             candidate
             for candidate in scout_result["candidates"]
-            if is_selected(candidate)
+            if selection_basis(candidate) == QUALIFYING_THRESHOLD
         ),
         key=lambda candidate: candidate["rank"] or 999999,
     )
+    exploration_in_rank_order = sorted(
+        (
+            candidate
+            for candidate in scout_result["candidates"]
+            if selection_basis(candidate) == EXPLORATION_TOP_K
+        ),
+        key=lambda candidate: candidate["rank"] or 999999,
+    )
+    selected_in_execution_order = (
+        qualifying_in_rank_order + exploration_in_rank_order
+    )
     executable_tickers = {
         candidate["ticker"]
-        for candidate in selected_in_rank_order[: policy.max_positions]
+        for candidate in selected_in_execution_order[: policy.max_positions]
     }
 
     outcomes = []
@@ -155,6 +189,7 @@ def grade_replay_outcomes(
         stats = path_statistics(bars, entry_price)
 
         selected = is_selected(candidate)
+        basis = selection_basis(candidate)
         if selected and ticker in executable_tickers:
             try:
                 raw_execution = simulate_trade(
@@ -180,6 +215,7 @@ def grade_replay_outcomes(
             {
                 "ticker": ticker,
                 "selected": selected,
+                "selection_basis": basis,
                 "scout_rank": candidate["rank"],
                 "scout_score_pct": candidate["score_pct"],
                 "intraday_path": bars,

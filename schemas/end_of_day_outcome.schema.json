@@ -59,6 +59,7 @@
       "required": [
         "ticker",
         "selected",
+        "selection_basis",
         "intraday_path",
         "mfe_pct",
         "mae_pct",
@@ -73,6 +74,14 @@
 
         "selected": {
           "type": "boolean"
+        },
+
+        "selection_basis": {
+          "enum": [
+            "QUALIFYING_THRESHOLD",
+            "EXPLORATION_TOP_K",
+            "NOT_SELECTED"
+          ]
         },
 
         "scout_rank": {

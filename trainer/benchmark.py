@@ -11,6 +11,9 @@ from trainer.validate_contracts import ContractError, validate_contract
 
 RANDOM_BASELINE_SEED = 20260916
 RANDOM_BASELINE_DRAWS = 200
+QUALIFYING_THRESHOLD = "QUALIFYING_THRESHOLD"
+EXPLORATION_TOP_K = "EXPLORATION_TOP_K"
+NOT_SELECTED = "NOT_SELECTED"
 
 
 class BenchmarkError(Exception):
@@ -147,6 +150,18 @@ def _day_high_timestamp(outcome: dict[str, Any]) -> str:
     )
 
 
+def _selection_basis(outcome: dict[str, Any]) -> str:
+    """Read the explicit research basis with legacy qualifying compatibility."""
+    basis = outcome.get("selection_basis")
+    if basis is None:
+        return QUALIFYING_THRESHOLD if outcome.get("selected") else NOT_SELECTED
+    if basis not in {QUALIFYING_THRESHOLD, EXPLORATION_TOP_K, NOT_SELECTED}:
+        raise BenchmarkError(
+            f"Unknown selection basis for {outcome['ticker']}: {basis}"
+        )
+    return basis
+
+
 def build_same_universe_benchmark(
     snapshot: dict[str, Any],
     scout_result: dict[str, Any],
@@ -201,6 +216,7 @@ def build_same_universe_benchmark(
                 "day_high_timestamp": _day_high_timestamp(outcome),
                 "universe_eligible": universe_eligible,
                 "scout_selected": bool(outcome["selected"]),
+                "scout_selection_basis": _selection_basis(outcome),
                 "scout_trade_executed": bool(
                     scout_execution.get("trade_executed", False)
                 ),
@@ -227,16 +243,36 @@ def build_same_universe_benchmark(
             }
         )
 
-    scout_executions = [
-        item["execution_result"]
+    qualifying_outcomes = [
+        item
         for item in outcome_result["outcomes"]
-        if item["selected"]
+        if _selection_basis(item) == QUALIFYING_THRESHOLD
     ]
-    selected_count = sum(
-        bool(item["selected"]) for item in outcome_result["outcomes"]
-    )
+    exploration_outcomes = [
+        item
+        for item in outcome_result["outcomes"]
+        if _selection_basis(item) == EXPLORATION_TOP_K
+    ]
+    qualifying_executions = [
+        item["execution_result"]
+        for item in qualifying_outcomes
+    ]
+    exploration_executions = [
+        item["execution_result"]
+        for item in exploration_outcomes
+    ]
+    qualifying_count = len(qualifying_outcomes)
+    exploration_count = len(exploration_outcomes)
     scout_summary = _summary(
-        scout_executions, selected_count, strategy_capital
+        qualifying_executions, qualifying_count, strategy_capital
+    )
+    exploration_summary = _summary(
+        exploration_executions, exploration_count, strategy_capital
+    )
+    combined_summary = _summary(
+        qualifying_executions + exploration_executions,
+        qualifying_count + exploration_count,
+        strategy_capital,
     )
     # This summary is retained only for the top-10 diagnostic table. It no
     # longer supplies WIN/TIE/MISS.
@@ -244,17 +280,43 @@ def build_same_universe_benchmark(
         benchmark_executions, len(benchmark_candidates), strategy_capital
     )
     baselines = _return_baselines(
-        eligible_outcomes, selected_count, strategy_capital
+        eligible_outcomes, qualifying_count, strategy_capital
     )
 
-    selected = {
+    qualifying_selected = {
+        item["ticker"]
+        for item in outcome_result["outcomes"]
+        if _selection_basis(item) == QUALIFYING_THRESHOLD
+    }
+    exploration_selected = {
+        item["ticker"]
+        for item in outcome_result["outcomes"]
+        if _selection_basis(item) == EXPLORATION_TOP_K
+    }
+    combined_selected = {
         item["ticker"]
         for item in outcome_result["outcomes"]
         if item["selected"]
     }
     benchmark_tickers = {item["ticker"] for item in benchmark_candidates}
-    capture_rate = (
-        len(selected & benchmark_tickers) / len(benchmark_tickers) * 100
+    qualifying_capture_rate = (
+        len(qualifying_selected & benchmark_tickers)
+        / len(benchmark_tickers)
+        * 100
+        if benchmark_tickers
+        else 0.0
+    )
+    exploration_capture_rate = (
+        len(exploration_selected & benchmark_tickers)
+        / len(benchmark_tickers)
+        * 100
+        if benchmark_tickers
+        else 0.0
+    )
+    combined_capture_rate = (
+        len(combined_selected & benchmark_tickers)
+        / len(benchmark_tickers)
+        * 100
         if benchmark_tickers
         else 0.0
     )
@@ -283,6 +345,8 @@ def build_same_universe_benchmark(
         "benchmark_method": "RANDOM_DRAW_BASELINE_SAME_UNIVERSE",
         "benchmark_candidates": benchmark_candidates,
         "scout_summary": scout_summary,
+        "exploration_summary": exploration_summary,
+        "combined_summary": combined_summary,
         "benchmark_summary": benchmark_summary,
         "return_baselines": baselines,
         "comparison": {
@@ -294,7 +358,9 @@ def build_same_universe_benchmark(
             "random_draw_mean_return_difference_pct": return_difference,
             "return_difference_pct": return_difference,
             "pnl_difference_usd": pnl_difference,
-            "top_10_capture_rate_pct": capture_rate,
+            "top_10_capture_rate_pct": qualifying_capture_rate,
+            "exploration_top_10_capture_rate_pct": exploration_capture_rate,
+            "combined_top_10_capture_rate_pct": combined_capture_rate,
             "result_code": result_code,
         },
     }

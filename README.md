@@ -76,8 +76,11 @@ data gate is a provider check for genuine January 2018 premarket history.
 After that passes, work proceeds through universe construction, deterministic
 same-universe return baselines, top-ten missed-opportunity diagnostics, manual
 day-one review, and blind holdout validation. WIN/TIE/MISS compares Scout's
-net return with the fixed-seed 200-draw baseline; top-ten capture is diagnostic
-only.
+qualifying-threshold net return with the fixed-seed 200-draw baseline;
+top-ten capture is diagnostic only. `EXPLORATION_TOP_K` names are simulated
+only after every qualifying name receives execution priority. Their return,
+P&L, and win rate are reported in a separate exploration summary and never
+change Scout's verdict or qualifying performance.
 
 ## Massive Free capability check
 

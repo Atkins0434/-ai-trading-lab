@@ -108,4 +108,5 @@ def test_exploration_selects_top_eligible_candidate_without_lowering_threshold()
     assert candidate["qualification_selected"] is False
     assert candidate["research_selected"] is True
     assert candidate["selection_basis"] == "EXPLORATION_TOP_K"
+    assert candidate["rank"] == 1
     assert "BELOW_RESEARCH_THRESHOLD" not in candidate["rejection_reasons"]

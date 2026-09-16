@@ -33,6 +33,14 @@ def fake_day_runner(
     benchmark = {
         **evidence,
         "scout_summary": {"realized_return_pct": 1.0, "realized_pnl_usd": 25.0},
+        "exploration_summary": {
+            "realized_return_pct": -0.2,
+            "realized_pnl_usd": -5.0,
+        },
+        "combined_summary": {
+            "realized_return_pct": 0.8,
+            "realized_pnl_usd": 20.0,
+        },
         "benchmark_summary": {"realized_return_pct": 2.0, "realized_pnl_usd": 50.0},
         "return_baselines": {
             "eligible_ticker_mean_realized_return_pct": 0.4,
@@ -126,6 +134,11 @@ def test_multi_day_trainer_persists_evidence_and_never_promotes(tmp_path: Path):
     assert state["controls"]["automatic_promotion_allowed"] is False
     assert state["selection_policy"]["exploration_top_k"] == 0
     assert state["aggregate_performance"]["scout_cumulative_return_pct"] == 3.0301
+    assert state["aggregate_performance"]["exploration_cumulative_return_pct"] == pytest.approx(-0.598801)
+    assert state["aggregate_performance"]["combined_cumulative_return_pct"] == pytest.approx(2.419251)
+    assert state["aggregate_performance"]["scout_total_realized_pnl_usd"] == 75.0
+    assert state["aggregate_performance"]["exploration_total_realized_pnl_usd"] == -15.0
+    assert state["aggregate_performance"]["combined_total_realized_pnl_usd"] == 60.0
     assert state["aggregate_performance"]["realized_pnl_capture_pct"] == 50.0
     assert state["aggregate_performance"]["scout_max_drawdown_pct"] == 0.0
     assert state["aggregate_performance"]["unreachable_mover_count"] == 3

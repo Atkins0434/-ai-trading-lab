@@ -92,7 +92,7 @@ def generate_trainer_summary_pdf(state: dict[str, Any], output_path: Path) -> Pa
     ]
     capture = agg["realized_pnl_capture_pct"]
     cards = [
-        [Paragraph("DAYS", center), Paragraph("CUM. RETURN", center), Paragraph("MONEY CAPTURE", center), Paragraph("MAX DRAWDOWN", center)],
+        [Paragraph('<font color="#FFFFFF"><b>DAYS</b></font>', center), Paragraph('<font color="#FFFFFF"><b>QUALIFYING RETURN</b></font>', center), Paragraph('<font color="#FFFFFF"><b>MONEY CAPTURE</b></font>', center), Paragraph('<font color="#FFFFFF"><b>QUALIFYING DRAWDOWN</b></font>', center)],
         [Paragraph(f"<b>{agg['days_processed']}</b>", center), Paragraph(f"<b>{agg['scout_cumulative_return_pct']:.2f}%</b>", center), Paragraph(f"<b>{capture:.1f}%</b>" if capture is not None else "N/A", center), Paragraph(f"<b>{agg['scout_max_drawdown_pct']:.2f}%</b>", center)],
     ]
     card_table = Table(cards, colWidths=[1.83 * inch] * 4, rowHeights=[0.3 * inch, 0.52 * inch])
@@ -105,20 +105,20 @@ def generate_trainer_summary_pdf(state: dict[str, Any], output_path: Path) -> Pa
     ]))
     story += [card_table, Spacer(1, 0.2 * inch), Paragraph("Cumulative comparison", h2)]
     comparison = [
-        ["Measure", "Scout", "Benchmark"],
-        ["Average daily return", f"{agg['scout_average_daily_return_pct']:.3f}%", f"{agg['benchmark_average_daily_return_pct']:.3f}%"],
-        ["Cumulative return", f"{agg['scout_cumulative_return_pct']:.3f}%", f"{agg['benchmark_cumulative_return_pct']:.3f}%"],
-        ["Total realized P&L", f"${agg['scout_total_realized_pnl_usd']:,.2f}", f"${agg['benchmark_total_realized_pnl_usd']:,.2f}"],
-        ["Maximum drawdown", f"{agg['scout_max_drawdown_pct']:.3f}%", f"{agg['benchmark_max_drawdown_pct']:.3f}%"],
-        ["Daily return volatility", f"{agg['scout_daily_return_stddev_pct']:.3f}%", f"{agg['benchmark_daily_return_stddev_pct']:.3f}%"],
-        ["Positive-day rate", f"{agg['scout_positive_day_rate_pct']:.1f}%", f"{agg['benchmark_positive_day_rate_pct']:.1f}%"],
-        ["Daily result count", f"{agg['scout_wins']} wins / {agg['ties']} ties", f"{agg['misses']} Scout misses"],
-        ["Top-10 representation", f"{agg['average_top_10_capture_rate_pct']:.1f}%", "Diagnostic only"],
-        ["Unreachable movers", str(agg["unreachable_mover_count"]), f"{agg['unreachable_pct']:.1f}%"],
-        ["Execution-policy reviews", str(agg["execution_policy_review_count"]), "Excluded from Scout hypotheses"],
+        ["Measure", "Qualifying", "Exploration", "Combined", "Baseline"],
+        ["Avg daily return", f"{agg['scout_average_daily_return_pct']:.3f}%", f"{agg['exploration_average_daily_return_pct']:.3f}%", f"{agg['combined_average_daily_return_pct']:.3f}%", f"{agg['benchmark_average_daily_return_pct']:.3f}%"],
+        ["Cumulative return", f"{agg['scout_cumulative_return_pct']:.3f}%", f"{agg['exploration_cumulative_return_pct']:.3f}%", f"{agg['combined_cumulative_return_pct']:.3f}%", f"{agg['benchmark_cumulative_return_pct']:.3f}%"],
+        ["Total realized P&L", f"${agg['scout_total_realized_pnl_usd']:,.2f}", f"${agg['exploration_total_realized_pnl_usd']:,.2f}", f"${agg['combined_total_realized_pnl_usd']:,.2f}", f"${agg['benchmark_total_realized_pnl_usd']:,.2f}"],
+        ["Maximum drawdown", f"{agg['scout_max_drawdown_pct']:.3f}%", f"{agg['exploration_max_drawdown_pct']:.3f}%", f"{agg['combined_max_drawdown_pct']:.3f}%", f"{agg['benchmark_max_drawdown_pct']:.3f}%"],
+        ["Daily volatility", f"{agg['scout_daily_return_stddev_pct']:.3f}%", f"{agg['exploration_daily_return_stddev_pct']:.3f}%", f"{agg['combined_daily_return_stddev_pct']:.3f}%", f"{agg['benchmark_daily_return_stddev_pct']:.3f}%"],
+        ["Positive-day rate", f"{agg['scout_positive_day_rate_pct']:.1f}%", f"{agg['exploration_positive_day_rate_pct']:.1f}%", f"{agg['combined_positive_day_rate_pct']:.1f}%", f"{agg['benchmark_positive_day_rate_pct']:.1f}%"],
+        ["Verdict count", f"{agg['scout_wins']}W / {agg['ties']}T / {agg['misses']}M", "Not graded", "Reference only", "Random draw"],
+        ["Top-10 diagnostic", f"{agg['average_top_10_capture_rate_pct']:.1f}%", "Reported daily", "Reported daily", "No verdict effect"],
+        ["Unreachable movers", str(agg["unreachable_mover_count"]), "-", "-", f"{agg['unreachable_pct']:.1f}%"],
+        ["Execution reviews", str(agg["execution_policy_review_count"]), "Tracked separately", "Reference only", "No hypotheses"],
     ]
-    story += [_table(comparison, [2.8 * inch, 2.25 * inch, 2.25 * inch]), Spacer(1, 0.18 * inch)]
-    story += [Paragraph("Daily verdicts use the deterministic random-draw return baseline. Top-10 representation never controls WIN/TIE/MISS.", body)]
+    story += [_table(comparison, [1.75 * inch, 1.38 * inch, 1.38 * inch, 1.38 * inch, 1.38 * inch], font_size=6.8), Spacer(1, 0.18 * inch)]
+    story += [Paragraph("Only QUALIFYING_THRESHOLD candidates determine Scout return, P&amp;L, win rate, and the daily WIN/TIE/MISS verdict. Exploration is simulated after qualifying positions and is reported separately; combined performance is reference-only. Top-10 representation never controls the verdict.", body)]
 
     story += [PageBreak(), Paragraph("Daily replay ledger", title), Paragraph("Every row links one frozen historical decision to its persisted outcome, benchmark, and postmortem artifacts.", body), Spacer(1, 0.16 * inch)]
     day_rows = [["Date", "Partition", "Status", "Scored", "Unreachable", "Execution review"]]

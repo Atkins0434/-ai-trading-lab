@@ -9,6 +9,7 @@ from trainer.benchmark import (
     RANDOM_BASELINE_SEED,
     build_same_universe_benchmark,
 )
+from trainer.outcome_grader import grade_replay_outcomes
 from trainer.postmortem import build_postmortem
 from trainer.postmortem_report import generate_postmortem_pdf
 
@@ -297,6 +298,9 @@ def test_random_draw_verdict_is_deterministic_and_top_10_is_diagnostic_only(
         100 / 3
     )
     assert first["comparison"]["result_code"] == "SCOUT_OUTPERFORMED"
+    assert first["scout_summary"]["candidate_count"] == 1
+    assert first["exploration_summary"]["candidate_count"] == 0
+    assert first["combined_summary"] == first["scout_summary"]
     assert first["comparison"]["return_difference_pct"] == first[
         "comparison"
     ]["random_draw_mean_return_difference_pct"]
@@ -304,3 +308,145 @@ def test_random_draw_verdict_is_deterministic_and_top_10_is_diagnostic_only(
     report = tmp_path / "postmortem.pdf"
     generate_postmortem_pdf(first, postmortem, report)
     assert report.read_bytes().startswith(b"%PDF")
+
+
+def _benchmark_inputs_for_exploration_top_k(exploration_top_k: int):
+    tickers = ("QUAL", "EXP1", "EXP2", "EXP3")
+    snapshot = {
+        "replay_id": f"exploration-{exploration_top_k}",
+        "trading_date": "2026-09-14",
+        "universe_version": "research_universe_v1.0",
+        **EVIDENCE,
+        "securities": [
+            {"ticker": ticker, "eligible": True} for ticker in tickers
+        ],
+    }
+    scout = {
+        "scout_version": "research_scout_alpha_v1.0",
+        **EVIDENCE,
+        "candidates": [
+            {
+                "ticker": ticker,
+                "research_eligible": True,
+                "research_selected": (
+                    ticker == "QUAL"
+                    or (
+                        ticker.startswith("EXP")
+                        and int(ticker[-1]) <= exploration_top_k
+                    )
+                ),
+                "selection_basis": (
+                    "QUALIFYING_THRESHOLD"
+                    if ticker == "QUAL"
+                    else (
+                        "EXPLORATION_TOP_K"
+                        if int(ticker[-1]) <= exploration_top_k
+                        else "NOT_SELECTED"
+                    )
+                ),
+                "component_scores": {},
+            }
+            for ticker in tickers
+        ],
+    }
+    exploration_pnls = {"EXP1": 10.0, "EXP2": -5.0, "EXP3": 15.0}
+    outcomes = []
+    for ticker in tickers:
+        selected = ticker == "QUAL" or (
+            ticker.startswith("EXP")
+            and int(ticker[-1]) <= exploration_top_k
+        )
+        basis = (
+            "QUALIFYING_THRESHOLD"
+            if ticker == "QUAL"
+            else ("EXPLORATION_TOP_K" if selected else "NOT_SELECTED")
+        )
+        pnl = 25.0 if ticker == "QUAL" else exploration_pnls[ticker]
+        bars = _bars(close=10.5, high=11.0, low=10.0)
+        outcomes.append({
+            "ticker": ticker,
+            "selected": selected,
+            "selection_basis": basis,
+            "mfe_pct": 10.0,
+            "mae_pct": 0.0,
+            "maximum_capturable_move_pct": 10.0,
+            "intraday_path": bars,
+            "execution_result": (
+                {
+                    "trade_executed": True,
+                    "realized_return_pct": pnl / 25.0 * 5.0,
+                    "realized_pnl_usd": pnl,
+                    "capture_ratio": 0.5,
+                    "maximum_position_drawdown_pct": 0.0,
+                    "exit_reason": "SESSION_END",
+                    "exit_timestamp": bars[-1]["timestamp"],
+                }
+                if selected
+                else {"trade_executed": False, "realized_return_pct": 0.0}
+            ),
+        })
+    outcome_result = {
+        "execution_policy_version": "execution_policy_v1.0_hypothetical",
+        **EVIDENCE,
+        "outcomes": outcomes,
+    }
+    return snapshot, scout, outcome_result
+
+
+def test_changing_exploration_top_k_does_not_change_scout_realized_pnl():
+    without_exploration = build_same_universe_benchmark(
+        *_benchmark_inputs_for_exploration_top_k(0),
+        2500.0,
+    )
+    with_three_exploration_names = build_same_universe_benchmark(
+        *_benchmark_inputs_for_exploration_top_k(3),
+        2500.0,
+    )
+
+    assert without_exploration["scout_summary"]["realized_pnl_usd"] == 25.0
+    assert with_three_exploration_names["scout_summary"]["realized_pnl_usd"] == 25.0
+    assert without_exploration["comparison"]["result_code"] == with_three_exploration_names["comparison"]["result_code"]
+    assert without_exploration["return_baselines"]["random_draw_size"] == 1
+    assert with_three_exploration_names["return_baselines"]["random_draw_size"] == 1
+    assert without_exploration["exploration_summary"]["realized_pnl_usd"] == 0.0
+    assert with_three_exploration_names["exploration_summary"]["realized_pnl_usd"] == 20.0
+    assert with_three_exploration_names["combined_summary"]["realized_pnl_usd"] == 45.0
+
+
+def test_qualifying_candidates_consume_execution_slots_before_exploration():
+    snapshot = {
+        "replay_id": "execution-priority",
+        "trading_date": "2026-09-14",
+        "scout_version": "research_scout_alpha_v1.0",
+        "execution_policy_version": "execution_policy_v1.0_hypothetical",
+        **EVIDENCE,
+    }
+    candidates = [
+        {
+            "ticker": f"EXP{index}",
+            "research_selected": True,
+            "selection_basis": "EXPLORATION_TOP_K",
+            "rank": index,
+            "score_pct": 50.0,
+        }
+        for index in range(1, 6)
+    ]
+    candidates.append({
+        "ticker": "QUAL",
+        "research_selected": True,
+        "selection_basis": "QUALIFYING_THRESHOLD",
+        "rank": 6,
+        "score_pct": 80.0,
+    })
+    scout = {"candidates": candidates}
+    bars = {
+        candidate["ticker"]: _bars(close=10.5, high=11.0, low=10.0)
+        for candidate in candidates
+    }
+
+    result = grade_replay_outcomes(snapshot, scout, bars, 2500.0)
+    by_ticker = {item["ticker"]: item for item in result["outcomes"]}
+
+    assert by_ticker["QUAL"]["execution_result"]["trade_executed"] is True
+    assert by_ticker["EXP5"]["execution_result"]["trade_executed"] is False
+    assert by_ticker["EXP5"]["execution_result"]["exit_reason"] == "ENTRY_REJECTED"

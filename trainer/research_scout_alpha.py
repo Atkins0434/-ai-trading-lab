@@ -163,12 +163,15 @@ def run_research_scout_alpha(
         for security in snapshot["securities"]
     ]
     exploration_pool = sorted(
-        (candidate for candidate in candidates if candidate["research_eligible"]),
+        (
+            candidate
+            for candidate in candidates
+            if candidate["research_eligible"]
+            and not candidate["qualification_selected"]
+        ),
         key=lambda candidate: (-candidate["score_pct"], candidate["ticker"]),
     )[:exploration_top_k]
     for candidate in exploration_pool:
-        if candidate["qualification_selected"]:
-            continue
         candidate["research_selected"] = True
         candidate["selection_basis"] = "EXPLORATION_TOP_K"
         candidate["reason_codes"] = [
@@ -180,10 +183,27 @@ def run_research_scout_alpha(
             if reason != "BELOW_RESEARCH_THRESHOLD"
         ]
 
-    selected = sorted(
-        (candidate for candidate in candidates if candidate["research_selected"]),
+    qualifying = sorted(
+        (
+            candidate
+            for candidate in candidates
+            if candidate["selection_basis"] == "QUALIFYING_THRESHOLD"
+        ),
         key=lambda candidate: (-candidate["score_pct"], candidate["ticker"]),
     )
+    exploration = sorted(
+        (
+            candidate
+            for candidate in candidates
+            if candidate["selection_basis"] == "EXPLORATION_TOP_K"
+        ),
+        key=lambda candidate: (-candidate["score_pct"], candidate["ticker"]),
+    )
+    # Rank the production-like qualifying basket first. Exploration names are
+    # explicitly appended so they can never take an execution slot from a
+    # qualifying candidate, even if a future scoring change makes their raw
+    # score ordering overlap.
+    selected = qualifying + exploration
     for rank, candidate in enumerate(selected, start=1):
         candidate["rank"] = rank
 

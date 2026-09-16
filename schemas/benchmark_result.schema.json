@@ -2,14 +2,15 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "benchmark_result.schema.json",
   "title": "Benchmark Result",
-  "description": "Deterministic same-universe return verdict plus an independent top-10 diagnostic.",
+  "description": "Qualifying-only deterministic same-universe return verdict, separate exploration and combined summaries, plus an independent top-10 diagnostic.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "replay_id", "trading_date", "universe_version", "universe_mode",
     "universe_manifest_hash", "universe_coverage", "research_evidence",
     "promotion_eligible", "execution_policy_version", "benchmark_method",
-    "benchmark_candidates", "scout_summary", "benchmark_summary",
+    "benchmark_candidates", "scout_summary", "exploration_summary",
+    "combined_summary", "benchmark_summary",
     "return_baselines", "comparison"
   ],
   "properties": {
@@ -28,6 +29,8 @@
       "items": {"$ref": "#/$defs/benchmarkCandidate"}
     },
     "scout_summary": {"$ref": "#/$defs/performanceSummary"},
+    "exploration_summary": {"$ref": "#/$defs/performanceSummary"},
+    "combined_summary": {"$ref": "#/$defs/performanceSummary"},
     "benchmark_summary": {"$ref": "#/$defs/performanceSummary"},
     "return_baselines": {"$ref": "#/$defs/returnBaselines"},
     "comparison": {"$ref": "#/$defs/comparison"}
@@ -41,7 +44,8 @@
       "required": [
         "ticker", "benchmark_rank", "raw_move_pct",
         "maximum_capturable_move_pct", "day_high_timestamp",
-        "universe_eligible", "scout_selected", "scout_trade_executed",
+        "universe_eligible", "scout_selected", "scout_selection_basis",
+        "scout_trade_executed",
         "scout_realized_return_pct", "scout_exit_reason",
         "scout_exit_timestamp", "fair_simulation_possible",
         "simulation_exclusion_reason", "trade_executed",
@@ -56,6 +60,9 @@
         "day_high_timestamp": {"type": "string", "format": "date-time"},
         "universe_eligible": {"type": "boolean"},
         "scout_selected": {"type": "boolean"},
+        "scout_selection_basis": {
+          "enum": ["QUALIFYING_THRESHOLD", "EXPLORATION_TOP_K", "NOT_SELECTED"]
+        },
         "scout_trade_executed": {"type": "boolean"},
         "scout_realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
         "scout_exit_reason": {"$ref": "#/$defs/nullableString"},
@@ -117,7 +124,9 @@
         "scout_won", "scout_net_realized_return_pct",
         "eligible_ticker_mean_return_difference_pct",
         "random_draw_mean_return_difference_pct", "return_difference_pct",
-        "pnl_difference_usd", "top_10_capture_rate_pct", "result_code"
+        "pnl_difference_usd", "top_10_capture_rate_pct",
+        "exploration_top_10_capture_rate_pct",
+        "combined_top_10_capture_rate_pct", "result_code"
       ],
       "properties": {
         "scout_won": {"type": "boolean"},
@@ -127,6 +136,8 @@
         "return_difference_pct": {"type": "number"},
         "pnl_difference_usd": {"type": "number"},
         "top_10_capture_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "exploration_top_10_capture_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "combined_top_10_capture_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
         "result_code": {
           "enum": ["SCOUT_OUTPERFORMED", "SCOUT_TIED", "SCOUT_UNDERPERFORMED"]
         }

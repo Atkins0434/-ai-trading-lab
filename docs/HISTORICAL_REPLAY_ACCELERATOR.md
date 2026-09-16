@@ -36,6 +36,18 @@ The Massive Free starting profile is deliberately conservative:
 Raising worker count improves local processing concurrency but does not bypass
 the provider-wide request limit.
 
+`--exploration-top-k` adds only below-threshold, guardrail-eligible research
+names. Qualifying-threshold candidates always consume simulated position slots
+first. Benchmark artifacts persist three independent views:
+
+- `scout_summary`: qualifying-threshold candidates only; this is the sole
+  source of Scout return, P&L, win rate, and WIN/TIE/MISS;
+- `exploration_summary`: exploration candidates only; and
+- `combined_summary`: a reference view that is never used for the verdict.
+
+The fixed-seed random baseline draw size equals the qualifying candidate count,
+so changing `exploration_top_k` cannot change the qualifying Scout comparison.
+
 For a deterministic non-research smoke test only, use
 `--universe-mode ci_fixture --tickers ...`. Static symbols are rejected in
 `historical_research` mode. See `UNIVERSE_INTEGRITY.md` for the full audit,
@@ -87,8 +99,10 @@ way that would reassign an existing date requires a new output directory.
 development, validation, and holdout observations separately. The generated
 four-page `trainer_summary_report.pdf` presents:
 
-- compounded Scout and deterministic random-baseline return;
-- total realized P&L and money-capture percentage;
+- separately compounded qualifying, exploration, combined, and deterministic
+  random-baseline return;
+- separately reported qualifying, exploration, and combined realized P&L,
+  with money-capture percentage based only on qualifying Scout P&L;
 - maximum drawdown and daily-return volatility;
 - positive-day rate and diagnostic-only top-ten capture;
 - a partition-labeled daily replay ledger;

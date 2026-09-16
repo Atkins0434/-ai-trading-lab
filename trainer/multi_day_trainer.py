@@ -27,7 +27,7 @@ from trainer.universe_manifest import CI_FIXTURE, HISTORICAL_RESEARCH
 
 
 MINIMUM_OCCURRENCES = 30
-STATE_VERSION = "multi_day_trainer_run_v2.1"
+STATE_VERSION = "multi_day_trainer_run_v2.2"
 HYPOTHESIS_ELIGIBLE_MISSES = {
     "VISIBLE_SCORED_LOW",
     "VISIBLE_GUARDRAIL_REJECT",
@@ -122,8 +122,12 @@ def _aggregate(
     list[dict[str, Any]],
 ]:
     scout_returns: list[float] = []
+    exploration_returns: list[float] = []
+    combined_returns: list[float] = []
     benchmark_returns: list[float] = []
     scout_pnl = 0.0
+    exploration_pnl = 0.0
+    combined_pnl = 0.0
     benchmark_pnl = 0.0
     captures: list[float] = []
     results = defaultdict(int)
@@ -145,12 +149,24 @@ def _aggregate(
         except EvidenceEligibilityError as exc:
             raise ValueError(str(exc)) from exc
         scout_summary = benchmark["scout_summary"]
+        exploration_summary = benchmark["exploration_summary"]
+        combined_summary = benchmark["combined_summary"]
         baselines = benchmark["return_baselines"]
         scout_returns.append(float(scout_summary["realized_return_pct"]))
+        exploration_returns.append(
+            float(exploration_summary["realized_return_pct"])
+        )
+        combined_returns.append(
+            float(combined_summary["realized_return_pct"])
+        )
         benchmark_returns.append(
             float(baselines["random_draw_mean_realized_return_pct"])
         )
         scout_pnl += float(scout_summary["realized_pnl_usd"])
+        exploration_pnl += float(
+            exploration_summary["realized_pnl_usd"]
+        )
+        combined_pnl += float(combined_summary["realized_pnl_usd"])
         benchmark_pnl += float(
             baselines["random_draw_mean_realized_pnl_usd"]
         )
@@ -307,16 +323,28 @@ def _aggregate(
         "ties": results["TIE"],
         "misses": results["MISS"],
         "scout_total_realized_pnl_usd": round(scout_pnl, 4),
+        "exploration_total_realized_pnl_usd": round(exploration_pnl, 4),
+        "combined_total_realized_pnl_usd": round(combined_pnl, 4),
         "benchmark_total_realized_pnl_usd": round(benchmark_pnl, 4),
         "scout_average_daily_return_pct": round(sum(scout_returns) / count, 6) if count else 0.0,
+        "exploration_average_daily_return_pct": round(sum(exploration_returns) / count, 6) if count else 0.0,
+        "combined_average_daily_return_pct": round(sum(combined_returns) / count, 6) if count else 0.0,
         "benchmark_average_daily_return_pct": round(sum(benchmark_returns) / count, 6) if count else 0.0,
         "scout_cumulative_return_pct": _compounded_return(scout_returns),
+        "exploration_cumulative_return_pct": _compounded_return(exploration_returns),
+        "combined_cumulative_return_pct": _compounded_return(combined_returns),
         "benchmark_cumulative_return_pct": _compounded_return(benchmark_returns),
         "scout_max_drawdown_pct": _maximum_drawdown(scout_returns),
+        "exploration_max_drawdown_pct": _maximum_drawdown(exploration_returns),
+        "combined_max_drawdown_pct": _maximum_drawdown(combined_returns),
         "benchmark_max_drawdown_pct": _maximum_drawdown(benchmark_returns),
         "scout_daily_return_stddev_pct": round(pstdev(scout_returns), 6) if len(scout_returns) > 1 else 0.0,
+        "exploration_daily_return_stddev_pct": round(pstdev(exploration_returns), 6) if len(exploration_returns) > 1 else 0.0,
+        "combined_daily_return_stddev_pct": round(pstdev(combined_returns), 6) if len(combined_returns) > 1 else 0.0,
         "benchmark_daily_return_stddev_pct": round(pstdev(benchmark_returns), 6) if len(benchmark_returns) > 1 else 0.0,
         "scout_positive_day_rate_pct": round(sum(value > 0 for value in scout_returns) / count * 100, 6) if count else 0.0,
+        "exploration_positive_day_rate_pct": round(sum(value > 0 for value in exploration_returns) / count * 100, 6) if count else 0.0,
+        "combined_positive_day_rate_pct": round(sum(value > 0 for value in combined_returns) / count * 100, 6) if count else 0.0,
         "benchmark_positive_day_rate_pct": round(sum(value > 0 for value in benchmark_returns) / count * 100, 6) if count else 0.0,
         "realized_pnl_capture_pct": round(scout_pnl / benchmark_pnl * 100, 6) if benchmark_pnl > 0 else None,
         "average_top_10_capture_rate_pct": round(sum(captures) / count, 6) if count else 0.0,
