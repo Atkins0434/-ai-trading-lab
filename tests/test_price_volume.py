@@ -13,7 +13,7 @@ from trainer.scout_engine import load_scout_config
 
 
 def make_bars(count: int = 60) -> list[dict]:
-    start = datetime(2018, 1, 2, 10, 0, tzinfo=timezone.utc)
+    start = datetime(2018, 1, 2, 13, 15, tzinfo=timezone.utc)
     bars = []
     for index in range(count):
         close = 10.0 + index * 0.02
@@ -32,7 +32,7 @@ def make_bars(count: int = 60) -> list[dict]:
 
 
 def make_security() -> dict:
-    as_of = "2018-01-02T06:59:00-05:00"
+    as_of = "2018-01-02T09:15:00-05:00"
     return {
         "market_data": {
             "previous_close": {"value": 9.5, "as_of_timestamp": as_of},
@@ -49,6 +49,7 @@ def test_calculates_all_remaining_price_volume_metrics():
     metrics = calculate_price_volume_metrics(
         make_security(),
         load_scout_config(),
+        "2018-01-02T09:15:00-05:00",
     )
 
     assert len(metrics) == 11
@@ -80,20 +81,45 @@ def test_optional_baseline_inputs_remain_missing_not_zero():
     metrics = calculate_price_volume_metrics(
         security,
         load_scout_config(),
+        "2018-01-02T09:15:00-05:00",
     )
 
     assert "premarket_gap_strength" not in metrics
     assert "premarket_range_expansion" not in metrics
 
 
-def test_non_contiguous_bars_are_rejected():
+def test_duplicate_bars_are_rejected():
     security = make_security()
     security["premarket_bars"][30]["timestamp"] = (
-        "2018-01-02T10:31:00+00:00"
+        security["premarket_bars"][29]["timestamp"]
     )
 
-    with pytest.raises(PriceVolumeError, match="contiguous"):
-        calculate_price_volume_metrics(security, load_scout_config())
+    with pytest.raises(PriceVolumeError, match="strictly increasing"):
+        calculate_price_volume_metrics(
+            security,
+            load_scout_config(),
+            "2018-01-02T09:15:00-05:00",
+        )
+
+
+def test_sparse_15m_slopes_are_missing_while_60m_slopes_are_observed():
+    security = make_security()
+    freeze = datetime(2018, 1, 2, 14, 15, tzinfo=timezone.utc)
+    security["premarket_bars"] = [
+        bar for bar in security["premarket_bars"]
+        if (freeze - datetime.fromisoformat(bar["timestamp"])).total_seconds()
+        / 60 > 15
+        or datetime.fromisoformat(bar["timestamp"]).minute in {0, 4, 8, 12}
+    ]
+
+    metrics = calculate_price_volume_metrics(
+        security, load_scout_config(), freeze.isoformat()
+    )
+
+    assert "price_slope_15m" not in metrics
+    assert "volume_slope_15m" not in metrics
+    assert "price_slope_60m" in metrics
+    assert "volume_slope_60m" in metrics
 
 
 def test_threshold_scoring_is_inclusive_and_monotonic():

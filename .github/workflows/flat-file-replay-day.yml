@@ -238,15 +238,36 @@ jobs:
                   f"listed_after_lagged_date={cache['listed_after_lagged_date']}, "
                   f"errors={cache['errors']}"
               )
-              padded = (
-                  replay["days"][0].get("padded_bar_statistics")
+              bar_statistics = (
+                  replay["days"][0].get("bar_statistics")
                   if replay.get("days")
                   else None
               )
-              print("Padded-bar statistics:")
-              if padded:
-                  for name, value in sorted(padded.items()):
+              print("Real-bar statistics:")
+              if bar_statistics:
+                  for name, value in sorted(bar_statistics.items()):
                       print(f"  {name}: {value}")
+              else:
+                  print("  unavailable")
+              scorability = (
+                  replay["days"][0].get("scorability_statistics")
+                  if replay.get("days")
+                  else None
+              )
+              print("Scorability statistics:")
+              if scorability:
+                  print(
+                      "  scorable_ticker_count: "
+                      f"{scorability['scorable_ticker_count']}"
+                  )
+                  print(
+                      "  not_scorable_ticker_count: "
+                      f"{scorability['not_scorable_ticker_count']}"
+                  )
+                  print(
+                      "  not_scorable_share: "
+                      f"{scorability['not_scorable_share']:.4f}"
+                  )
               else:
                   print("  unavailable")
           else:

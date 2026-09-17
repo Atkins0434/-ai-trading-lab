@@ -32,6 +32,8 @@ def fmt(value: Any) -> str:
 
 
 def candidate_status(candidate: dict[str, Any]) -> str:
+    if candidate.get("status") == "NOT_SCORABLE":
+        return "NOT SCORABLE"
     selected = candidate.get("selected", candidate.get("research_selected", False))
     eligible = candidate.get("eligible", candidate.get("research_eligible", False))
     if selected:
@@ -50,6 +52,11 @@ def hard_reject_reason(candidate: dict[str, Any]) -> str:
         return "-"
 
     return ", ".join(reasons)
+
+
+def guardrail_action(candidate: dict[str, Any], name: str) -> str:
+    """Return a printable guardrail action for sparse, unscorable records."""
+    return candidate.get("guardrails", {}).get(name, {}).get("action", "N/A")
 
 
 def ordered_candidates(
@@ -217,17 +224,14 @@ def generate_scout_markdown_report(
     )
 
     for candidate in ordered_candidates(scout_result):
-        liquidity = candidate["guardrails"]["liquidity"]
-        spread = candidate["guardrails"]["spread"]
-
         lines.append(
             f"| {fmt(candidate['rank'])} "
             f"| {candidate['ticker']} "
             f"| {candidate_status(candidate)} "
             f"| {candidate['score_pct']:.2f}% "
             f"| {fmt(candidate['raw_values'].get('spread_pct'))} "
-            f"| {liquidity['action']} "
-            f"| {spread['action']} "
+            f"| {guardrail_action(candidate, 'liquidity')} "
+            f"| {guardrail_action(candidate, 'spread')} "
             f"| {hard_reject_reason(candidate)} |"
         )
 
@@ -384,7 +388,7 @@ def _generate_legacy_scout_pdf_report(
                 (
                     f"{fmt(candidate['raw_values'].get('spread_pct'))}%"
                 ),
-                candidate["guardrails"]["liquidity"]["action"],
+                guardrail_action(candidate, "liquidity"),
                 hard_reject_reason(candidate),
             ]
         )
@@ -682,6 +686,7 @@ def generate_scout_pdf_report(
         observed, total = _coverage(candidate)
         actions = [result["action"] for result in candidate["guardrails"].values()]
         guardrail_summary = (
+            "NOT SCORABLE" if candidate.get("status") == "NOT_SCORABLE" else
             "REJECT" if "REJECT" in actions else
             "NOT EVALUATED" if "NOT_EVALUATED" in actions else
             "PASS"

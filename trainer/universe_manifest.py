@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 from trainer.providers.base import ProviderError
 from trainer.rate_control import load_massive_plan
+from trainer.replay_engine import configured_freeze_datetime
 from trainer.validate_contracts import validate_contract
 
 
@@ -110,9 +111,10 @@ def _capability_available(name: str, value: Any) -> bool:
     return value is True
 
 
-def information_cutoff(trading_date: str) -> str:
-    day = date.fromisoformat(trading_date)
-    return datetime.combine(day, time(7), tzinfo=ET).isoformat()
+def information_cutoff(
+    trading_date: str, freeze_config: dict[str, Any] | None = None
+) -> str:
+    return configured_freeze_datetime(trading_date, freeze_config).isoformat()
 
 
 def _parse_timestamp(value: str | None) -> datetime | None:
@@ -388,12 +390,13 @@ def _base_manifest(
     query_parameters: dict[str, Any],
     retrieved_at: str,
     capabilities: dict[str, Any],
+    freeze_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     return {
         "version": "daily_universe_manifest_v1.0",
         "replay_id": replay_id,
         "trading_date": trading_date,
-        "information_cutoff": information_cutoff(trading_date),
+        "information_cutoff": information_cutoff(trading_date, freeze_config),
         "timezone": "America/New_York",
         "universe_mode": universe_mode,
         "massive_plan": load_massive_plan(),
@@ -426,6 +429,7 @@ def build_fixture_manifest(
     eligible_securities: list[dict[str, Any]] | None = None,
     rejected: dict[str, str] | None = None,
     retrieved_at: str | None = None,
+    freeze_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     requested = sorted({ticker.upper() for ticker in tickers})
     eligible = {
@@ -444,6 +448,7 @@ def build_fixture_manifest(
             **{name: False for name in REQUIRED_CAPABILITIES},
             "provider_response_complete": True,
         },
+        freeze_config=freeze_config,
     )
     manifest["coverage_status"] = "fixture"
     manifest["coverage_reasons"] = ["STATIC_SYMBOL_FIXTURE_NOT_RESEARCH_UNIVERSE"]
@@ -483,6 +488,7 @@ def build_research_manifest(
     capabilities: dict[str, Any],
     one_class_per_issuer: bool | None = None,
     retrieved_at: str | None = None,
+    freeze_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     manifest = _base_manifest(
         replay_id=replay_id,
@@ -493,6 +499,7 @@ def build_research_manifest(
         query_parameters=query_parameters,
         retrieved_at=retrieved_at or datetime.now(timezone.utc).isoformat(),
         capabilities=capabilities,
+        freeze_config=freeze_config,
     )
     missing_capabilities = sorted(
         capability
@@ -626,6 +633,7 @@ def load_or_resolve_manifest(
     universe_mode: str,
     fixture_tickers: list[str] | None = None,
     fixture_universe: dict[str, Any] | None = None,
+    freeze_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if universe_mode not in {CI_FIXTURE, HISTORICAL_RESEARCH}:
         raise UniverseManifestError(f"Unknown universe mode: {universe_mode}")
@@ -681,6 +689,7 @@ def load_or_resolve_manifest(
             feed_version=provider.feed_version,
             eligible_securities=universe.get("eligible_securities"),
             rejected=universe.get("rejected"),
+            freeze_config=freeze_config,
         )
     else:
         capabilities = provider.historical_universe_capabilities()
@@ -694,21 +703,21 @@ def load_or_resolve_manifest(
                 "records": [],
                 "query_parameters": {
                     "date": trading_date,
-                    "cutoff": information_cutoff(trading_date),
+                    "cutoff": information_cutoff(trading_date, freeze_config),
                     "request_skipped": "provider_capability_gate",
                 },
             }
         else:
             try:
                 payload = provider.get_historical_universe(
-                    trading_date, information_cutoff(trading_date)
+                    trading_date, information_cutoff(trading_date, freeze_config)
                 )
             except ProviderError as exc:
                 payload = {
                     "records": [],
                     "query_parameters": {
                         "date": trading_date,
-                        "cutoff": information_cutoff(trading_date),
+                        "cutoff": information_cutoff(trading_date, freeze_config),
                         "provider_error": str(exc),
                     },
                 }
@@ -721,6 +730,7 @@ def load_or_resolve_manifest(
             feed_version=provider.feed_version,
             query_parameters=payload.get("query_parameters", {}),
             capabilities=capabilities,
+            freeze_config=freeze_config,
         )
         if capabilities.get("provider_response_complete") is False:
             manifest["coverage_reasons"] = sorted(

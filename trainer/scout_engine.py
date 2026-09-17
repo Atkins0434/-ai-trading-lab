@@ -397,6 +397,39 @@ def score_security(
         for metric in registry["metrics"]
     }
 
+    real_bar_observation = market_data.get("real_bar_count_60m", {})
+    real_bar_count_60m = real_bar_observation.get("value")
+    if real_bar_count_60m is None:
+        from datetime import datetime, timedelta
+
+        freeze = datetime.fromisoformat(timestamp)
+        start = freeze - timedelta(minutes=60)
+        real_bar_count_60m = sum(
+            start
+            <= datetime.fromisoformat(bar["timestamp"].replace("Z", "+00:00"))
+            < freeze
+            for bar in security.get("premarket_bars", [])
+        )
+    if int(real_bar_count_60m) < int(config["minimum_real_bars_60m"]):
+        return {
+            "ticker": ticker,
+            "timestamp": timestamp,
+            "status": "NOT_SCORABLE",
+            "eligible": bool(security["eligible"]),
+            "selected": False,
+            "rank": None,
+            "total_score": 0,
+            "maximum_possible_score": FIXED_MAXIMUM_POINTS,
+            "score_pct": 0.0,
+            "threshold_points": minimum_points_for_threshold(threshold_pct),
+            "component_scores": component_scores,
+            "raw_values": {},
+            "guardrails": {},
+            "catalysts": [],
+            "reason_codes": ["INSUFFICIENT_PREMARKET_BARS"],
+            "rejection_reasons": ["INSUFFICIENT_PREMARKET_BARS"],
+        }
+
     relative_volume_observation = market_data.get("relative_volume")
     relative_volume = observed_value(relative_volume_observation)
     if relative_volume_observation is not None and relative_volume is not None:
@@ -412,6 +445,7 @@ def score_security(
         price_volume_metrics = calculate_price_volume_metrics(
             security,
             config,
+            timestamp,
         )
     except PriceVolumeError as exc:
         raise ScoutError(
@@ -468,6 +502,7 @@ def score_security(
     return {
         "ticker": ticker,
         "timestamp": timestamp,
+        "status": "SCORED",
         "eligible": eligible,
         "selected": selected,
         "rank": None,
@@ -531,6 +566,8 @@ def rank_candidates(
 def run_scout(
     snapshot: dict[str, Any],
     threshold_pct: float = 85.0,
+    *,
+    config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run deterministic Scout V1 against one frozen snapshot."""
     try:
@@ -540,7 +577,7 @@ def run_scout(
             f"Scout received invalid historical snapshot: {exc}"
         ) from exc
 
-    config = load_scout_config()
+    config = config or load_scout_config()
     registry = load_feature_registry()
 
     candidates = [
@@ -563,6 +600,12 @@ def run_scout(
         "scoring_threshold_pct": threshold_pct,
         "eligible_universe_count": sum(
             1 for item in candidates if item["eligible"]
+        ),
+        "scorable_candidate_count": sum(
+            item["status"] == "SCORED" for item in candidates
+        ),
+        "not_scorable_candidate_count": sum(
+            item["status"] == "NOT_SCORABLE" for item in candidates
         ),
         "qualifying_candidate_count": sum(
             1 for item in candidates if item["selected"]

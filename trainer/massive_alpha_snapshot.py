@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import date, datetime, time, timedelta
+from pathlib import Path
 from statistics import mean
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -9,10 +10,13 @@ from zoneinfo import ZoneInfo
 from trainer.providers.base import ProviderError
 from trainer.providers.massive import MassiveClient, canonical_price_bar, parse_massive_timestamp
 from trainer.rate_control import load_massive_plan
+from trainer.replay_engine import configured_freeze_datetime
+from trainer.validate_contracts import load_json
 from trainer.validate_contracts import validate_contract
 
 
 MARKET_TIMEZONE = ZoneInfo("America/New_York")
+CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "scout_alpha_v1.json"
 
 
 def _observed(value: float, as_of: str, provider_field: str) -> dict[str, Any]:
@@ -28,46 +32,21 @@ def _market_datetime(day: date, clock: time) -> datetime:
     return datetime.combine(day, clock, tzinfo=MARKET_TIMEZONE)
 
 
-def regularize_last_premarket_hour(
-    records: list[dict[str, Any]], trading_date: str
+def real_premarket_bars(
+    records: list[dict[str, Any]],
+    trading_date: str,
+    *,
+    config: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    """Return 60 auditable 06:00-06:59 ET bars using zero-volume carry-forward fills."""
+    """Return chronological real trade-minute bars before the freeze."""
     day = date.fromisoformat(trading_date)
-    start = _market_datetime(day, time(6, 0))
-    end = _market_datetime(day, time(7, 0))
-    observed: dict[datetime, dict[str, Any]] = {}
-    seed: float | None = None
+    freeze = configured_freeze_datetime(trading_date, config)
+    bars: list[dict[str, Any]] = []
     for record in records:
         timestamp = datetime.fromisoformat(parse_massive_timestamp(record)).astimezone(MARKET_TIMEZONE)
-        if timestamp.date() != day:
-            continue
-        minute = timestamp.replace(second=0, microsecond=0)
-        if minute < start:
-            seed = float(record["c"])
-        elif start <= minute < end:
-            observed[minute] = record
-
-    bars: list[dict[str, Any]] = []
-    last_close = seed
-    for offset in range(60):
-        minute = start + timedelta(minutes=offset)
-        record = observed.get(minute)
-        if record is not None:
-            bar = canonical_price_bar(record, include_source=True)
-            last_close = float(bar["close"])
-        else:
-            if last_close is None:
-                raise ProviderError("Cannot fill leading Alpha minute without an earlier trade.")
-            bar = {
-                "timestamp": minute.isoformat(),
-                "open": last_close,
-                "high": last_close,
-                "low": last_close,
-                "close": last_close,
-                "volume": 0,
-                "source": "MASSIVE_ZERO_VOLUME_CARRY_FORWARD",
-            }
-        bars.append(bar)
+        if timestamp.date() == day and time(4) <= timestamp.time() and timestamp < freeze:
+            bars.append(canonical_price_bar(record, include_source=True))
+    bars.sort(key=lambda bar: bar["timestamp"])
     return bars
 
 
@@ -99,10 +78,13 @@ def build_massive_alpha_snapshot(
     eligible: bool = True,
     eligibility_reasons: list[str] | None = None,
     universe_metadata: dict[str, Any] | None = None,
+    config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a point-in-time Alpha snapshot from raw Massive aggregates."""
     day = date.fromisoformat(trading_date)
-    freeze = _market_datetime(day, time(7, 0))
+    active_config = config or load_json(CONFIG_PATH)
+    freeze = configured_freeze_datetime(trading_date, active_config)
+    freeze_label = freeze.strftime("%H%M")
     prior_daily: list[tuple[date, dict[str, Any]]] = []
     for record in daily_records:
         observed_day = datetime.fromisoformat(
@@ -120,11 +102,12 @@ def build_massive_alpha_snapshot(
         observed = datetime.fromisoformat(
             parse_massive_timestamp(record)
         ).astimezone(MARKET_TIMEZONE)
-        if time(4, 0) <= observed.time() < time(7, 0):
+        session_freeze = configured_freeze_datetime(
+            observed.date().isoformat(), active_config
+        )
+        if time(4, 0) <= observed.time() and observed < session_freeze:
             by_day[observed.date()].append(record)
     current = by_day[day]
-    if not current:
-        raise ProviderError("Alpha target day has no premarket records.")
 
     previous_day, previous = baseline[-1]
     previous_close = float(previous["c"])
@@ -144,12 +127,16 @@ def build_massive_alpha_snapshot(
         for record in current
     )
     relative_volume = premarket_volume / average_premarket_volume if average_premarket_volume else 0.0
-    bars = regularize_last_premarket_hour(intraday_records, trading_date)
-    padded_bar_count = sum(
-        bar["source"] == "MASSIVE_ZERO_VOLUME_CARRY_FORWARD"
+    bars = real_premarket_bars(
+        intraday_records, trading_date, config=active_config
+    )
+    last_hour_start = freeze - timedelta(minutes=60)
+    real_bar_count_60m = sum(
+        datetime.fromisoformat(bar["timestamp"]).astimezone(MARKET_TIMEZONE)
+        >= last_hour_start
         for bar in bars
     )
-    as_of = bars[-1]["timestamp"]
+    as_of = freeze.isoformat()
     prior_close_as_of = _market_datetime(previous_day, time(16, 0)).isoformat()
 
     universe_metadata = universe_metadata or {
@@ -161,7 +148,7 @@ def build_massive_alpha_snapshot(
         "promotion_eligible": False,
     }
     snapshot = {
-        "replay_id": f"{trading_date}-0700-{ticker.upper()}-research-alpha",
+        "replay_id": f"{trading_date}-{freeze_label}-{ticker.upper()}-research-alpha",
         "trading_date": trading_date,
         "freeze_timestamp": freeze.isoformat(),
         "timezone": "America/New_York",
@@ -181,15 +168,20 @@ def build_massive_alpha_snapshot(
             "eligibility_as_of_timestamp": prior_close_as_of,
             "eligibility_reasons": eligibility_reasons or [],
             "market_data": {
-                "last_price": _observed(float(bars[-1]["close"]), as_of, "c"),
-                "premarket_volume": _observed(premarket_volume, as_of, "sum(v),04:00-07:00ET"),
+                "last_price": _observed(float(bars[-1]["close"]) if bars else previous_close, bars[-1]["timestamp"] if bars else prior_close_as_of, "c"),
+                "premarket_volume": _observed(premarket_volume, as_of, f"sum(v),04:00-{freeze.time().isoformat()}ET"),
                 "premarket_dollar_volume": _observed(premarket_dollar_volume, as_of, "sum(typical_price*v)"),
                 "average_daily_dollar_volume": _observed(average_daily_dollar_volume, prior_close_as_of, "mean(c*v),20_sessions"),
                 "relative_volume": _observed(relative_volume, as_of, "premarket_volume/20_session_mean"),
-                "padded_bar_count": _observed(
-                    padded_bar_count,
+                "real_bar_count": _observed(
+                    len(bars),
                     as_of,
-                    "count(MASSIVE_ZERO_VOLUME_CARRY_FORWARD),06:00-07:00ET",
+                    "count(real_trade_minutes),04:00-freeze",
+                ),
+                "real_bar_count_60m": _observed(
+                    real_bar_count_60m,
+                    as_of,
+                    "count(real_trade_minutes),last_60m_before_freeze",
                 ),
                 "previous_close": _observed(previous_close, prior_close_as_of, "c"),
                 "average_daily_range_pct": _observed(average_daily_range_pct, prior_close_as_of, "mean((h-l)/c),20_sessions"),

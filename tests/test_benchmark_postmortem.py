@@ -72,7 +72,7 @@ def _candidate(*, selected=False, total_score=20, guardrail_action="PASS"):
     }
 
 
-def _snapshot(*, eligible=True, padded_bar_count=0):
+def _snapshot(*, eligible=True, real_bar_count_60m=60):
     return {
         "replay_id": "test-replay",
         "trading_date": "2026-09-14",
@@ -85,8 +85,8 @@ def _snapshot(*, eligible=True, padded_bar_count=0):
                 [] if eligible else ["MARKET_CAP_OUT_OF_RANGE"]
             ),
             "market_data": {
-                "padded_bar_count": {
-                    "value": padded_bar_count,
+                "real_bar_count_60m": {
+                    "value": real_bar_count_60m,
                     "as_of_timestamp": "2026-09-14T06:59:00-04:00",
                     "source": "TEST",
                 }
@@ -155,7 +155,7 @@ def _benchmark(*, selected=False, universe_eligible=True):
 
 
 def _postmortem(
-    *, candidate=None, eligible=True, padded_bar_count=0,
+    *, candidate=None, eligible=True, real_bar_count_60m=60,
     universe_eligible=True
 ):
     candidate = candidate or _candidate()
@@ -165,7 +165,7 @@ def _postmortem(
         "candidates": [candidate],
     }
     return build_postmortem(
-        _snapshot(eligible=eligible, padded_bar_count=padded_bar_count),
+        _snapshot(eligible=eligible, real_bar_count_60m=real_bar_count_60m),
         scout,
         _benchmark(
             selected=candidate["research_selected"],
@@ -186,21 +186,21 @@ def test_not_in_universe_classification_includes_component_scores():
 
 
 @pytest.mark.parametrize(
-    ("padded_bar_count", "relative_volume", "gap_pct", "reason"),
+    ("real_bar_count_60m", "relative_volume", "gap_pct", "reason"),
     [
-        (30, 2.0, 2.0, "AT_LEAST_30_PADDED_PREMARKET_BARS"),
-        (0, 0.9, 0.5, "LOW_RELATIVE_VOLUME_AND_SUB_1PCT_GAP"),
+        (20, 2.0, 2.0, "INSUFFICIENT_PREMARKET_BARS"),
+        (60, 0.9, 0.5, "LOW_RELATIVE_VOLUME_AND_SUB_1PCT_GAP"),
     ],
 )
 def test_invisible_at_freeze_classification(
-    padded_bar_count, relative_volume, gap_pct, reason
+    real_bar_count_60m, relative_volume, gap_pct, reason
 ):
     candidate = _candidate()
     candidate["component_scores"] = _component_scores(
         relative_volume, gap_pct
     )
     result = _postmortem(
-        candidate=candidate, padded_bar_count=padded_bar_count
+        candidate=candidate, real_bar_count_60m=real_bar_count_60m
     )
     miss = result["missed_opportunities"][0]
     assert miss["miss_classification"] == "INVISIBLE_AT_FREEZE"

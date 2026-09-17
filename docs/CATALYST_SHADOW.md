@@ -11,7 +11,7 @@ It does not change Research Scout Alpha's 48-point score, Production Scout's
 
 ## Historical admission rule
 
-An event is visible at the 07:00 `America/New_York` freeze only when both are
+An event is visible at the configured `America/New_York` morning freeze only when both are
 known and no later than the freeze:
 
 - the publisher's `published_timestamp`; and

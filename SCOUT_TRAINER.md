@@ -79,7 +79,7 @@ Decision-Time Freeze
 
 For the morning session:
 
-07:00 America/New_York
+09:15 America/New_York by default, configured per Scout contract
 
 At the moment a historical replay begins, the system must behave as
 though nothing after the freeze timestamp exists.
@@ -607,7 +607,7 @@ January 2, 2018
 Run exactly one regular historical session through the complete
 pipeline.
 
-Validate: - Correct eligible universe - Correct 07:00 freeze - No future
+Validate: - Correct eligible universe - Correct configured morning freeze - No future
 leakage - Scout scores reproducibly - Picks are logged - Intraday tape
 is available - Deterministic execution simulator behaves correctly -
 Benchmark is calculated from the same universe - Postmortem runs -

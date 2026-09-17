@@ -6,9 +6,11 @@
 
   "session": {
     "timezone": "America/New_York",
-    "morning_freeze_time": "07:00:00",
+    "morning_freeze_time": "09:15:00",
     "use_point_in_time_data_only": true
   },
+
+  "minimum_real_bars_60m": 30,
 
   "universe": {
     "country": "US",
@@ -71,6 +73,7 @@
       30,
       60
     ],
+    "minimum_bars_per_window": {"15": 5, "30": 10, "60": 20},
     "require_positive_60m_context_for_standard_scoring": true,
 
     "score_thresholds_pct_per_minute": {

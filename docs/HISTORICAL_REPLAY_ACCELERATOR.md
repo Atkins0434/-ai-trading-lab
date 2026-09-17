@@ -92,8 +92,9 @@ catalyst categories and ticker-specific sentiment, and writes:
 - `historical_news_backfill.json`
 - `catalyst_shadow_metrics.json`
 
-Provider availability must be explicitly timestamped at or before the 07:00
-ET replay freeze. Publication time alone is not treated as proof that an item
+Provider availability must be explicitly timestamped at or before the
+configured morning replay freeze (09:15 ET by default). Publication time alone
+is not treated as proof that an item
 was available to the provider at the decision time. Catalyst results remain a
 shadow layer and do not change Production Scout scoring.
 

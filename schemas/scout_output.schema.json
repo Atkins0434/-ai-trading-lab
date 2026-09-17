@@ -10,6 +10,8 @@
     "scout_version",
     "snapshot_timestamp",
     "scoring_threshold_pct",
+    "scorable_candidate_count",
+    "not_scorable_candidate_count",
     "candidates"
   ],
   "properties": {
@@ -32,6 +34,8 @@
       "type": "integer",
       "minimum": 0
     },
+    "scorable_candidate_count": {"type": "integer", "minimum": 0},
+    "not_scorable_candidate_count": {"type": "integer", "minimum": 0},
     "qualifying_candidate_count": {
       "type": "integer",
       "minimum": 0
@@ -50,6 +54,7 @@
       "required": [
         "ticker",
         "timestamp",
+        "status",
         "eligible",
         "selected",
         "total_score",
@@ -71,6 +76,7 @@
           "type": "string",
           "format": "date-time"
         },
+        "status": {"enum": ["SCORED", "NOT_SCORABLE"]},
         "eligible": {
           "type": "boolean"
         },

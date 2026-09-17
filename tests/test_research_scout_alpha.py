@@ -5,7 +5,7 @@ from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 import trainer.research_scout_alpha as research_scout_alpha
-from trainer.massive_alpha_snapshot import build_massive_alpha_snapshot, regularize_last_premarket_hour
+from trainer.massive_alpha_snapshot import build_massive_alpha_snapshot, real_premarket_bars
 from trainer.research_scout_alpha import run_research_scout_alpha
 
 
@@ -38,25 +38,29 @@ def alpha_inputs() -> tuple[list[dict], list[dict]]:
     ]
     intraday = []
     for day in trading_days + [target]:
-        for minute in range(180):
+        for minute in range(315):
             timestamp = datetime.combine(day, time(4), tzinfo=ET) + timedelta(minutes=minute)
             intraday.append(aggregate(timestamp, 10 + minute / 1000, 5000))
     return daily, intraday
 
 
-def test_regularization_marks_zero_volume_carry_forward():
+def test_real_premarket_bars_never_fill_missing_minutes():
     _, intraday = alpha_inputs()
     target_records = [
-        record for index, record in enumerate(intraday[-180:]) if index != 125
+        record for index, record in enumerate(intraday[-315:]) if index != 125
     ]
-    bars = regularize_last_premarket_hour(target_records, "2026-09-14")
+    bars = real_premarket_bars(
+        target_records,
+        "2026-09-14",
+        config={"morning_freeze_time": "09:15:00"},
+    )
 
-    assert len(bars) == 60
-    assert bars[5]["volume"] == 0
-    assert bars[5]["source"] == "MASSIVE_ZERO_VOLUME_CARRY_FORWARD"
+    assert len(bars) == 314
+    assert all(bar["volume"] > 0 for bar in bars)
+    assert all(bar["source"] == "MASSIVE" for bar in bars)
 
 
-def test_snapshot_records_regularization_padding_as_frozen_observation():
+def test_snapshot_records_real_bar_counts():
     daily, intraday = alpha_inputs()
     target = date(2026, 9, 14)
     thinned = []
@@ -64,7 +68,7 @@ def test_snapshot_records_regularization_padding_as_frozen_observation():
         observed = datetime.fromtimestamp(record["t"] / 1000, tz=ET)
         if (
             observed.date() == target
-            and time(6, 0) <= observed.time() < time(6, 30)
+            and time(8, 15) <= observed.time() < time(8, 45)
         ):
             continue
         thinned.append(record)
@@ -73,11 +77,13 @@ def test_snapshot_records_regularization_padding_as_frozen_observation():
         "TEST", "2026-09-14", daily, thinned, exchange="NASDAQ"
     )
     security = snapshot["securities"][0]
-    padding = security["market_data"]["padded_bar_count"]
+    real_count = security["market_data"]["real_bar_count"]
+    real_count_60m = security["market_data"]["real_bar_count_60m"]
 
-    assert len(security["premarket_bars"]) == 60
-    assert padding["value"] == 30
-    assert padding["as_of_timestamp"] == security["premarket_bars"][-1]["timestamp"]
+    assert len(security["premarket_bars"]) == 285
+    assert real_count["value"] == 285
+    assert real_count_60m["value"] == 30
+    assert real_count["as_of_timestamp"] == snapshot["freeze_timestamp"]
 
 
 def test_alpha_is_48_points_and_never_execution_eligible():
@@ -105,6 +111,44 @@ def test_alpha_is_48_points_and_never_execution_eligible():
     assert candidate["guardrails"]["order_book_depth"]["passed"] is None
     assert "SPREAD_QUOTES_UNAVAILABLE" in candidate["reason_codes"]
     assert "ORDER_BOOK_DEPTH_UNAVAILABLE" in candidate["reason_codes"]
+
+
+def test_real_bar_minimum_controls_scorability():
+    daily, intraday = alpha_inputs()
+    target = date(2026, 9, 14)
+
+    def snapshot_with_last_hour_count(count: int):
+        kept = []
+        retained_last_hour = 0
+        for record in intraday:
+            observed = datetime.fromtimestamp(record["t"] / 1000, tz=ET)
+            in_target_last_hour = (
+                observed.date() == target
+                and time(8, 15) <= observed.time() < time(9, 15)
+            )
+            if in_target_last_hour:
+                if retained_last_hour >= count:
+                    continue
+                retained_last_hour += 1
+            kept.append(record)
+        return build_massive_alpha_snapshot(
+            "TEST", "2026-09-14", daily, kept, exchange="NASDAQ"
+        )
+
+    scored = run_research_scout_alpha(
+        snapshot_with_last_hour_count(45), threshold_pct=0
+    )
+    not_scorable = run_research_scout_alpha(
+        snapshot_with_last_hour_count(20), threshold_pct=0
+    )
+
+    assert scored["candidates"][0]["status"] == "SCORED"
+    assert scored["scorable_candidate_count"] == 1
+    assert not_scorable["candidates"][0]["status"] == "NOT_SCORABLE"
+    assert "INSUFFICIENT_PREMARKET_BARS" in (
+        not_scorable["candidates"][0]["reason_codes"]
+    )
+    assert not_scorable["eligible_universe_count"] == 1
 
 
 def test_alpha_can_restore_missing_market_data_rejection(monkeypatch):

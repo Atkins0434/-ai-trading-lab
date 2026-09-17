@@ -4,7 +4,7 @@
   "title": "Research Scout Alpha Output",
   "type": "object",
   "additionalProperties": false,
-  "required": ["replay_id", "scout_version", "mode", "snapshot_timestamp", "massive_plan", "universe_mode", "universe_manifest_hash", "universe_coverage", "research_evidence", "promotion_eligible", "scoring_threshold_pct", "eligible_universe_count", "qualifying_candidate_count", "exploration_top_k", "exploration_candidate_count", "selected_candidate_count", "candidates"],
+  "required": ["replay_id", "scout_version", "mode", "snapshot_timestamp", "massive_plan", "universe_mode", "universe_manifest_hash", "universe_coverage", "research_evidence", "promotion_eligible", "scoring_threshold_pct", "eligible_universe_count", "scorable_candidate_count", "not_scorable_candidate_count", "qualifying_candidate_count", "exploration_top_k", "exploration_candidate_count", "selected_candidate_count", "candidates"],
   "properties": {
     "replay_id": {"type": "string"},
     "scout_version": {"const": "research_scout_alpha_v1.0"},
@@ -18,6 +18,8 @@
     "promotion_eligible": {"type": "boolean"},
     "scoring_threshold_pct": {"type": "number", "minimum": 0, "maximum": 100},
     "eligible_universe_count": {"type": "integer", "minimum": 0},
+    "scorable_candidate_count": {"type": "integer", "minimum": 0},
+    "not_scorable_candidate_count": {"type": "integer", "minimum": 0},
     "qualifying_candidate_count": {"type": "integer", "minimum": 0},
     "exploration_top_k": {"type": "integer", "minimum": 0, "maximum": 5},
     "exploration_candidate_count": {"type": "integer", "minimum": 0},
@@ -39,10 +41,11 @@
     "candidate": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["ticker", "timestamp", "research_eligible", "qualification_selected", "research_selected", "selection_basis", "execution_eligible", "rank", "total_score", "maximum_possible_score", "score_pct", "threshold_points", "component_scores", "guardrails", "reason_codes", "rejection_reasons", "unavailable_execution_checks"],
+      "required": ["ticker", "timestamp", "status", "research_eligible", "qualification_selected", "research_selected", "selection_basis", "execution_eligible", "rank", "total_score", "maximum_possible_score", "score_pct", "threshold_points", "component_scores", "guardrails", "reason_codes", "rejection_reasons", "unavailable_execution_checks"],
       "properties": {
         "ticker": {"type": "string", "minLength": 1},
         "timestamp": {"type": "string", "format": "date-time"},
+        "status": {"enum": ["SCORED", "NOT_SCORABLE"]},
         "research_eligible": {"type": "boolean"},
         "qualification_selected": {"type": "boolean"},
         "research_selected": {"type": "boolean"},

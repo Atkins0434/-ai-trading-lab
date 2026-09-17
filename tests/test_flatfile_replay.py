@@ -35,9 +35,12 @@ def test_flatfile_replay_resumes_completed_dates_without_reprocessing(tmp_path: 
             "universe_size": 2,
             "universe_manifest_hash": "sha256:" + "a" * 64,
             "scored_ticker_count": 2,
-            "padded_bar_statistics": {
-                "premarket_padded_bar_count": 0,
-                "regular_padded_bar_count": 0,
+            "bar_statistics": {},
+            "scorability_statistics": {
+                "universe_ticker_count": 2,
+                "scorable_ticker_count": 2,
+                "not_scorable_ticker_count": 0,
+                "not_scorable_share": 0.0,
             },
             "files": [],
             "reference_cache": {
@@ -295,7 +298,7 @@ def test_smoke_day_grades_benchmark_but_skips_trainer_postmortem(
     class SnapshotResult:
         snapshot = {"execution_policy_version": "execution_disabled"}
         outcome_bars = {}
-        padded_bar_statistics = {"premarket_padded_bar_count": 0}
+        bar_statistics = {"real_premarket_bar_count": 45}
 
     monkeypatch.setattr(
         flatfile_replay,
@@ -324,7 +327,11 @@ def test_smoke_day_grades_benchmark_but_skips_trainer_postmortem(
     monkeypatch.setattr(
         flatfile_replay,
         "run_research_scout_alpha",
-        lambda *args, **kwargs: {"candidates": []},
+        lambda *args, **kwargs: {
+            "candidates": [{}],
+            "scorable_candidate_count": 1,
+            "not_scorable_candidate_count": 0,
+        },
     )
     monkeypatch.setattr(
         flatfile_replay,
@@ -369,18 +376,14 @@ def test_smoke_day_grades_benchmark_but_skips_trainer_postmortem(
     assert "postmortem" not in result["artifacts"]
 
 
-def test_excessive_premarket_padding_fails_before_scoring(
+def test_zero_scorable_tickers_fails_after_scoring(
     tmp_path: Path,
     monkeypatch,
 ):
     class SnapshotResult:
         snapshot = {"execution_policy_version": "execution_disabled"}
         outcome_bars = {}
-        padded_bar_statistics = {
-            "premarket_padded_bar_count": 55,
-            "premarket_bar_count": 60,
-            "premarket_padding_share": 55 / 60,
-        }
+        bar_statistics = {"real_premarket_bar_count": 20}
 
     monkeypatch.setattr(
         flatfile_replay,
@@ -407,9 +410,11 @@ def test_excessive_premarket_padding_fails_before_scoring(
     monkeypatch.setattr(
         flatfile_replay,
         "run_research_scout_alpha",
-        lambda *args, **kwargs: pytest.fail(
-            "Premarket integrity failure must stop before scoring."
-        ),
+        lambda *args, **kwargs: {
+            "candidates": [{"status": "NOT_SCORABLE"}],
+            "scorable_candidate_count": 0,
+            "not_scorable_candidate_count": 1,
+        },
     )
 
     result = flatfile_replay.run_flatfile_day(
@@ -421,18 +426,17 @@ def test_excessive_premarket_padding_fails_before_scoring(
         strategy_capital=2500.0,
         threshold_pct=None,
         exploration_top_k=0,
-        max_premarket_padding_share=0.90,
     )
 
     assert result["status"] == "FAILED"
-    assert result["error"] == "PREMARKET_DATA_ABSENT"
+    assert result["error"] == "NO_SCORABLE_TICKERS"
     assert result["phase_status"]["snapshot"] == "COMPLETE"
-    assert result["phase_status"]["scoring"] == "SKIPPED"
+    assert result["phase_status"]["scoring"] == "COMPLETE"
+    assert result["phase_status"]["grading"] == "SKIPPED"
     assert result["scored_ticker_count"] == 0
-    assert result["padded_bar_statistics"]["premarket_padding_share"] == (
-        pytest.approx(55 / 60)
-    )
+    assert result["scorability_statistics"]["not_scorable_share"] == 1.0
     assert (tmp_path / "days" / "2018-01-03" / "historical_snapshot.json").is_file()
+    assert (tmp_path / "days" / "2018-01-03" / "research_alpha_output.json").is_file()
 
 
 def test_failure_between_phases_preserves_last_phase_and_error(

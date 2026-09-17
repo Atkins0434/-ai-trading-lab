@@ -64,24 +64,27 @@ def _manifest(trading_date: str) -> dict:
 
 
 @pytest.mark.parametrize(
-    ("trading_date", "premarket_utc", "expected_timestamp"),
+    ("trading_date", "last_admitted_utc", "freeze_utc", "expected_timestamp"),
     [
         (
             "2024-03-15",
-            datetime(2024, 3, 15, 10, 30, tzinfo=timezone.utc),
-            "2024-03-15T06:30:00-04:00",
+            datetime(2024, 3, 15, 13, 14, tzinfo=timezone.utc),
+            datetime(2024, 3, 15, 13, 15, tzinfo=timezone.utc),
+            "2024-03-15T09:14:00-04:00",
         ),
         (
             "2024-01-16",
-            datetime(2024, 1, 16, 11, 30, tzinfo=timezone.utc),
-            "2024-01-16T06:30:00-05:00",
+            datetime(2024, 1, 16, 14, 14, tzinfo=timezone.utc),
+            datetime(2024, 1, 16, 14, 15, tzinfo=timezone.utc),
+            "2024-01-16T09:14:00-05:00",
         ),
     ],
 )
 def test_nanosecond_flatfile_premarket_bar_respects_dst(
     tmp_path: Path,
     trading_date: str,
-    premarket_utc: datetime,
+    last_admitted_utc: datetime,
+    freeze_utc: datetime,
     expected_timestamp: str,
 ):
     store = MassiveFlatFileStore(object(), cache_root=tmp_path)
@@ -102,7 +105,8 @@ def test_nanosecond_flatfile_premarket_bar_respects_dst(
     _write_cached_csv(
         store.cache_path(MINUTE_AGGS_DATASET, trading_date),
         [
-            _row("AAL", premarket_utc, close=10.1, volume=100),
+            _row("AAL", last_admitted_utc, close=10.1, volume=100),
+            _row("AAL", freeze_utc, close=10.15, volume=150),
             _row("AAL", regular_utc, close=10.2, volume=200),
         ],
     )
@@ -119,8 +123,7 @@ def test_nanosecond_flatfile_premarket_bar_respects_dst(
     assert observed["source"] == SOURCE
     assert observed["session"] == "PREMARKET"
     assert observed["volume"] == 100
-    assert result.padded_bar_statistics["by_ticker"]["AAL"]["premarket"] == 59
-    assert result.padded_bar_statistics["premarket_padded_bar_count"] == 59
-    assert result.padded_bar_statistics["premarket_bar_count"] == 60
-    assert result.padded_bar_statistics["premarket_padding_share"] == pytest.approx(59 / 60)
-
+    assert len(bars) == 1
+    assert all("09:15:00" not in bar["timestamp"] for bar in bars)
+    assert result.bar_statistics["by_ticker"]["AAL"]["real_premarket"] == 1
+    assert result.bar_statistics["by_ticker"]["AAL"]["real_premarket_60m"] == 1

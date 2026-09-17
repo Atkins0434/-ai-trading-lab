@@ -9,10 +9,12 @@ from trainer.replay_engine import (
     ROOT,
 )
 
+LEGACY_FREEZE_CONFIG = {"session": {"morning_freeze_time": "07:00:00"}}
+
 
 def test_jan_2_fixture_passes_replay_contract():
     """Our first historical fixture must pass the replay boundary."""
-    snapshot = run_contract_test()
+    snapshot = run_contract_test(config=LEGACY_FREEZE_CONFIG)
 
     assert snapshot["trading_date"] == "2018-01-02"
     assert snapshot["freeze_timestamp"] == "2018-01-02T07:00:00-05:00"
@@ -27,7 +29,7 @@ def test_fixture_loads_directly():
         / "historical_snapshot.json"
     )
 
-    snapshot = load_historical_snapshot(path)
+    snapshot = load_historical_snapshot(path, config=LEGACY_FREEZE_CONFIG)
 
     assert snapshot["replay_id"] == "2018-01-02-morning"
 
@@ -82,7 +84,7 @@ def test_loader_rejects_future_market_observation():
         / "2018-01-02"
         / "historical_snapshot.json"
     )
-    snapshot = load_historical_snapshot(path)
+    snapshot = load_historical_snapshot(path, config=LEGACY_FREEZE_CONFIG)
     future = deepcopy(snapshot)
     future["securities"][0]["market_data"]["last_price"][
         "as_of_timestamp"
@@ -104,7 +106,7 @@ def test_loader_rejects_future_information_event():
         / "2018-01-02"
         / "historical_snapshot.json"
     )
-    snapshot = load_historical_snapshot(path)
+    snapshot = load_historical_snapshot(path, config=LEGACY_FREEZE_CONFIG)
     future = deepcopy(snapshot)
     future["securities"][0]["news"][0][
         "published_timestamp"

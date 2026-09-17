@@ -2,7 +2,7 @@
   "version": "massive_flatfile_replay_v1.0",
   "cache_version": "v1",
   "baseline_lookback_sessions": 20,
-  "max_premarket_padding_share": 0.90,
+  "morning_freeze_time": "09:15:00",
   "strategy_capital_usd": 2500.0,
   "cache_root": "data/flatfiles",
   "reference_cache_root": "data/reference_cache",

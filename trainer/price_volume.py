@@ -31,11 +31,11 @@ def _parse_timestamp(raw: str) -> datetime:
     return parsed
 
 
-def validate_minute_bars(bars: list[dict[str, Any]]) -> None:
-    """Validate chronological, contiguous, one-minute OHLCV bars."""
-    if len(bars) < 60:
-        raise PriceVolumeError("At least 60 premarket minute bars are required.")
-
+def validate_minute_bars(
+    bars: list[dict[str, Any]], freeze_timestamp: str
+) -> None:
+    """Validate real, minute-aligned, strictly increasing pre-freeze bars."""
+    freeze = _parse_timestamp(freeze_timestamp)
     previous_timestamp: datetime | None = None
     for index, bar in enumerate(bars):
         required = {"timestamp", "open", "high", "low", "close", "volume"}
@@ -46,12 +46,14 @@ def validate_minute_bars(bars: list[dict[str, Any]]) -> None:
             )
 
         timestamp = _parse_timestamp(bar["timestamp"])
+        if timestamp.second != 0 or timestamp.microsecond != 0:
+            raise PriceVolumeError("Premarket bars must be minute-aligned.")
+        if timestamp >= freeze:
+            raise PriceVolumeError("Premarket bars must start before the freeze.")
         if previous_timestamp is not None:
-            seconds = (timestamp - previous_timestamp).total_seconds()
-            if seconds != 60:
+            if timestamp <= previous_timestamp:
                 raise PriceVolumeError(
-                    "Premarket bars must be ordered and contiguous at "
-                    "one-minute intervals."
+                    "Premarket bars must be strictly increasing with no duplicates."
                 )
         previous_timestamp = timestamp
 
@@ -94,6 +96,7 @@ def _observation_value(
 def calculate_price_volume_metrics(
     security: dict[str, Any],
     config: dict[str, Any],
+    freeze_timestamp: str,
 ) -> dict[str, MetricValue]:
     """Calculate Scout metrics 2-12 from frozen premarket inputs.
 
@@ -104,10 +107,16 @@ def calculate_price_volume_metrics(
     bars = security.get("premarket_bars", [])
     if not bars:
         return {}
-    validate_minute_bars(bars)
+    validate_minute_bars(bars, freeze_timestamp)
 
     try:
-        momentum = calculate_momentum(bars)
+        momentum = calculate_momentum(
+            bars,
+            freeze_timestamp=freeze_timestamp,
+            minimum_bars_per_window=config["price_momentum"][
+                "minimum_bars_per_window"
+            ],
+        )
     except MomentumError as exc:
         raise PriceVolumeError(str(exc)) from exc
 
@@ -116,14 +125,17 @@ def calculate_price_volume_metrics(
     results: dict[str, MetricValue] = {}
 
     slopes = {
-        "price_slope_15m": momentum.price_15.slope,
-        "price_slope_30m": momentum.price_30.slope,
-        "price_slope_60m": momentum.price_60.slope,
-        "volume_slope_15m": momentum.volume_15.slope,
-        "volume_slope_30m": momentum.volume_30.slope,
-        "volume_slope_60m": momentum.volume_60.slope,
+        "price_slope_15m": momentum.price_15,
+        "price_slope_30m": momentum.price_30,
+        "price_slope_60m": momentum.price_60,
+        "volume_slope_15m": momentum.volume_15,
+        "volume_slope_30m": momentum.volume_30,
+        "volume_slope_60m": momentum.volume_60,
     }
-    for metric_id, value in slopes.items():
+    for metric_id, window in slopes.items():
+        if window is None:
+            continue
+        value = window.slope
         metric_thresholds = (
             config["price_momentum"]["score_thresholds_pct_per_minute"]
             if metric_id.startswith("price")
@@ -191,13 +203,18 @@ def calculate_price_volume_metrics(
         reason_code="PREMARKET_TREND_CONSISTENCY_SCORE",
     )
 
-    aligned_windows = sum(
-        price.slope > 0 and volume.slope > 0
+    observed_pairs = [
+        (price, volume)
         for price, volume in (
             (momentum.price_15, momentum.volume_15),
             (momentum.price_30, momentum.volume_30),
             (momentum.price_60, momentum.volume_60),
         )
+        if price is not None and volume is not None
+    ]
+    aligned_windows = sum(
+        price.slope > 0 and volume.slope > 0
+        for price, volume in observed_pairs
     )
     confirmation_score = int(aligned_windows)
     if aligned_windows == 3 and momentum.short_term_override:

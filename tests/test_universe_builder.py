@@ -10,7 +10,6 @@ from trainer.flatfile_snapshot import build_flatfile_snapshot
 from trainer.providers.massive_flatfiles import (
     DAY_AGGS_DATASET,
     MINUTE_AGGS_DATASET,
-    PADDED_SOURCE,
     SOURCE,
 )
 from trainer.providers.base import (
@@ -260,9 +259,9 @@ def test_flatfile_snapshot_preserves_sources_and_passes_freeze_checks(tmp_path: 
     validate_freeze_timestamp(result.snapshot)
     validate_point_in_time_inputs(result.snapshot)
     assert security["premarket_bars"][0]["source"] == SOURCE
-    assert security["premarket_bars"][1]["source"] == PADDED_SOURCE
-    assert len(security["premarket_bars"]) == 60
-    assert result.padded_bar_statistics["premarket_padded_bar_count"] == 59
+    assert len(security["premarket_bars"]) == 1
+    assert result.bar_statistics["real_premarket_bar_count"] == 1
+    assert result.bar_statistics["by_ticker"]["OLD"]["real_premarket"] == 1
     assert result.outcome_bars["OLD"][0]["source"] == SOURCE
 
 

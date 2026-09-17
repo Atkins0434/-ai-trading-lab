@@ -66,6 +66,46 @@ def _score_security(
         metric["id"]: _missing_component() for metric in registry["metrics"]
     }
     market_data = security["market_data"]
+    real_bar_observation = market_data.get("real_bar_count_60m", {})
+    real_bar_count_60m = real_bar_observation.get("value")
+    if real_bar_count_60m is None:
+        from datetime import datetime, timedelta
+
+        freeze = datetime.fromisoformat(timestamp)
+        start = freeze - timedelta(minutes=60)
+        real_bar_count_60m = sum(
+            start
+            <= datetime.fromisoformat(bar["timestamp"].replace("Z", "+00:00"))
+            < freeze
+            for bar in security.get("premarket_bars", [])
+        )
+    if int(real_bar_count_60m) < int(config["minimum_real_bars_60m"]):
+        threshold_points = ceil(threshold_pct / 100 * MAXIMUM_POINTS)
+        return {
+            "ticker": security["ticker"],
+            "timestamp": timestamp,
+            "status": "NOT_SCORABLE",
+            "research_eligible": bool(security["eligible"]),
+            "qualification_selected": False,
+            "research_selected": False,
+            "selection_basis": "NOT_SELECTED",
+            "execution_eligible": False,
+            "rank": None,
+            "total_score": 0,
+            "maximum_possible_score": MAXIMUM_POINTS,
+            "score_pct": 0.0,
+            "threshold_points": threshold_points,
+            "component_scores": component_scores,
+            "guardrails": {},
+            "reason_codes": [
+                "INSUFFICIENT_PREMARKET_BARS",
+                "EXECUTION_DISABLED_RESEARCH_ONLY",
+            ],
+            "rejection_reasons": ["INSUFFICIENT_PREMARKET_BARS"],
+            "unavailable_execution_checks": config[
+                "unavailable_execution_checks"
+            ],
+        }
     relative_observation = market_data.get("relative_volume")
     if relative_observation is not None and relative_observation.get("value") is not None:
         relative_volume = float(relative_observation["value"])
@@ -78,7 +118,9 @@ def _score_security(
         )
 
     try:
-        calculated = calculate_price_volume_metrics(security, config)
+        calculated = calculate_price_volume_metrics(
+            security, config, timestamp
+        )
     except PriceVolumeError as exc:
         raise ResearchScoutError(f"Unable to score {security['ticker']}: {exc}") from exc
     for metric_id, metric in calculated.items():
@@ -121,6 +163,7 @@ def _score_security(
     return {
         "ticker": security["ticker"],
         "timestamp": timestamp,
+        "status": "SCORED",
         "research_eligible": research_eligible,
         "qualification_selected": research_selected,
         "research_selected": research_selected,
@@ -147,12 +190,15 @@ def run_research_scout_alpha(
     """Run the isolated 48-point Alpha; it can never authorize execution."""
     try:
         validate_contract("historical_snapshot", snapshot)
-        validate_freeze_timestamp(snapshot)
         validate_point_in_time_inputs(snapshot)
     except (ContractError, ReplayError) as exc:
         raise ResearchScoutError(f"Invalid Alpha snapshot: {exc}") from exc
 
     config, registry = _load_contract()
+    try:
+        validate_freeze_timestamp(snapshot, config=config)
+    except ReplayError as exc:
+        raise ResearchScoutError(f"Invalid Alpha snapshot: {exc}") from exc
     threshold = float(
         config["selection_threshold_pct"] if threshold_pct is None else threshold_pct
     )
@@ -169,6 +215,7 @@ def run_research_scout_alpha(
             candidate
             for candidate in candidates
             if candidate["research_eligible"]
+            and candidate["status"] == "SCORED"
             and not candidate["qualification_selected"]
         ),
         key=lambda candidate: (-candidate["score_pct"], candidate["ticker"]),
@@ -225,6 +272,12 @@ def run_research_scout_alpha(
         "research_evidence": snapshot["research_evidence"],
         "promotion_eligible": snapshot["promotion_eligible"],
         "eligible_universe_count": sum(c["research_eligible"] for c in candidates),
+        "scorable_candidate_count": sum(
+            c["status"] == "SCORED" for c in candidates
+        ),
+        "not_scorable_candidate_count": sum(
+            c["status"] == "NOT_SCORABLE" for c in candidates
+        ),
         "qualifying_candidate_count": sum(c["qualification_selected"] for c in candidates),
         "exploration_top_k": exploration_top_k,
         "exploration_candidate_count": sum(c["selection_basis"] == "EXPLORATION_TOP_K" for c in candidates),

@@ -15,7 +15,7 @@ def admit_records_before_freeze(
     """Return only records known by the decision boundary.
 
     Filtering is explicit because date-based APIs may include records later
-    than 07:00 on the requested calendar date.
+    than the configured morning freeze on the requested calendar date.
     """
     admitted = []
     for record in records:

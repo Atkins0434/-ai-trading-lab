@@ -8,7 +8,7 @@
     "version", "run_id", "start_date", "end_date", "status",
     "current_trading_date", "current_phase", "smoke_mode", "max_tickers", "massive_plan",
     "datasets", "baseline_lookback_sessions", "strategy_capital_usd",
-    "max_premarket_padding_share",
+    "morning_freeze_time",
     "selection_policy", "universe_policy", "requested_dates",
     "completed_dates", "failed_dates", "reference_cache_summary", "days"
   ],
@@ -34,9 +34,7 @@
     },
     "baseline_lookback_sessions": {"type": "integer", "minimum": 1},
     "strategy_capital_usd": {"type": "number", "exclusiveMinimum": 0},
-    "max_premarket_padding_share": {
-      "type": "number", "minimum": 0, "maximum": 1
-    },
+    "morning_freeze_time": {"type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$"},
     "selection_policy": {
       "type": "object",
       "additionalProperties": false,
@@ -109,7 +107,7 @@
         "downloaded": {"type": "boolean"}
       }
     },
-    "paddedStats": {
+    "statistics": {
       "type": ["object", "null"],
       "additionalProperties": true
     },
@@ -139,7 +137,7 @@
         "trading_date", "status", "current_phase", "phase_status",
         "smoke_mode", "max_tickers", "research_evidence",
         "universe_size", "universe_manifest_hash",
-        "scored_ticker_count", "padded_bar_statistics", "files",
+        "scored_ticker_count", "bar_statistics", "scorability_statistics", "files",
         "reference_cache", "artifacts", "error"
       ],
       "properties": {
@@ -172,7 +170,8 @@
           "pattern": "^sha256:[0-9a-f]{64}$"
         },
         "scored_ticker_count": {"type": "integer", "minimum": 0},
-        "padded_bar_statistics": {"$ref": "#/$defs/paddedStats"},
+        "bar_statistics": {"$ref": "#/$defs/statistics"},
+        "scorability_statistics": {"$ref": "#/$defs/statistics"},
         "files": {"type": "array", "items": {"$ref": "#/$defs/file"}},
         "reference_cache": {"$ref": "#/$defs/referenceCache"},
         "artifacts": {

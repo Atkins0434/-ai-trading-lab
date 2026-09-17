@@ -182,6 +182,7 @@ def build_point_in_time_universe(
     reference_fetch_workers: int | None = None,
     max_tickers: int | None = None,
     retrieved_at: str | None = None,
+    freeze_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build and persist the eligible universe using only date-D inputs."""
     date.fromisoformat(trading_date)
@@ -220,7 +221,9 @@ def build_point_in_time_universe(
         date.fromisoformat(trading_date) - timedelta(days=lag_days)
     ).isoformat()
     previous_session = previous_trading_sessions(trading_date, 1)[0]
-    expected_replay_id = replay_id or f"{trading_date}-0700-flatfile-replay"
+    cutoff = information_cutoff(trading_date, freeze_config)
+    freeze_label = datetime.fromisoformat(cutoff).strftime("%H%M")
+    expected_replay_id = replay_id or f"{trading_date}-{freeze_label}-flatfile-replay"
     if manifest_path.exists():
         try:
             existing = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -516,7 +519,7 @@ def build_point_in_time_universe(
             "reference_active": True,
             "reference_type": None,
             "reference_data_as_of_timestamp": reference_as_of,
-            "information_cutoff": information_cutoff(trading_date),
+            "information_cutoff": cutoff,
             "shares_outstanding_lag_days": lag_days,
             "shares_outstanding_lagged_date": lagged_date,
             "smoke_mode": smoke_mode,
@@ -538,6 +541,7 @@ def build_point_in_time_universe(
             "one_class_per_issuer": config["one_class_per_issuer"],
         },
         capabilities=capabilities,
+        freeze_config=freeze_config,
         one_class_per_issuer=config["one_class_per_issuer"],
         retrieved_at=retrieved_at or datetime.now(timezone.utc).isoformat(),
     )

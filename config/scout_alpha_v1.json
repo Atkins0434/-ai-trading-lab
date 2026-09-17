@@ -2,6 +2,8 @@
   "scout_id": "research_scout_alpha_v1.0",
   "status": "research_only_not_promoted",
   "execution_allowed": false,
+  "morning_freeze_time": "09:15:00",
+  "minimum_real_bars_60m": 30,
   "selection_threshold_pct": 70,
   "validation_thresholds_pct": [60, 70, 80, 85],
   "scoring": {
@@ -31,6 +33,7 @@
     "ORDER_BOOK_DEPTH"
   ],
   "price_momentum": {
+    "minimum_bars_per_window": {"15": 5, "30": 10, "60": 20},
     "score_thresholds_pct_per_minute": {
       "0": 0.0,
       "1": 0.015,

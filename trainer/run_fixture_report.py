@@ -5,7 +5,7 @@ from pathlib import Path
 from trainer.scout_audit import save_audit_reports
 from trainer.replay_engine import load_historical_snapshot
 from trainer.report_generator import save_scout_reports
-from trainer.scout_engine import run_scout
+from trainer.scout_engine import load_scout_config, run_scout
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -21,12 +21,17 @@ FIXTURE_PATH = (
 
 
 def main() -> None:
+    fixture_config = load_scout_config()
+    fixture_config["session"]["morning_freeze_time"] = "07:00:00"
+    fixture_config["minimum_real_bars_60m"] = 0
     snapshot = load_historical_snapshot(
-        FIXTURE_PATH
+        FIXTURE_PATH,
+        config=fixture_config,
     )
 
     scout_result = run_scout(
-        snapshot
+        snapshot,
+        config=fixture_config,
     )
 
     scout_paths = save_scout_reports(

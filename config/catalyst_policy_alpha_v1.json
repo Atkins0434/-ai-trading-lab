@@ -2,7 +2,7 @@
   "policy_version": "catalyst_alpha_v1.0",
   "mode": "SHADOW_ONLY",
   "freeze_timezone": "America/New_York",
-  "freeze_time": "07:00:00",
+  "freeze_time": "09:15:00",
   "admission": {
     "published_by_freeze_required": true,
     "provider_available_by_freeze_required": true,
