@@ -52,7 +52,7 @@ def build_report(client: TiingoClient) -> dict:
     return {
         "provider": client.provider_name,
         "test_date": "2018-01-02",
-        "freeze_timestamp": "2018-01-02T07:00:00-05:00",
+        "freeze_timestamp": "2018-01-02T09:15:00-05:00",
         "capabilities": {
             "daily": probe("daily", lambda: client.get_daily_prices(
                 "SPY", "2018-01-02", "2018-01-02"
@@ -60,7 +60,7 @@ def build_report(client: TiingoClient) -> dict:
             "premarket_intraday": probe(
                 "premarket_intraday",
                 lambda: intraday_window(
-                    client, time(4, 0), time(7, 0)
+                    client, time(4, 0), time(9, 15)
                 ),
             ),
             "regular_session_intraday": probe(

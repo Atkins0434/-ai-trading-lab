@@ -182,7 +182,11 @@
               "$ref": "#/$defs/marketObservation"
             },
 
-            "padded_bar_count": {
+            "real_bar_count": {
+              "$ref": "#/$defs/marketObservation"
+            },
+
+            "real_bar_count_60m": {
               "$ref": "#/$defs/marketObservation"
             },
 

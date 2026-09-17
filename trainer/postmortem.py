@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 from trainer.evidence_eligibility import (
@@ -9,7 +10,7 @@ from trainer.evidence_eligibility import (
     require_research_evidence,
 )
 from trainer.rate_control import load_massive_plan
-from trainer.validate_contracts import ContractError, validate_contract
+from trainer.validate_contracts import ContractError, load_json, validate_contract
 
 
 MISS_CLASSIFICATIONS = {
@@ -20,6 +21,9 @@ MISS_CLASSIFICATIONS = {
     "PICKED_EXECUTION_LOSS",
     "UNCLASSIFIED",
 }
+ALPHA_CONFIG_PATH = (
+    Path(__file__).resolve().parent.parent / "config" / "scout_alpha_v1.json"
+)
 
 
 class PostmortemError(Exception):
@@ -59,21 +63,17 @@ def _is_invisible_at_freeze(
     security: dict[str, Any] | None,
     candidate: dict[str, Any],
 ) -> tuple[bool, list[str]]:
-    # A scored Alpha candidate cannot carry fewer than 60 bars:
-    # calculate_price_volume_metrics rejects it, and the Massive snapshot
-    # builder regularizes the final premarket hour to exactly 60. Sparse input
-    # therefore remains observable through the explicit padding count instead
-    # of an unreachable list-length check.
-    padded_observation = (
-        (security or {}).get("market_data", {}).get("padded_bar_count", {})
+    real_bar_observation = (
+        (security or {}).get("market_data", {}).get("real_bar_count_60m", {})
     )
-    padded_bar_count = padded_observation.get("value")
+    real_bar_count = real_bar_observation.get("value")
+    minimum = int(load_json(ALPHA_CONFIG_PATH)["minimum_real_bars_60m"])
     if (
-        isinstance(padded_bar_count, (int, float))
-        and not isinstance(padded_bar_count, bool)
-        and float(padded_bar_count) >= 30
+        isinstance(real_bar_count, (int, float))
+        and not isinstance(real_bar_count, bool)
+        and float(real_bar_count) < minimum
     ):
-        return True, ["AT_LEAST_30_PADDED_PREMARKET_BARS"]
+        return True, ["INSUFFICIENT_PREMARKET_BARS"]
     relative_volume = _raw_metric(candidate, "relative_volume")
     gap_pct = _raw_metric(candidate, "premarket_gap_strength")
     if (

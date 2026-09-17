@@ -158,7 +158,7 @@ def test_short_term_override_does_not_trigger_when_only_15_is_strong():
     )
 
 
-def test_insufficient_bars_are_rejected():
+def test_sparse_bars_use_configured_window_minima():
     closes = [
         10 + index * 0.05
         for index in range(59)
@@ -169,13 +169,20 @@ def test_insufficient_bars_are_rejected():
         for _ in range(59)
     ]
 
-    with pytest.raises(
-        MomentumError,
-        match="At least 60 one-minute bars are required",
-    ):
-        calculate_momentum(
-            make_bars(closes, volumes)
-        )
+    result = calculate_momentum(make_bars(closes, volumes))
+    assert result.price_60 is not None
+    assert result.price_60.observation_count == 59
+
+
+def test_ols_uses_elapsed_minutes_instead_of_bar_indices():
+    x_values = [0, 3, 4, 9, 14]
+    values = [1 + 2 * value for value in x_values]
+
+    elapsed_slope = linear_regression_slope(values, x_values)
+    index_slope = linear_regression_slope(values)
+
+    assert elapsed_slope == pytest.approx(2.0)
+    assert index_slope != pytest.approx(elapsed_slope)
 
 
 def test_negative_volume_is_rejected():

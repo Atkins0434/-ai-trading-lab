@@ -13,8 +13,8 @@ gates pass.
 - `MISSING` means the metric could not be calculated; it is never silently
   converted to observed zero.
 - Hard guardrails override score.
-- Every selection input must be timestamped and known by the 07:00
-  `America/New_York` historical freeze.
+- Every selection input must be timestamped and known before the configured
+  `America/New_York` historical freeze (09:15 by default).
 - Trainer cannot mutate or promote Production Scout.
 
 The synthetic January 2, 2018 fixture validates plumbing only. It does not
@@ -53,18 +53,19 @@ identity, retrieval timestamp, record count, and a SHA-256 content digest.
 `data/cache/` is intentionally ignored by Git; raw licensed provider data is
 not committed to the repository.
 
-Tiingo Free did not return historical 04:00-07:00 premarket rows in the live
+Tiingo Free did not return historical premarket rows in the live
 capability check. It is therefore used only where the feed is sufficient:
 daily baselines and regular-session outcome grading. Synthetic premarket bars
-exercise the same provider-neutral contract until a consolidated historical
-premarket provider passes its own capability check.
+remain limited to plumbing fixtures; research replay requires real Massive
+trade-minute bars.
 
 ## Implemented replay path
 
 - All twelve Price & Volume Dynamics metrics have deterministic V1 baseline
   calculations and 0-4 score mappings.
-- Premarket bars must be timezone-aware, chronological, contiguous one-minute
-  OHLCV observations and no later than the 07:00 freeze.
+- Premarket bars must be real, timezone-aware, minute-aligned, strictly
+  increasing OHLCV observations from 04:00 up to but not including the
+  configured freeze. Sparse intervals are retained and never padded.
 - Missing baseline inputs remain `MISSING`; they are never converted to zero.
 - Regular-session paths are isolated from Scout and admitted only to outcome
   grading.
@@ -99,11 +100,12 @@ python -m trainer.massive_capability_report \
 ```
 
 The check uses one full-day aggregate request, partitions it in
-`America/New_York`, and requires at least 60 one-minute bars from 04:00 up to
-but not including 07:00. The 07:00 bar is excluded because its completed value
-would contain information occurring after the exact Scout freeze. The report
-also checks a daily aggregate and writes only counts, timestamps, plan/feed
-identity, and sanitized errors to `reports/massive/capability_report.json`.
+`America/New_York`, and requires the configured minimum number of real bars in
+the final 60 minutes before the morning freeze. A bar starting exactly at the
+freeze is excluded because its completed value contains post-freeze
+information. The report also checks a daily aggregate and writes only counts,
+timestamps, plan/feed identity, and sanitized errors to
+`reports/massive/capability_report.json`.
 
 Passing on a recent day proves the adapter and premarket feed shape. The
 Developer plan records ten years of history and flat-file access. Point-in-time
@@ -151,7 +153,9 @@ provider query date, and provider period date. Ticker Overview responses are
 reused from `data/reference_cache/` within a calendar quarter only when the
 cached date is no later than the requested lagged date. The flat-file replay
 manifest records reference-cache hits/fetches alongside dataset keys, byte
-sizes, SHA-256 checksums, universe sizes, and padded-bar counts.
+sizes, SHA-256 checksums, universe sizes, real-bar counts, and the share of
+eligible tickers that are not scorable. The day fails only when no ticker is
+scorable.
 
 ## Research Scout Alpha
 

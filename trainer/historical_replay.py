@@ -17,11 +17,14 @@ def run_single_day_replay(
     *,
     threshold_pct: float = 85.0,
     strategy_capital: float = 2500.0,
+    config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run the deterministic Scout-to-outcome path for one frozen day."""
-    validate_freeze_timestamp(snapshot)
+    validate_freeze_timestamp(snapshot, config=config)
     validate_point_in_time_inputs(snapshot)
-    scout_result = run_scout(snapshot, threshold_pct=threshold_pct)
+    scout_result = run_scout(
+        snapshot, threshold_pct=threshold_pct, config=config
+    )
     outcomes = grade_replay_outcomes(
         snapshot,
         scout_result,

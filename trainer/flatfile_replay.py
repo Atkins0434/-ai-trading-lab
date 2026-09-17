@@ -86,7 +86,8 @@ def _new_day_record(
         "universe_size": 0,
         "universe_manifest_hash": None,
         "scored_ticker_count": 0,
-        "padded_bar_statistics": None,
+        "bar_statistics": None,
+        "scorability_statistics": None,
         "files": [],
         "reference_cache": {
             "hits": 0,
@@ -124,6 +125,8 @@ def _normalize_day_record(
     )
     normalized.setdefault("smoke_mode", smoke_mode)
     normalized.setdefault("max_tickers", max_tickers)
+    normalized.setdefault("bar_statistics", None)
+    normalized.setdefault("scorability_statistics", None)
     normalized.setdefault(
         "research_evidence",
         normalized.get("status") == "COMPLETE" and not smoke_mode,
@@ -277,7 +280,7 @@ def _run_flatfile_day_impl(
     threshold_pct: float | None,
     exploration_top_k: int,
     reference_cache_root: Path = Path("data/reference_cache"),
-    max_premarket_padding_share: float = 0.90,
+    morning_freeze_time: str = "09:15:00",
     max_tickers: int | None = None,
     progress_callback: ProgressCallback | None = None,
     progress: dict[str, Any],
@@ -301,14 +304,17 @@ def _run_flatfile_day_impl(
     postmortem_pdf_path = day_dir / "postmortem_report.pdf"
 
     with _tracked_phase(progress, "universe", progress_callback):
+        freeze_config = {"morning_freeze_time": morning_freeze_time}
+        freeze_label = morning_freeze_time.replace(":", "")[:4]
         universe = build_point_in_time_universe(
             reference_client,
             flatfiles,
             trading_date,
             universe_path,
-            replay_id=f"{trading_date}-0700-flatfile-replay",
+            replay_id=f"{trading_date}-{freeze_label}-flatfile-replay",
             reference_cache_root=reference_cache_root,
             max_tickers=max_tickers,
+            freeze_config=freeze_config,
         )
         reference_cache = _reference_cache_metrics(universe)
         relative = lambda path: str(path.relative_to(output_root))
@@ -338,28 +344,11 @@ def _run_flatfile_day_impl(
             universe,
             flatfiles,
             lookback_sessions=lookback_sessions,
+            config=freeze_config,
         )
         _write_json(snapshot_path, snapshot_result.snapshot)
         artifacts["historical_snapshot"] = relative(snapshot_path)
-        progress["padded_bar_statistics"] = (
-            snapshot_result.padded_bar_statistics
-        )
-        if (
-            snapshot_result.padded_bar_statistics.get(
-                "premarket_padding_share", 0.0
-            )
-            > max_premarket_padding_share
-        ):
-            progress.update({
-                "status": "FAILED",
-                "error": "PREMARKET_DATA_ABSENT",
-                "artifacts": artifacts,
-            })
-            for phase in REPLAY_PHASES[REPLAY_PHASES.index("scoring"):]:
-                progress["phase_status"][phase] = "SKIPPED"
-            if progress_callback is not None:
-                progress_callback(deepcopy(progress))
-            return progress
+        progress["bar_statistics"] = snapshot_result.bar_statistics
     with _tracked_phase(progress, "scoring", progress_callback):
         scout = run_research_scout_alpha(
             snapshot_result.snapshot,
@@ -367,12 +356,32 @@ def _run_flatfile_day_impl(
             exploration_top_k=exploration_top_k,
         )
         _write_json(scout_path, scout)
+        artifacts["scout_output"] = relative(scout_path)
+        scorable_count = int(scout["scorable_candidate_count"])
+        not_scorable_count = int(scout["not_scorable_candidate_count"])
+        universe_count = len(scout["candidates"])
+        progress["scored_ticker_count"] = scorable_count
+        progress["scorability_statistics"] = {
+            "universe_ticker_count": universe_count,
+            "scorable_ticker_count": scorable_count,
+            "not_scorable_ticker_count": not_scorable_count,
+            "not_scorable_share": (
+                not_scorable_count / universe_count if universe_count else 0.0
+            ),
+        }
+        if scorable_count == 0:
+            progress.update({
+                "status": "FAILED",
+                "error": "NO_SCORABLE_TICKERS",
+                "artifacts": artifacts,
+            })
+            for phase in REPLAY_PHASES[REPLAY_PHASES.index("grading"):]:
+                progress["phase_status"][phase] = "SKIPPED"
+            if progress_callback is not None:
+                progress_callback(deepcopy(progress))
+            return progress
         generate_scout_pdf_report(scout, scout_pdf_path)
-        artifacts.update({
-            "scout_output": relative(scout_path),
-            "scout_report": relative(scout_pdf_path),
-        })
-        progress["scored_ticker_count"] = len(scout["candidates"])
+        artifacts["scout_report"] = relative(scout_pdf_path)
 
     outcome_snapshot = deepcopy(snapshot_result.snapshot)
     outcome_snapshot["execution_policy_version"] = (
@@ -444,7 +453,7 @@ def run_flatfile_day(
     threshold_pct: float | None,
     exploration_top_k: int,
     reference_cache_root: Path = Path("data/reference_cache"),
-    max_premarket_padding_share: float = 0.90,
+    morning_freeze_time: str = "09:15:00",
     max_tickers: int | None = None,
     progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
@@ -465,7 +474,7 @@ def run_flatfile_day(
             threshold_pct=threshold_pct,
             exploration_top_k=exploration_top_k,
             reference_cache_root=reference_cache_root,
-            max_premarket_padding_share=max_premarket_padding_share,
+            morning_freeze_time=morning_freeze_time,
             max_tickers=max_tickers,
             progress_callback=progress_callback,
             progress=progress,
@@ -489,7 +498,7 @@ def run_flatfile_replay(
     threshold_pct: float | None = None,
     exploration_top_k: int = 0,
     max_tickers: int | None = None,
-    max_premarket_padding_share: float = 0.90,
+    morning_freeze_time: str = "09:15:00",
     reference_cache_root: Path = Path("data/reference_cache"),
     resume: bool = True,
     day_runner: DayRunner = run_flatfile_day,
@@ -501,14 +510,10 @@ def run_flatfile_replay(
         raise FlatFileReplayError("lookback_sessions must be at least one.")
     if strategy_capital <= 0:
         raise FlatFileReplayError("strategy_capital must be positive.")
-    if (
-        not isinstance(max_premarket_padding_share, (int, float))
-        or isinstance(max_premarket_padding_share, bool)
-        or not 0 <= float(max_premarket_padding_share) <= 1
-    ):
-        raise FlatFileReplayError(
-            "max_premarket_padding_share must be between zero and one."
-        )
+    from trainer.replay_engine import configured_freeze_datetime
+    configured_freeze_datetime(
+        dates[0], {"morning_freeze_time": morning_freeze_time}
+    )
     if (
         max_tickers is not None
         and (
@@ -548,8 +553,7 @@ def run_flatfile_replay(
             and prior.get("massive_plan") == active_plan
             and prior.get("baseline_lookback_sessions") == lookback_sessions
             and prior.get("strategy_capital_usd") == strategy_capital
-            and prior.get("max_premarket_padding_share")
-            == max_premarket_padding_share
+            and prior.get("morning_freeze_time") == morning_freeze_time
             and prior.get("selection_policy") == selection_policy
             and prior.get("universe_policy") == universe_policy
             and prior.get("smoke_mode", False) is smoke_mode
@@ -608,7 +612,7 @@ def run_flatfile_replay(
             "datasets": [MINUTE_AGGS_DATASET, DAY_AGGS_DATASET],
             "baseline_lookback_sessions": lookback_sessions,
             "strategy_capital_usd": strategy_capital,
-            "max_premarket_padding_share": max_premarket_padding_share,
+            "morning_freeze_time": morning_freeze_time,
             "selection_policy": selection_policy,
             "universe_policy": universe_policy,
             "requested_dates": dates,
@@ -669,7 +673,7 @@ def run_flatfile_replay(
                 output_root=output_root,
                 lookback_sessions=lookback_sessions,
                 strategy_capital=strategy_capital,
-                max_premarket_padding_share=max_premarket_padding_share,
+                morning_freeze_time=morning_freeze_time,
                 threshold_pct=threshold_pct,
                 exploration_top_k=exploration_top_k,
                 max_tickers=max_tickers,
@@ -781,8 +785,8 @@ def main() -> None:
         output_root=output_root,
         lookback_sessions=args.lookback_sessions,
         strategy_capital=args.strategy_capital,
-        max_premarket_padding_share=float(
-            load_flatfile_replay_config()["max_premarket_padding_share"]
+        morning_freeze_time=str(
+            load_flatfile_replay_config()["morning_freeze_time"]
         ),
         threshold_pct=args.threshold_pct,
         exploration_top_k=args.exploration_top_k,

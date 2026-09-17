@@ -16,6 +16,7 @@ from trainer.postmortem_report import generate_postmortem_pdf
 from trainer.providers.base import ProviderError
 from trainer.providers.massive import MassiveClient
 from trainer.replay_queue import ReplayQueue
+from trainer.replay_engine import configured_freeze_datetime
 from trainer.report_generator import generate_scout_pdf_report
 from trainer.research_scout_alpha import ResearchScoutError, run_research_scout_alpha
 from trainer.universe_collector import collect_ticker_overviews
@@ -26,10 +27,13 @@ from trainer.universe_manifest import (
     evidence_metadata,
     load_or_resolve_manifest,
 )
-from trainer.validate_contracts import validate_contract
+from trainer.validate_contracts import load_json, validate_contract
 
 
 ET = ZoneInfo("America/New_York")
+ALPHA_CONFIG_PATH = (
+    Path(__file__).resolve().parent.parent / "config" / "scout_alpha_v1.json"
+)
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -42,13 +46,17 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 
 
 def _empty_snapshot(
-    trading_date: str, universe_metadata: dict[str, Any]
+    trading_date: str,
+    universe_metadata: dict[str, Any],
+    config: dict[str, Any],
 ) -> dict[str, Any]:
-    day = date.fromisoformat(trading_date)
+    freeze = configured_freeze_datetime(trading_date, config)
     return {
-        "replay_id": f"{trading_date}-0700-research-alpha-batch",
+        "replay_id": (
+            f"{trading_date}-{freeze.strftime('%H%M')}-research-alpha-batch"
+        ),
         "trading_date": trading_date,
-        "freeze_timestamp": datetime.combine(day, time(7), tzinfo=ET).isoformat(),
+        "freeze_timestamp": freeze.isoformat(),
         "timezone": "America/New_York",
         "universe_version": "research_universe_v1.0",
         "scout_version": "research_scout_alpha_v1.0",
@@ -76,6 +84,8 @@ def run_massive_alpha_batch(
     universe_mode: str = CI_FIXTURE,
 ) -> dict[str, Any]:
     """Screen, collect, score, and report one bounded research-only Alpha batch."""
+    active_config = load_json(ALPHA_CONFIG_PATH)
+    freeze = configured_freeze_datetime(trading_date, active_config)
     target = date.fromisoformat(trading_date)
     requested = sorted({ticker.upper() for ticker in (tickers or [])})
     if universe_mode == CI_FIXTURE and not requested:
@@ -102,7 +112,9 @@ def run_massive_alpha_batch(
     ticker_queue_path = output_dir / "ticker_replay_queue.json"
     ticker_result_dir = output_dir / "ticker_results"
 
-    replay_id = f"{trading_date}-0700-research-alpha-batch"
+    replay_id = (
+        f"{trading_date}-{freeze.strftime('%H%M')}-research-alpha-batch"
+    )
     if universe_mode == CI_FIXTURE:
         universe = collect_ticker_overviews(
             client,
@@ -119,6 +131,7 @@ def run_massive_alpha_batch(
             universe_mode=universe_mode,
             fixture_tickers=requested,
             fixture_universe=universe,
+            freeze_config=active_config,
         )
     else:
         daily_universe = load_or_resolve_manifest(
@@ -127,6 +140,7 @@ def run_massive_alpha_batch(
             trading_date=trading_date,
             replay_id=replay_id,
             universe_mode=universe_mode,
+            freeze_config=active_config,
         )
         universe = {
             "status": (
@@ -192,7 +206,7 @@ def run_massive_alpha_batch(
         return manifest
     cache = HistoricalCache(cache_root)
     start = (target - timedelta(days=45)).isoformat()
-    snapshot = _empty_snapshot(trading_date, metadata)
+    snapshot = _empty_snapshot(trading_date, metadata, active_config)
     skipped: dict[str, str] = {}
     outcome_bars: dict[str, list[dict[str, Any]]] = {}
     news_snapshots: dict[str, dict[str, Any]] = {}
@@ -245,6 +259,7 @@ def run_massive_alpha_batch(
                 intraday,
                 exchange=security["primary_exchange"],
                 universe_metadata=metadata,
+                config=active_config,
             )
             ticker_outcome_bars = regular_session_bars(intraday, trading_date)
         except (ProviderError, CacheError, ResearchScoutError) as exc:
@@ -265,6 +280,7 @@ def run_massive_alpha_batch(
                     trading_date,
                     cache=cache,
                     retrieved_at=retrieved_at,
+                    config=active_config,
                 )
                 news_snapshots[ticker] = news_snapshot
                 catalyst_metrics.append(metrics)

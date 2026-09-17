@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -132,9 +132,9 @@ class FakeCapabilityClient:
     feed_version = "massive_rest_v2_aggs"
 
     def get_intraday_prices(self, ticker, start, end, frequency="1min"):
-        start_time = datetime(2026, 9, 14, 8, 0, tzinfo=timezone.utc)
+        start_time = datetime(2026, 9, 14, 12, 15, tzinfo=timezone.utc)
         correct_day = [
-            aggregate(start_time.replace(minute=index), 10 + index / 100)
+            aggregate(start_time + timedelta(minutes=index), 10 + index / 100)
             for index in range(60)
         ]
         wrong_day = aggregate(
@@ -148,7 +148,7 @@ class FakeCapabilityClient:
         ]
 
 
-def test_capability_report_requires_sixty_premarket_bars():
+def test_capability_report_uses_configured_real_bar_minimum():
     report = build_report(
         FakeCapabilityClient(),
         "SPY",
@@ -164,7 +164,7 @@ def test_capability_report_requires_sixty_premarket_bars():
         "flat_files": True,
     }
     assert (
-        report["intraday"]["premarket_0400_to_0700_et"]["record_count"]
+        report["intraday"]["premarket_last_60m_et"]["record_count"]
         == 60
     )
 

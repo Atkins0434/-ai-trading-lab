@@ -12,11 +12,11 @@ from zoneinfo import ZoneInfo
 from trainer.providers.massive_flatfiles import (
     DAY_AGGS_DATASET,
     MINUTE_AGGS_DATASET,
-    PADDED_SOURCE,
     SOURCE,
     MassiveFlatFileStore,
 )
 from trainer.rate_control import load_massive_plan
+from trainer.replay_engine import configured_freeze_datetime
 from trainer.universe_builder import previous_trading_sessions
 from trainer.universe_manifest import evidence_metadata
 from trainer.validate_contracts import validate_contract
@@ -35,7 +35,7 @@ class FlatFileSnapshotError(Exception):
 class FlatFileSnapshotResult:
     snapshot: dict[str, Any]
     outcome_bars: dict[str, list[dict[str, Any]]]
-    padded_bar_statistics: dict[str, Any]
+    bar_statistics: dict[str, Any]
     lookback_dates: list[str]
 
 
@@ -50,7 +50,7 @@ def load_flatfile_replay_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         "version",
         "cache_version",
         "baseline_lookback_sessions",
-        "max_premarket_padding_share",
+        "morning_freeze_time",
         "strategy_capital_usd",
         "cache_root",
         "reference_cache_root",
@@ -64,15 +64,7 @@ def load_flatfile_replay_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         raise FlatFileSnapshotError(
             "baseline_lookback_sessions must be at least one."
         )
-    max_padding_share = payload["max_premarket_padding_share"]
-    if (
-        not isinstance(max_padding_share, (int, float))
-        or isinstance(max_padding_share, bool)
-        or not 0 <= float(max_padding_share) <= 1
-    ):
-        raise FlatFileSnapshotError(
-            "max_premarket_padding_share must be between zero and one."
-        )
+    configured_freeze_datetime("2000-01-03", payload)
     if (
         not isinstance(payload["cache_version"], str)
         or not payload["cache_version"].strip()
@@ -109,82 +101,18 @@ def _snapshot_bar(bar: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _regularize_premarket(
-    trading_date: str,
-    observed_bars: list[dict[str, Any]],
-    previous_close: float,
-) -> tuple[list[dict[str, Any]], int]:
-    day = date.fromisoformat(trading_date)
-    start = datetime.combine(day, time(6), tzinfo=ET)
-    observed = {
-        datetime.fromisoformat(bar["timestamp"]).astimezone(ET).replace(
-            second=0, microsecond=0
-        ): bar
-        for bar in observed_bars
-        if time(6) <= datetime.fromisoformat(bar["timestamp"]).astimezone(ET).time() < time(7)
-    }
-    earlier = [
-        bar
-        for bar in observed_bars
-        if datetime.fromisoformat(bar["timestamp"]).astimezone(ET).time() < time(6)
-    ]
-    last_close = (
-        float(max(earlier, key=lambda item: item["timestamp"])["close"])
-        if earlier
-        else previous_close
-    )
-    bars: list[dict[str, Any]] = []
-    padded = 0
-    for offset in range(60):
-        minute = start + timedelta(minutes=offset)
-        record = observed.get(minute)
-        if record is not None:
-            bar = _snapshot_bar(record)
-            last_close = float(bar["close"])
-        else:
-            padded += 1
-            bar = {
-                "timestamp": minute.isoformat(),
-                "open": last_close,
-                "high": last_close,
-                "low": last_close,
-                "close": last_close,
-                "volume": 0.0,
-                "source": PADDED_SOURCE,
-                "session": "PREMARKET",
-            }
-        bars.append(bar)
-    return bars, padded
-
-
-def _fallback_regular_bar(
-    trading_date: str,
-    previous_close: float,
-) -> dict[str, Any]:
-    timestamp = datetime.combine(
-        date.fromisoformat(trading_date), time(9, 30), tzinfo=ET
-    )
-    return {
-        "timestamp": timestamp.isoformat(),
-        "open": previous_close,
-        "high": previous_close,
-        "low": previous_close,
-        "close": previous_close,
-        "volume": 0.0,
-        "source": PADDED_SOURCE,
-        "session": "REGULAR",
-    }
-
-
 def build_flatfile_snapshot(
     trading_date: str,
     universe_manifest: dict[str, Any],
     flatfiles: MassiveFlatFileStore,
     *,
     lookback_sessions: int = 20,
+    config: dict[str, Any] | None = None,
 ) -> FlatFileSnapshotResult:
     """Build one frozen Research Alpha snapshot entirely from flat files."""
     target = date.fromisoformat(trading_date)
+    active_config = config or load_flatfile_replay_config()
+    freeze = configured_freeze_datetime(trading_date, active_config)
     if universe_manifest["trading_date"] != trading_date:
         raise FlatFileSnapshotError(
             "Universe manifest date does not match snapshot date."
@@ -215,8 +143,13 @@ def build_flatfile_snapshot(
             MINUTE_AGGS_DATASET, session_date, tickers=tickers
         ):
             observed = datetime.fromisoformat(bar["timestamp"]).astimezone(ET)
-            if observed.date() == date.fromisoformat(session_date) and (
-                time(4) <= observed.time() < time(7)
+            session_freeze = configured_freeze_datetime(
+                session_date, active_config
+            )
+            if (
+                observed.date() == date.fromisoformat(session_date)
+                and observed < session_freeze
+                and observed.time() >= time(4)
             ):
                 premarket_history[bar["ticker"]][session_date] += float(
                     bar["volume"]
@@ -228,7 +161,7 @@ def build_flatfile_snapshot(
         observed = datetime.fromisoformat(bar["timestamp"]).astimezone(ET)
         if observed.date() != target:
             continue
-        if time(4) <= observed.time() < time(7):
+        if time(4) <= observed.time() and observed < freeze:
             target_premarket[bar["ticker"]].append(bar)
         elif time(9, 30) <= observed.time() < time(16):
             target_regular[bar["ticker"]].append(bar)
@@ -237,9 +170,7 @@ def build_flatfile_snapshot(
     snapshot = {
         "replay_id": universe_manifest["replay_id"],
         "trading_date": trading_date,
-        "freeze_timestamp": datetime.combine(
-            target, time(7), tzinfo=ET
-        ).isoformat(),
+        "freeze_timestamp": freeze.isoformat(),
         "timezone": "America/New_York",
         "universe_version": universe_manifest["ruleset"]["version"],
         "scout_version": "research_scout_alpha_v1.0",
@@ -254,7 +185,7 @@ def build_flatfile_snapshot(
         "securities": [],
     }
     outcome_bars: dict[str, list[dict[str, Any]]] = {}
-    per_ticker_padding: dict[str, dict[str, int]] = {}
+    per_ticker_counts: dict[str, dict[str, int]] = {}
 
     manifest_by_ticker = {item["ticker"]: item for item in securities}
     for ticker in sorted(tickers):
@@ -275,10 +206,15 @@ def build_flatfile_snapshot(
                 f"No prior close is available for eligible ticker {ticker}."
             )
         current = sorted(
-            target_premarket.get(ticker, []), key=lambda item: item["timestamp"]
+            (_snapshot_bar(bar) for bar in target_premarket.get(ticker, [])),
+            key=lambda item: item["timestamp"],
         )
-        premarket_bars, premarket_padding = _regularize_premarket(
-            trading_date, current, previous_close
+        premarket_bars = current
+        last_hour_start = freeze - timedelta(minutes=60)
+        real_bar_count_60m = sum(
+            datetime.fromisoformat(bar["timestamp"]).astimezone(ET)
+            >= last_hour_start
+            for bar in premarket_bars
         )
         premarket_volume = sum(float(bar["volume"]) for bar in current)
         premarket_dollar_volume = sum(
@@ -312,21 +248,32 @@ def build_flatfile_snapshot(
             if prior_rows
             else None
         )
-        as_of = premarket_bars[-1]["timestamp"]
+        window_as_of = freeze.isoformat()
         prior_as_of = datetime.combine(
             date.fromisoformat(lookback_dates[-1]), time(16), tzinfo=ET
         ).isoformat()
+        last_trade_as_of = (
+            premarket_bars[-1]["timestamp"] if premarket_bars else prior_as_of
+        )
         market_data = {
             "last_price": _observation(
-                float(premarket_bars[-1]["close"]), as_of, "minute_aggs_v1.close"
+                (
+                    float(premarket_bars[-1]["close"])
+                    if premarket_bars
+                    else previous_close
+                ),
+                last_trade_as_of,
+                "minute_aggs_v1.close",
             ),
             "premarket_volume": _observation(
-                premarket_volume, as_of, "sum(volume),04:00-07:00ET"
+                premarket_volume,
+                window_as_of,
+                f"sum(volume),04:00-{freeze.time().isoformat()}ET",
             ),
             "premarket_dollar_volume": _observation(
                 premarket_dollar_volume,
-                as_of,
-                "sum(typical_price*volume),04:00-07:00ET",
+                window_as_of,
+                f"sum(typical_price*volume),04:00-{freeze.time().isoformat()}ET",
             ),
             "average_daily_dollar_volume": _observation(
                 average_daily_dollar_volume,
@@ -335,13 +282,18 @@ def build_flatfile_snapshot(
             ),
             "relative_volume": _observation(
                 relative_volume,
-                as_of,
+                window_as_of,
                 f"premarket_volume/{lookback_sessions}_session_mean",
             ),
-            "padded_bar_count": _observation(
-                premarket_padding,
-                as_of,
-                f"count({PADDED_SOURCE}),06:00-07:00ET",
+            "real_bar_count": _observation(
+                len(premarket_bars),
+                window_as_of,
+                f"count(real_trade_minutes),04:00-{freeze.time().isoformat()}ET",
+            ),
+            "real_bar_count_60m": _observation(
+                real_bar_count_60m,
+                window_as_of,
+                "count(real_trade_minutes),last_60m_before_freeze",
             ),
             "previous_close": _observation(
                 previous_close, prior_as_of, "day_aggs_v1.close"
@@ -379,42 +331,29 @@ def build_flatfile_snapshot(
             (_snapshot_bar(bar) for bar in target_regular.get(ticker, [])),
             key=lambda item: item["timestamp"],
         )
-        regular_padding = 0
-        if not regular:
-            regular = [_fallback_regular_bar(trading_date, previous_close)]
-            regular_padding = 1
         outcome_bars[ticker] = regular
-        per_ticker_padding[ticker] = {
-            "premarket": premarket_padding,
-            "regular": regular_padding,
+        per_ticker_counts[ticker] = {
+            "real_premarket": len(premarket_bars),
+            "real_premarket_60m": real_bar_count_60m,
+            "real_regular": len(regular),
         }
 
     validate_contract("historical_snapshot", snapshot)
-    padded_stats = {
-        "premarket_padded_bar_count": sum(
-            item["premarket"] for item in per_ticker_padding.values()
+    bar_stats = {
+        "real_premarket_bar_count": sum(
+            item["real_premarket"] for item in per_ticker_counts.values()
         ),
-        "regular_padded_bar_count": sum(
-            item["regular"] for item in per_ticker_padding.values()
+        "real_premarket_bar_count_60m": sum(
+            item["real_premarket_60m"] for item in per_ticker_counts.values()
         ),
-        "tickers_with_premarket_padding": sum(
-            item["premarket"] > 0 for item in per_ticker_padding.values()
+        "real_regular_bar_count": sum(
+            item["real_regular"] for item in per_ticker_counts.values()
         ),
-        "tickers_with_regular_padding": sum(
-            item["regular"] > 0 for item in per_ticker_padding.values()
-        ),
-        "premarket_bar_count": len(per_ticker_padding) * 60,
-        "premarket_padding_share": (
-            sum(item["premarket"] for item in per_ticker_padding.values())
-            / (len(per_ticker_padding) * 60)
-            if per_ticker_padding
-            else 0.0
-        ),
-        "by_ticker": per_ticker_padding,
+        "by_ticker": per_ticker_counts,
     }
     return FlatFileSnapshotResult(
         snapshot=snapshot,
         outcome_bars=outcome_bars,
-        padded_bar_statistics=padded_stats,
+        bar_statistics=bar_stats,
         lookback_dates=lookback_dates,
     )

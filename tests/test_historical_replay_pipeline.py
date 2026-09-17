@@ -8,14 +8,17 @@ import pytest
 
 from trainer.historical_replay import run_single_day_replay
 from trainer.replay_engine import ReplayError, load_historical_snapshot
+from trainer.scout_engine import load_scout_config
 
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXTURE = ROOT / "fixtures" / "2018-01-02" / "historical_snapshot.json"
+LEGACY_CONFIG = load_scout_config()
+LEGACY_CONFIG["session"]["morning_freeze_time"] = "07:00:00"
 
 
 def premarket_bars() -> list[dict]:
-    start = datetime(2018, 1, 2, 10, 0, tzinfo=timezone.utc)
+    start = datetime(2018, 1, 2, 11, 0, tzinfo=timezone.utc)
     result = []
     for index in range(60):
         close = 10.0 + index * 0.02
@@ -54,7 +57,7 @@ def outcome_bars() -> list[dict]:
 
 
 def enriched_snapshot() -> dict:
-    snapshot = load_historical_snapshot(FIXTURE)
+    snapshot = load_historical_snapshot(FIXTURE, config=LEGACY_CONFIG)
     snapshot["securities"] = [deepcopy(snapshot["securities"][0])]
     security = snapshot["securities"][0]
     observation = {
@@ -79,6 +82,7 @@ def test_single_day_replay_runs_scout_trade_and_outcome_contract():
         {"WINR": outcome_bars()},
         threshold_pct=35.0,
         strategy_capital=2500.0,
+        config=LEGACY_CONFIG,
     )
 
     candidate = result["scout_output"]["candidates"][0]
@@ -112,4 +116,5 @@ def test_single_day_replay_rejects_future_premarket_bar():
             snapshot,
             {"WINR": outcome_bars()},
             threshold_pct=35.0,
+            config=LEGACY_CONFIG,
         )

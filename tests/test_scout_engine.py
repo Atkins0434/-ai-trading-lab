@@ -22,11 +22,14 @@ FIXTURE = (
     / "2018-01-02"
     / "historical_snapshot.json"
 )
+LEGACY_CONFIG = load_scout_config()
+LEGACY_CONFIG["session"]["morning_freeze_time"] = "07:00:00"
+LEGACY_CONFIG["minimum_real_bars_60m"] = 0
 
 
 def get_result():
-    snapshot = load_historical_snapshot(FIXTURE)
-    return run_scout(snapshot, threshold_pct=85.0)
+    snapshot = load_historical_snapshot(FIXTURE, config=LEGACY_CONFIG)
+    return run_scout(snapshot, threshold_pct=85.0, config=LEGACY_CONFIG)
 
 
 def by_ticker(result):
@@ -170,14 +173,14 @@ def test_missing_order_book_depth_follows_configured_policy(
 
 
 def test_passing_candidate_with_only_missing_market_guardrails_is_selected():
-    snapshot = load_historical_snapshot(FIXTURE)
+    snapshot = load_historical_snapshot(FIXTURE, config=LEGACY_CONFIG)
     security = deepcopy(snapshot["securities"][0])
     security["market_data"].pop("bid", None)
     security["market_data"].pop("ask", None)
 
     candidate = score_security(
         security,
-        load_scout_config(),
+        LEGACY_CONFIG,
         threshold_pct=0,
         timestamp=snapshot["freeze_timestamp"],
         registry=load_feature_registry(),

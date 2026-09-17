@@ -32,6 +32,8 @@ def fmt(value: Any) -> str:
 
 
 def candidate_status(candidate: dict[str, Any]) -> str:
+    if candidate.get("status") == "NOT_SCORABLE":
+        return "NOT SCORABLE"
     selected = candidate.get("selected", candidate.get("research_selected", False))
     eligible = candidate.get("eligible", candidate.get("research_eligible", False))
     if selected:

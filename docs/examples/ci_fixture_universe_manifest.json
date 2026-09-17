@@ -16,8 +16,8 @@
   "coverage_status": "fixture",
   "eligible_symbol_count": 2,
   "excluded_symbol_count": 0,
-  "information_cutoff": "2024-06-10T07:00:00-04:00",
-  "manifest_hash": "sha256:e37fa465867e5d703e4ae722edd2f76763b28c234f6a072b0eb82b25000aed86",
+  "information_cutoff": "2024-06-10T09:15:00-04:00",
+  "manifest_hash": "sha256:3f9d8eb60b25d09855464b064f146da60f9a8a6e45fc43083bf2211ad1522ba8",
   "massive_plan": {
     "flat_files": true,
     "history_years": 10,

@@ -39,7 +39,8 @@ python -m trainer.quarantine_legacy_results reports
 ## Daily construction rules
 
 `us_listed_common_equity` version `1.0` is evaluated independently for every
-trading date at 07:00 `America/New_York`.
+trading date at the configured morning freeze (09:15 `America/New_York` by
+default).
 
 - Include common equities listed on XNAS, XNYS, or XASE.
 - Exclude ETFs, ETNs, preferred shares, warrants, rights, units, funds, OTC
@@ -86,7 +87,7 @@ research performance.
 Massive’s All Tickers API documents a historical `date` query, date-scoped
 `active` status, stable FIGIs, venue/type, and delisting fields. That is useful
 but is not enough for this ruleset. The current adapter cannot prove historical
-market-cap availability at the 07:00 cutoff, and complete ticker-identity
+market-cap availability at the configured morning cutoff, and complete ticker-identity
 interval reconstruction relies on an experimental ticker-events endpoint.
 Ticker Overview also does not provide a safe filing-availability timestamp for
 derived fundamentals.

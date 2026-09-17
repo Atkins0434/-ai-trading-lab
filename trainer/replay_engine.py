@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime, time
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -15,15 +15,48 @@ from trainer.validate_contracts import (
 ROOT = Path(__file__).resolve().parent.parent
 MARKET_TIMEZONE = ZoneInfo("America/New_York")
 
-EXPECTED_FREEZE_HOUR = 7
-EXPECTED_FREEZE_MINUTE = 0
+SCOUT_CONFIG_PATH = ROOT / "config" / "scout_v1.json"
 
 
 class ReplayError(Exception):
     """Raised when a historical replay violates replay rules."""
 
 
-def load_historical_snapshot(path: Path) -> dict[str, Any]:
+def configured_morning_freeze_time(
+    config: dict[str, Any] | None = None,
+) -> time:
+    """Return the configured, second-precision morning decision boundary."""
+    active = config if config is not None else load_json(SCOUT_CONFIG_PATH)
+    raw = active.get("morning_freeze_time")
+    if raw is None:
+        raw = active.get("session", {}).get("morning_freeze_time")
+    try:
+        parsed = time.fromisoformat(str(raw))
+    except (TypeError, ValueError) as exc:
+        raise ReplayError("morning_freeze_time must use HH:MM:SS format.") from exc
+    if parsed.tzinfo is not None or parsed.microsecond != 0:
+        raise ReplayError(
+            "morning_freeze_time must be a local second-precision clock time."
+        )
+    return parsed
+
+
+def configured_freeze_datetime(
+    trading_date: str,
+    config: dict[str, Any] | None = None,
+) -> datetime:
+    return datetime.combine(
+        date.fromisoformat(trading_date),
+        configured_morning_freeze_time(config),
+        tzinfo=MARKET_TIMEZONE,
+    )
+
+
+def load_historical_snapshot(
+    path: Path,
+    *,
+    config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """
     Load and validate a historical snapshot before it can be used
     by Scout.
@@ -36,7 +69,7 @@ def load_historical_snapshot(path: Path) -> dict[str, Any]:
             f"Historical snapshot failed contract validation: {exc}"
         ) from exc
 
-    validate_freeze_timestamp(snapshot)
+    validate_freeze_timestamp(snapshot, config=config)
     validate_point_in_time_inputs(snapshot)
 
     return snapshot
@@ -61,12 +94,16 @@ def parse_freeze_timestamp(snapshot: dict[str, Any]) -> datetime:
     return freeze_time.astimezone(MARKET_TIMEZONE)
 
 
-def validate_freeze_timestamp(snapshot: dict[str, Any]) -> None:
+def validate_freeze_timestamp(
+    snapshot: dict[str, Any],
+    *,
+    config: dict[str, Any] | None = None,
+) -> None:
     """
     Enforce the historical decision boundary.
 
-    Morning Scout snapshots must be frozen at exactly 07:00
-    America/New_York on the stated trading date.
+    Morning Scout snapshots must match the configured America/New_York clock
+    time on the stated trading date.
     """
     freeze_time = parse_freeze_timestamp(snapshot)
 
@@ -80,15 +117,11 @@ def validate_freeze_timestamp(snapshot: dict[str, Any]) -> None:
             "Freeze timestamp date does not match trading_date."
         )
 
-    if (
-        freeze_time.hour != EXPECTED_FREEZE_HOUR
-        or freeze_time.minute != EXPECTED_FREEZE_MINUTE
-        or freeze_time.second != 0
-        or freeze_time.microsecond != 0
-    ):
+    expected = configured_freeze_datetime(snapshot["trading_date"], config)
+    if freeze_time != expected:
         raise ReplayError(
             "Morning historical snapshot must be frozen at exactly "
-            "07:00:00 America/New_York."
+            f"{expected.time().isoformat()} America/New_York."
         )
 
 
@@ -152,9 +185,15 @@ def validate_point_in_time_inputs(snapshot: dict[str, Any]) -> None:
             )
 
         for index, bar in enumerate(security.get("premarket_bars", [])):
-            timestamped_inputs.append(
-                (f"premarket_bars[{index}]", bar["timestamp"])
+            observed = datetime.fromisoformat(
+                bar["timestamp"].replace("Z", "+00:00")
             )
+            freeze = datetime.fromisoformat(freeze_timestamp)
+            if observed.tzinfo is None or observed >= freeze:
+                raise ReplayError(
+                    f"{ticker}.premarket_bars[{index}]: bar window must start "
+                    "strictly before the freeze."
+                )
 
         for collection in (
             "news",
@@ -182,7 +221,9 @@ def validate_point_in_time_inputs(snapshot: dict[str, Any]) -> None:
                 ) from exc
 
 
-def run_contract_test() -> dict[str, Any]:
+def run_contract_test(
+    *, config: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """
     Load our first Jan 2, 2018 fixture and prove that the replay
     boundary accepts it.
@@ -194,7 +235,7 @@ def run_contract_test() -> dict[str, Any]:
         / "historical_snapshot.json"
     )
 
-    snapshot = load_historical_snapshot(fixture_path)
+    snapshot = load_historical_snapshot(fixture_path, config=config)
 
     print(
         f"Replay contract PASS: {snapshot['replay_id']} "

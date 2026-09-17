@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 import json
 from pathlib import Path
 from typing import Any, Callable
@@ -10,11 +10,14 @@ from zoneinfo import ZoneInfo
 from trainer.providers.base import ProviderError
 from trainer.providers.massive import MassiveClient, parse_massive_timestamp
 from trainer.rate_control import active_massive_plan
+from trainer.replay_engine import configured_freeze_datetime
+from trainer.validate_contracts import load_json
 from trainer.universe_collector import RequestRateLimiter
 
 
 MARKET_TIMEZONE = ZoneInfo("America/New_York")
 DEFAULT_REPORT = Path("reports/massive/capability_report.json")
+CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "scout_alpha_v1.json"
 
 
 def _summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
@@ -43,9 +46,17 @@ def _probe(operation: Callable[[], list[dict[str, Any]]]) -> dict[str, Any]:
 def _partition_intraday(
     records: list[dict[str, Any]],
     trading_date: str,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    config: dict[str, Any],
+) -> tuple[
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+]:
     premarket = []
+    last_60_minutes = []
     regular = []
+    freeze = configured_freeze_datetime(trading_date, config)
+    last_hour_start = freeze - timedelta(minutes=60)
     for record in records:
         observed = datetime.fromisoformat(
             parse_massive_timestamp(record)
@@ -53,18 +64,22 @@ def _partition_intraday(
         if observed.date().isoformat() != trading_date:
             continue
         observed_time = observed.time()
-        if time(4, 0) <= observed_time < time(7, 0):
+        if time(4, 0) <= observed_time and observed < freeze:
             premarket.append(record)
+            if observed >= last_hour_start:
+                last_60_minutes.append(record)
         if time(9, 30) <= observed_time < time(16, 0):
             regular.append(record)
-    return premarket, regular
+    return premarket, last_60_minutes, regular
 
 
 def build_report(
     client: MassiveClient,
     ticker: str,
     trading_date: str,
+    config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    active_config = config or load_json(CONFIG_PATH)
     plan = active_massive_plan(client)
     target_date = date.fromisoformat(trading_date)
     intraday_result: dict[str, Any]
@@ -74,10 +89,13 @@ def build_report(
             trading_date,
             target_date.isoformat(),
         )
-        premarket, regular = _partition_intraday(intraday, trading_date)
+        premarket, last_60_minutes, regular = _partition_intraday(
+            intraday, trading_date, active_config
+        )
         intraday_result = {
             "full_day": _summarize(intraday),
-            "premarket_0400_to_0700_et": _summarize(premarket),
+            "premarket_0400_to_freeze_et": _summarize(premarket),
+            "premarket_last_60m_et": _summarize(last_60_minutes),
             "regular_0930_to_1600_et": _summarize(regular),
         }
     except ProviderError as exc:
@@ -90,7 +108,8 @@ def build_report(
         }
         intraday_result = {
             "full_day": unavailable,
-            "premarket_0400_to_0700_et": unavailable,
+            "premarket_0400_to_freeze_et": unavailable,
+            "premarket_last_60m_et": unavailable,
             "regular_0930_to_1600_et": unavailable,
         }
 
@@ -101,7 +120,10 @@ def build_report(
         "massive_plan": plan,
         "ticker": ticker.upper(),
         "trading_date": trading_date,
-        "freeze_time": "07:00:00 America/New_York",
+        "freeze_time": (
+            f"{configured_freeze_datetime(trading_date, active_config).time().isoformat()} "
+            "America/New_York"
+        ),
         "daily": _probe(
             lambda: client.get_daily_prices(
                 ticker,
@@ -111,8 +133,8 @@ def build_report(
         ),
         "intraday": intraday_result,
         "selection_contract_passed": (
-            intraday_result["premarket_0400_to_0700_et"]["record_count"]
-            >= 60
+            intraday_result["premarket_last_60m_et"]["record_count"]
+            >= int(active_config["minimum_real_bars_60m"])
         ),
     }
 

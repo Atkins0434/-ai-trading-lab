@@ -179,7 +179,7 @@ def test_08_excluded_security_types_have_deterministic_reason_codes():
 
 def test_09_information_after_cutoff_is_never_admitted():
     result = manifest([security(
-        market_cap_available_at="2024-06-10T07:00:01-04:00"
+        market_cap_available_at="2024-06-10T09:15:01-04:00"
     )])
     assert result["coverage_status"] == "incomplete"
     assert "MARKET_CAP_POINT_IN_TIME_UNPROVEN" in by_id(

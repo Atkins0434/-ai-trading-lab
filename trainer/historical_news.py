@@ -11,6 +11,7 @@ from trainer.catalyst_events import (
     normalize_catalyst_event,
 )
 from trainer.historical_cache import HistoricalCache
+from trainer.replay_engine import configured_freeze_datetime
 from trainer.providers.base import MarketDataProvider
 
 
@@ -109,9 +110,9 @@ def backfill_news_snapshot(
     cache: HistoricalCache,
     retrieved_at: str,
     lookback_days: int = 3,
+    config: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    day = date.fromisoformat(trading_date)
-    freeze = datetime.combine(day, time(7), tzinfo=ET)
+    freeze = configured_freeze_datetime(trading_date, config)
     start = freeze - timedelta(days=lookback_days)
     envelope = cache.get_news(
         provider,
@@ -133,7 +134,7 @@ def backfill_news_snapshot(
     ]
     snapshot = build_catalyst_snapshot(
         events,
-        replay_id=f"{trading_date}-0700-news-backfill",
+        replay_id=f"{trading_date}-{freeze.strftime('%H%M')}-news-backfill",
         trading_date=trading_date,
         freeze_timestamp=freeze.isoformat(),
     )
