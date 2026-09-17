@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import date, datetime, time, timedelta, timezone
 import json
 from pathlib import Path
+import sys
+import time as time_module
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -11,8 +13,14 @@ from trainer.providers.massive_flatfiles import (
     DAY_AGGS_DATASET,
     MassiveFlatFileStore,
 )
-from trainer.rate_control import load_massive_plan
-from trainer.reference_cache import TickerOverviewCache
+from trainer.rate_control import (
+    load_massive_plan,
+    load_reference_fetch_workers,
+)
+from trainer.reference_cache import (
+    OverviewCacheBatchItem,
+    TickerOverviewCache,
+)
 from trainer.trading_calendar import generate_trading_dates
 from trainer.universe_manifest import (
     build_research_manifest,
@@ -157,11 +165,42 @@ def build_point_in_time_universe(
     replay_id: str | None = None,
     config_path: Path = CONFIG_PATH,
     reference_cache_root: Path = ROOT / "data" / "reference_cache",
+    reference_fetch_workers: int | None = None,
+    max_tickers: int | None = None,
     retrieved_at: str | None = None,
 ) -> dict[str, Any]:
     """Build and persist the eligible universe using only date-D inputs."""
     date.fromisoformat(trading_date)
+    if (
+        max_tickers is not None
+        and (
+            not isinstance(max_tickers, int)
+            or isinstance(max_tickers, bool)
+            or max_tickers < 1
+        )
+    ):
+        raise UniverseBuilderError("max_tickers must be a positive integer.")
+    smoke_mode = max_tickers is not None
     config = load_universe_config(config_path)
+    active_plan = load_massive_plan()
+    configured_workers = (
+        load_reference_fetch_workers()
+        if reference_fetch_workers is None
+        else reference_fetch_workers
+    )
+    if (
+        not isinstance(configured_workers, int)
+        or isinstance(configured_workers, bool)
+        or configured_workers < 1
+    ):
+        raise UniverseBuilderError(
+            "reference_fetch_workers must be a positive integer."
+        )
+    effective_workers = (
+        1
+        if active_plan["rest_calls_per_minute"] is not None
+        else configured_workers
+    )
     lag_days = int(config["shares_outstanding_lag_days"])
     lagged_date = (
         date.fromisoformat(trading_date) - timedelta(days=lag_days)
@@ -182,12 +221,14 @@ def build_point_in_time_universe(
             or existing["trading_date"] != trading_date
             or existing["source"]["provider"] != reference_client.provider_name
             or existing["source"]["feed_version"] != FEED_VERSION
-            or existing["massive_plan"] != load_massive_plan()
+            or existing["massive_plan"] != active_plan
             or query.get("reference_date") != trading_date
             or query.get("prior_close_trading_date") != previous_session
             or query.get("universe_config_version") != config["version"]
             or query.get("shares_outstanding_lag_days") != lag_days
             or query.get("shares_outstanding_lagged_date") != lagged_date
+            or query.get("smoke_mode", False) is not smoke_mode
+            or query.get("max_tickers") != max_tickers
         ):
             raise UniverseBuilderError(
                 "Existing universe manifest does not match this flat-file replay."
@@ -209,6 +250,18 @@ def build_point_in_time_universe(
             f"Massive point-in-time ticker query failed for {trading_date}: {exc}"
         ) from exc
 
+    # Smoke runs deliberately choose the first N symbols in a stable ordering
+    # before any overview request is made. The cap makes the universe
+    # incomplete by construction, so its artifacts are never research evidence.
+    if max_tickers is not None:
+        ticker_rows = sorted(
+            ticker_rows,
+            key=lambda item: (
+                str(item.get("ticker") or "").upper(),
+                str(_stable_id(item) or ""),
+            ),
+        )[:max_tickers]
+
     records: list[dict[str, Any]] = []
     provider_complete = True
     overview_cache = TickerOverviewCache(reference_cache_root)
@@ -216,30 +269,60 @@ def build_point_in_time_universe(
     cache_fetches = 0
     quarter_reuse_hits = 0
     cache_errors = 0
-    prior_close_as_of = datetime.combine(
-        date.fromisoformat(previous_session), time(16), tzinfo=ET
-    ).isoformat()
-    for raw in ticker_rows:
-        ticker = str(raw.get("ticker") or "").upper()
-        try:
-            cached_overview = overview_cache.get(
-                reference_client,
-                ticker,
-                lagged_date,
-            )
-            overview = cached_overview.overview
-            if cached_overview.cache_hit:
+    tickers_processed = 0
+    progress_started = time_module.perf_counter()
+
+    def record_progress(item: OverviewCacheBatchItem) -> None:
+        nonlocal cache_hits
+        nonlocal cache_fetches
+        nonlocal quarter_reuse_hits
+        nonlocal cache_errors
+        nonlocal tickers_processed
+        tickers_processed += 1
+        if item.error is not None:
+            cache_errors += 1
+        else:
+            assert item.result is not None
+            if item.result.cache_hit:
                 cache_hits += 1
             else:
                 cache_fetches += 1
-            if cached_overview.quarter_reuse:
+            if item.result.quarter_reuse:
                 quarter_reuse_hits += 1
-            provider_query_date = cached_overview.provider_query_date
-        except ProviderError:
+        if (
+            tickers_processed % 250 == 0
+            or tickers_processed == len(ticker_rows)
+        ):
+            elapsed = time_module.perf_counter() - progress_started
+            print(
+                "[universe] "
+                f"tickers_processed={tickers_processed}/{len(ticker_rows)} "
+                f"cache_hits={cache_hits} fetches={cache_fetches} "
+                f"errors={cache_errors} elapsed_seconds={elapsed:.2f}",
+                file=sys.stderr,
+                flush=True,
+            )
+
+    overview_results = overview_cache.get_many(
+        reference_client,
+        [str(raw.get("ticker") or "").upper() for raw in ticker_rows],
+        lagged_date,
+        max_workers=effective_workers,
+        on_progress=record_progress,
+    )
+    prior_close_as_of = datetime.combine(
+        date.fromisoformat(previous_session), time(16), tzinfo=ET
+    ).isoformat()
+    for raw, overview_item in zip(ticker_rows, overview_results, strict=True):
+        ticker = str(raw.get("ticker") or "").upper()
+        if overview_item.error is not None:
             overview = {}
             provider_complete = False
-            cache_errors += 1
             provider_query_date = lagged_date
+        else:
+            assert overview_item.result is not None
+            overview = overview_item.result.overview
+            provider_query_date = overview_item.result.provider_query_date
         combined = {**overview, **raw}
         prior = prior_close_bars.get(ticker)
         prior_close = float(prior["close"]) if prior is not None else None
@@ -331,6 +414,8 @@ def build_point_in_time_universe(
             "information_cutoff": information_cutoff(trading_date),
             "shares_outstanding_lag_days": lag_days,
             "shares_outstanding_lagged_date": lagged_date,
+            "smoke_mode": smoke_mode,
+            "max_tickers": max_tickers,
             "ticker_overview_cache": {
                 "hits": cache_hits,
                 "fetches": cache_fetches,
@@ -349,6 +434,10 @@ def build_point_in_time_universe(
             set(manifest["coverage_reasons"] + ["PROVIDER_RESPONSE_INCOMPLETE"])
         )
         manifest["coverage_status"] = "incomplete"
+        manifest["research_evidence"] = False
+        manifest["promotion_eligible"] = False
+        manifest["manifest_hash"] = calculate_manifest_hash(manifest)
+    if smoke_mode:
         manifest["research_evidence"] = False
         manifest["promotion_eligible"] = False
         manifest["manifest_hash"] = calculate_manifest_hash(manifest)

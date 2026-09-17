@@ -48,6 +48,7 @@ def load_flatfile_replay_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         ) from exc
     required = {
         "version",
+        "cache_version",
         "baseline_lookback_sessions",
         "strategy_capital_usd",
         "cache_root",
@@ -61,6 +62,13 @@ def load_flatfile_replay_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
     if int(payload["baseline_lookback_sessions"]) < 1:
         raise FlatFileSnapshotError(
             "baseline_lookback_sessions must be at least one."
+        )
+    if (
+        not isinstance(payload["cache_version"], str)
+        or not payload["cache_version"].strip()
+    ):
+        raise FlatFileSnapshotError(
+            "cache_version must be a non-empty string."
         )
     return payload
 

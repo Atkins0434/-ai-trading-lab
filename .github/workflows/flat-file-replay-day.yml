@@ -11,6 +11,10 @@ on:
         description: Historical trading date to replay (YYYY-MM-DD)
         required: true
         default: "2024-03-15"
+      max_tickers:
+        description: Optional positive ticker cap for non-research smoke mode
+        required: false
+        default: ""
 
 jobs:
   replay:
@@ -20,6 +24,26 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - name: Resolve replay cache version
+        id: cache_config
+        shell: bash
+        run: |
+          cache_version="$(jq -er .cache_version config/flatfile_replay.json)"
+          echo "version=$cache_version" >> "$GITHUB_OUTPUT"
+      - name: Restore Massive flat-file cache
+        uses: actions/cache@v4
+        with:
+          path: data/flatfiles/
+          key: massive-flatfiles-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}
+          restore-keys: |
+            massive-flatfiles-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
+      - name: Restore Massive reference cache
+        uses: actions/cache@v4
+        with:
+          path: data/reference_cache/
+          key: massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}
+          restore-keys: |
+            massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -30,6 +54,7 @@ jobs:
         shell: bash
         env:
           TRADING_DATE: ${{ inputs.trading_date }}
+          MAX_TICKERS: ${{ inputs.max_tickers }}
         run: |
           python - <<'PY'
           import os
@@ -45,10 +70,20 @@ jobs:
               )
           if generate_trading_dates(normalized, normalized) != [normalized]:
               raise SystemExit(f"Not a supported US trading session: {normalized}")
+
+          raw_cap = os.environ.get("MAX_TICKERS", "").strip()
+          if raw_cap:
+              try:
+                  cap = int(raw_cap)
+              except ValueError as exc:
+                  raise SystemExit("max_tickers must be a positive integer") from exc
+              if cap < 1 or str(cap) != raw_cap:
+                  raise SystemExit("max_tickers must be a positive integer")
           PY
           output_root="reports/flatfile_replay/${TRADING_DATE}-to-${TRADING_DATE}"
           echo "trading_date=${TRADING_DATE}" >> "$GITHUB_OUTPUT"
           echo "output_root=${output_root}" >> "$GITHUB_OUTPUT"
+          echo "max_tickers=${MAX_TICKERS}" >> "$GITHUB_OUTPUT"
           echo "REPLAY_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
 
       - name: Report cached flat-file coverage
@@ -71,12 +106,19 @@ jobs:
           MASSIVE_S3_SECRET_ACCESS_KEY: ${{ secrets.MASSIVE_S3_SECRET_ACCESS_KEY }}
           TRADING_DATE: ${{ steps.replay.outputs.trading_date }}
           OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+          MAX_TICKERS: ${{ steps.replay.outputs.max_tickers }}
         run: |
-          python -m trainer.flatfile_replay \
-            --start "$TRADING_DATE" \
-            --end "$TRADING_DATE" \
-            --output-root "$OUTPUT_ROOT" \
-            | tee "$OUTPUT_ROOT/replay_stdout.json"
+          set -o pipefail
+          replay_command=(
+            python -m trainer.flatfile_replay
+            --start "$TRADING_DATE"
+            --end "$TRADING_DATE"
+            --output-root "$OUTPUT_ROOT"
+          )
+          if [ -n "$MAX_TICKERS" ]; then
+            replay_command+=(--max-tickers "$MAX_TICKERS")
+          fi
+          "${replay_command[@]}" | tee "$OUTPUT_ROOT/replay_stdout.json"
 
       - name: Print replay summary
         if: always()
@@ -122,6 +164,17 @@ jobs:
 
           if replay_path.is_file():
               replay = json.loads(replay_path.read_text(encoding="utf-8"))
+              print(f"Run status: {replay['status']}")
+              print(
+                  "Current state: "
+                  f"date={replay.get('current_trading_date') or 'none'}, "
+                  f"phase={replay.get('current_phase') or 'none'}"
+              )
+              print(
+                  "Smoke mode: "
+                  f"{replay.get('smoke_mode', False)} "
+                  f"(max_tickers={replay.get('max_tickers')})"
+              )
               cache = replay["reference_cache_summary"]
               print(
                   "Reference cache: "
@@ -158,14 +211,19 @@ jobs:
         env:
           TRADING_DATE: ${{ steps.replay.outputs.trading_date }}
           OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+          MAX_TICKERS: ${{ steps.replay.outputs.max_tickers }}
         run: |
           day_root="$OUTPUT_ROOT/days/$TRADING_DATE"
           required=(
             "$day_root/daily_universe_manifest.json"
             "$OUTPUT_ROOT/flatfile_replay_manifest.json"
             "$day_root/benchmark_result.json"
-            "$day_root/postmortem.json"
           )
+          if [ -z "$MAX_TICKERS" ]; then
+            required+=("$day_root/postmortem.json")
+          else
+            echo "Smoke mode: postmortem is intentionally skipped because capped evidence is ineligible."
+          fi
           missing=0
           for path in "${required[@]}"; do
             if [ -f "$path" ]; then
@@ -176,6 +234,22 @@ jobs:
             fi
           done
           exit "$missing"
+
+      - name: Report local cache sizes
+        if: always()
+        shell: bash
+        run: |
+          echo "GitHub Actions cache storage is limited to 10 GB per repository."
+          for directory in data/flatfiles data/reference_cache; do
+            if [ -d "$directory" ]; then
+              human_size="$(du -sh "$directory" | cut -f1)"
+              byte_size="$(du -sb "$directory" | cut -f1)"
+            else
+              human_size="0"
+              byte_size="0"
+            fi
+            echo "$directory: $human_size ($byte_size bytes)"
+          done
 
       - uses: actions/upload-artifact@v4
         if: always()

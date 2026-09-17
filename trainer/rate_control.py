@@ -12,6 +12,7 @@ RETRYABLE_STATUS_CODES = {408, 425, 429, 500, 502, 503, 504}
 ROOT = Path(__file__).resolve().parent.parent
 MASSIVE_PLAN_PATH = ROOT / "config" / "massive_plan.json"
 _USE_CONFIG = object()
+DEFAULT_REFERENCE_FETCH_WORKERS = 8
 
 
 class MassivePlanError(ValueError):
@@ -25,10 +26,11 @@ def _validated_plan(payload: dict[str, Any]) -> dict[str, Any]:
         "history_years",
         "flat_files",
     }
-    if set(payload) != required:
+    allowed = required | {"reference_fetch_workers"}
+    if not required.issubset(payload) or not set(payload).issubset(allowed):
         raise MassivePlanError(
-            "Massive plan config must contain exactly "
-            f"{sorted(required)}."
+            "Massive plan config must contain the provider fields "
+            f"{sorted(required)} and may include reference_fetch_workers."
         )
     if not isinstance(payload["plan"], str) or not payload["plan"].strip():
         raise MassivePlanError("Massive plan name must be a non-empty string.")
@@ -46,6 +48,17 @@ def _validated_plan(payload: dict[str, Any]) -> dict[str, Any]:
         raise MassivePlanError("history_years must be a positive integer.")
     if not isinstance(payload["flat_files"], bool):
         raise MassivePlanError("flat_files must be a boolean.")
+    workers = payload.get(
+        "reference_fetch_workers", DEFAULT_REFERENCE_FETCH_WORKERS
+    )
+    if (
+        not isinstance(workers, int)
+        or isinstance(workers, bool)
+        or workers < 1
+    ):
+        raise MassivePlanError(
+            "reference_fetch_workers must be a positive integer."
+        )
     return {
         "plan": payload["plan"].strip(),
         "rest_calls_per_minute": limit,
@@ -67,6 +80,28 @@ def load_massive_plan(path: Path = MASSIVE_PLAN_PATH) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise MassivePlanError("Massive plan config must be a JSON object.")
     return _validated_plan(payload)
+
+
+def load_reference_fetch_workers(
+    path: Path = MASSIVE_PLAN_PATH,
+) -> int:
+    """Return reference concurrency without changing evidence metadata."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise MassivePlanError(f"Massive plan config not found: {path}") from exc
+    except json.JSONDecodeError as exc:
+        raise MassivePlanError(
+            f"Invalid Massive plan JSON at line {exc.lineno}, column {exc.colno}."
+        ) from exc
+    if not isinstance(payload, dict):
+        raise MassivePlanError("Massive plan config must be a JSON object.")
+    _validated_plan(payload)
+    return int(
+        payload.get(
+            "reference_fetch_workers", DEFAULT_REFERENCE_FETCH_WORKERS
+        )
+    )
 
 
 def active_massive_plan(client: Any | None = None) -> dict[str, Any]:

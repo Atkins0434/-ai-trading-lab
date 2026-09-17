@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 from copy import deepcopy
 from datetime import date
 import json
 from pathlib import Path
+import sys
+import time
 from typing import Any, Callable
 
 from trainer.benchmark import build_same_universe_benchmark
@@ -21,7 +24,7 @@ from trainer.providers.massive_flatfiles import (
     MINUTE_AGGS_DATASET,
     MassiveFlatFileStore,
 )
-from trainer.rate_control import load_massive_plan
+from trainer.rate_control import AdaptiveRateLimiter, load_massive_plan
 from trainer.report_generator import generate_scout_pdf_report
 from trainer.research_scout_alpha import run_research_scout_alpha
 from trainer.trading_calendar import generate_trading_dates
@@ -34,10 +37,118 @@ from trainer.validate_contracts import validate_contract
 
 
 DayRunner = Callable[..., dict[str, Any]]
+ProgressCallback = Callable[[dict[str, Any]], None]
+REPLAY_PHASES = (
+    "download",
+    "universe",
+    "snapshot",
+    "scoring",
+    "grading",
+    "benchmark",
+    "postmortem",
+)
 
 
 class FlatFileReplayError(Exception):
     """Raised when a flat-file replay run cannot safely resume."""
+
+
+@contextmanager
+def _timed_phase(trading_date: str, phase: str):
+    started = time.perf_counter()
+    try:
+        yield
+    finally:
+        elapsed = time.perf_counter() - started
+        print(
+            "[flatfile_replay] "
+            f"trading_date={trading_date} phase={phase} "
+            f"elapsed_seconds={elapsed:.2f}",
+            file=sys.stderr,
+            flush=True,
+        )
+
+
+def _new_day_record(
+    trading_date: str,
+    *,
+    smoke_mode: bool,
+    max_tickers: int | None,
+) -> dict[str, Any]:
+    return {
+        "trading_date": trading_date,
+        "status": "IN_PROGRESS",
+        "current_phase": None,
+        "phase_status": {phase: "PENDING" for phase in REPLAY_PHASES},
+        "smoke_mode": smoke_mode,
+        "max_tickers": max_tickers,
+        "research_evidence": False,
+        "universe_size": 0,
+        "universe_manifest_hash": None,
+        "scored_ticker_count": 0,
+        "padded_bar_statistics": None,
+        "files": [],
+        "reference_cache": {
+            "hits": 0,
+            "fetches": 0,
+            "quarter_reuse_hits": 0,
+            "errors": 0,
+        },
+        "artifacts": {},
+        "error": None,
+    }
+
+
+def _normalize_day_record(
+    record: dict[str, Any],
+    *,
+    smoke_mode: bool,
+    max_tickers: int | None,
+) -> dict[str, Any]:
+    normalized = deepcopy(record)
+    normalized.setdefault("current_phase", None)
+    normalized.setdefault(
+        "phase_status",
+        {
+            phase: (
+                "COMPLETE"
+                if normalized.get("status") == "COMPLETE"
+                else "PENDING"
+            )
+            for phase in REPLAY_PHASES
+        },
+    )
+    normalized.setdefault("smoke_mode", smoke_mode)
+    normalized.setdefault("max_tickers", max_tickers)
+    normalized.setdefault(
+        "research_evidence",
+        normalized.get("status") == "COMPLETE" and not smoke_mode,
+    )
+    return normalized
+
+
+@contextmanager
+def _tracked_phase(
+    progress: dict[str, Any],
+    phase: str,
+    callback: ProgressCallback | None,
+):
+    progress["current_phase"] = phase
+    progress["phase_status"][phase] = "IN_PROGRESS"
+    if callback is not None:
+        callback(deepcopy(progress))
+    try:
+        with _timed_phase(progress["trading_date"], phase):
+            yield
+    except BaseException:
+        progress["phase_status"][phase] = "FAILED"
+        if callback is not None:
+            callback(deepcopy(progress))
+        raise
+    else:
+        progress["phase_status"][phase] = "COMPLETE"
+        if callback is not None:
+            callback(deepcopy(progress))
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -136,13 +247,23 @@ def run_flatfile_day(
     threshold_pct: float | None,
     exploration_top_k: int,
     reference_cache_root: Path = Path("data/reference_cache"),
+    max_tickers: int | None = None,
+    progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
     """Download, build, and grade one research day from flat files."""
+    smoke_mode = max_tickers is not None
+    progress = _new_day_record(
+        trading_date,
+        smoke_mode=smoke_mode,
+        max_tickers=max_tickers,
+    )
     day_dir = output_root / "days" / trading_date
     day_dir.mkdir(parents=True, exist_ok=True)
-    _, cached_files = _ensure_day_files(
-        flatfiles, trading_date, lookback_sessions
-    )
+    with _tracked_phase(progress, "download", progress_callback):
+        _, cached_files = _ensure_day_files(
+            flatfiles, trading_date, lookback_sessions
+        )
+        progress["files"] = cached_files
     universe_path = day_dir / "daily_universe_manifest.json"
     snapshot_path = day_dir / "historical_snapshot.json"
     scout_path = day_dir / "research_alpha_output.json"
@@ -152,98 +273,121 @@ def run_flatfile_day(
     postmortem_path = day_dir / "postmortem.json"
     postmortem_pdf_path = day_dir / "postmortem_report.pdf"
 
-    universe = build_point_in_time_universe(
-        reference_client,
-        flatfiles,
-        trading_date,
-        universe_path,
-        replay_id=f"{trading_date}-0700-flatfile-replay",
-        reference_cache_root=reference_cache_root,
-    )
-    reference_cache = _reference_cache_metrics(universe)
-    relative = lambda path: str(path.relative_to(output_root))
-    artifacts = {"daily_universe_manifest": relative(universe_path)}
+    with _tracked_phase(progress, "universe", progress_callback):
+        universe = build_point_in_time_universe(
+            reference_client,
+            flatfiles,
+            trading_date,
+            universe_path,
+            replay_id=f"{trading_date}-0700-flatfile-replay",
+            reference_cache_root=reference_cache_root,
+            max_tickers=max_tickers,
+        )
+        reference_cache = _reference_cache_metrics(universe)
+        relative = lambda path: str(path.relative_to(output_root))
+        artifacts = {"daily_universe_manifest": relative(universe_path)}
+        progress.update({
+            "universe_size": universe["eligible_symbol_count"],
+            "universe_manifest_hash": universe["manifest_hash"],
+            "research_evidence": universe["research_evidence"],
+            "reference_cache": reference_cache,
+            "artifacts": artifacts,
+        })
     if (
         universe["coverage_status"] != "complete"
         or universe["eligible_symbol_count"] == 0
     ):
-        return {
-            "trading_date": trading_date,
+        progress.update({
             "status": "UNSUPPORTED",
-            "universe_size": universe["eligible_symbol_count"],
-            "universe_manifest_hash": universe["manifest_hash"],
-            "scored_ticker_count": 0,
-            "padded_bar_statistics": None,
-            "files": cached_files,
-            "reference_cache": reference_cache,
-            "artifacts": artifacts,
+            "current_phase": None,
             "error": ";".join(universe["coverage_reasons"])
             or "EMPTY_ELIGIBLE_UNIVERSE",
-        }
+        })
+        return progress
 
-    snapshot_result = build_flatfile_snapshot(
-        trading_date,
-        universe,
-        flatfiles,
-        lookback_sessions=lookback_sessions,
-    )
-    _write_json(snapshot_path, snapshot_result.snapshot)
-    scout = run_research_scout_alpha(
-        snapshot_result.snapshot,
-        threshold_pct=threshold_pct,
-        exploration_top_k=exploration_top_k,
-    )
-    _write_json(scout_path, scout)
-    generate_scout_pdf_report(scout, scout_pdf_path)
+    with _tracked_phase(progress, "snapshot", progress_callback):
+        snapshot_result = build_flatfile_snapshot(
+            trading_date,
+            universe,
+            flatfiles,
+            lookback_sessions=lookback_sessions,
+        )
+        _write_json(snapshot_path, snapshot_result.snapshot)
+        artifacts["historical_snapshot"] = relative(snapshot_path)
+        progress["padded_bar_statistics"] = (
+            snapshot_result.padded_bar_statistics
+        )
+    with _tracked_phase(progress, "scoring", progress_callback):
+        scout = run_research_scout_alpha(
+            snapshot_result.snapshot,
+            threshold_pct=threshold_pct,
+            exploration_top_k=exploration_top_k,
+        )
+        _write_json(scout_path, scout)
+        generate_scout_pdf_report(scout, scout_pdf_path)
+        artifacts.update({
+            "scout_output": relative(scout_path),
+            "scout_report": relative(scout_pdf_path),
+        })
+        progress["scored_ticker_count"] = len(scout["candidates"])
 
     outcome_snapshot = deepcopy(snapshot_result.snapshot)
     outcome_snapshot["execution_policy_version"] = (
         "execution_policy_v1.0_hypothetical"
     )
-    outcome = grade_replay_outcomes(
-        outcome_snapshot,
-        scout,
-        snapshot_result.outcome_bars,
-        strategy_capital,
-    )
-    benchmark = build_same_universe_benchmark(
-        outcome_snapshot,
-        scout,
-        outcome,
-        strategy_capital,
-    )
-    postmortem = build_postmortem(
-        outcome_snapshot,
-        scout,
-        benchmark,
-    )
-    _write_json(outcome_path, outcome)
-    _write_json(benchmark_path, benchmark)
-    _write_json(postmortem_path, postmortem)
-    generate_postmortem_pdf(
-        benchmark, postmortem, postmortem_pdf_path
-    )
-    artifacts.update({
-        "historical_snapshot": relative(snapshot_path),
-        "scout_output": relative(scout_path),
-        "scout_report": relative(scout_pdf_path),
-        "end_of_day_outcome": relative(outcome_path),
-        "benchmark_result": relative(benchmark_path),
-        "postmortem": relative(postmortem_path),
-        "postmortem_report": relative(postmortem_pdf_path),
-    })
-    return {
-        "trading_date": trading_date,
+    with _tracked_phase(progress, "grading", progress_callback):
+        outcome = grade_replay_outcomes(
+            outcome_snapshot,
+            scout,
+            snapshot_result.outcome_bars,
+            strategy_capital,
+        )
+        _write_json(outcome_path, outcome)
+        artifacts["end_of_day_outcome"] = relative(outcome_path)
+    with _tracked_phase(progress, "benchmark", progress_callback):
+        benchmark = build_same_universe_benchmark(
+            outcome_snapshot,
+            scout,
+            outcome,
+            strategy_capital,
+        )
+        _write_json(benchmark_path, benchmark)
+        artifacts["benchmark_result"] = relative(benchmark_path)
+    if smoke_mode:
+        progress["current_phase"] = "postmortem"
+        progress["phase_status"]["postmortem"] = "IN_PROGRESS"
+        if progress_callback is not None:
+            progress_callback(deepcopy(progress))
+        with _timed_phase(trading_date, "postmortem"):
+            # Postmortems are Trainer inputs and intentionally reject
+            # non-research evidence. A capped smoke run stops at the benchmark
+            # rather than weakening that boundary.
+            pass
+        progress["phase_status"]["postmortem"] = "SKIPPED"
+        if progress_callback is not None:
+            progress_callback(deepcopy(progress))
+    else:
+        with _tracked_phase(progress, "postmortem", progress_callback):
+            postmortem = build_postmortem(
+                outcome_snapshot,
+                scout,
+                benchmark,
+            )
+            _write_json(postmortem_path, postmortem)
+            generate_postmortem_pdf(
+                benchmark, postmortem, postmortem_pdf_path
+            )
+            artifacts.update({
+                "postmortem": relative(postmortem_path),
+                "postmortem_report": relative(postmortem_pdf_path),
+            })
+    progress.update({
         "status": "COMPLETE",
-        "universe_size": universe["eligible_symbol_count"],
-        "universe_manifest_hash": universe["manifest_hash"],
-        "scored_ticker_count": len(scout["candidates"]),
-        "padded_bar_statistics": snapshot_result.padded_bar_statistics,
-        "files": cached_files,
-        "reference_cache": reference_cache,
+        "current_phase": None,
         "artifacts": artifacts,
         "error": None,
-    }
+    })
+    return progress
 
 
 def run_flatfile_replay(
@@ -256,6 +400,7 @@ def run_flatfile_replay(
     strategy_capital: float = 2500.0,
     threshold_pct: float | None = None,
     exploration_top_k: int = 0,
+    max_tickers: int | None = None,
     reference_cache_root: Path = Path("data/reference_cache"),
     resume: bool = True,
     day_runner: DayRunner = run_flatfile_day,
@@ -267,6 +412,16 @@ def run_flatfile_replay(
         raise FlatFileReplayError("lookback_sessions must be at least one.")
     if strategy_capital <= 0:
         raise FlatFileReplayError("strategy_capital must be positive.")
+    if (
+        max_tickers is not None
+        and (
+            not isinstance(max_tickers, int)
+            or isinstance(max_tickers, bool)
+            or max_tickers < 1
+        )
+    ):
+        raise FlatFileReplayError("max_tickers must be a positive integer.")
+    smoke_mode = max_tickers is not None
     output_root.mkdir(parents=True, exist_ok=True)
     manifest_path = output_root / "flatfile_replay_manifest.json"
     selection_policy = {
@@ -298,6 +453,8 @@ def run_flatfile_replay(
             and prior.get("strategy_capital_usd") == strategy_capital
             and prior.get("selection_policy") == selection_policy
             and prior.get("universe_policy") == universe_policy
+            and prior.get("smoke_mode", False) is smoke_mode
+            and prior.get("max_tickers") == max_tickers
         )
         if not identity:
             raise FlatFileReplayError(
@@ -307,17 +464,32 @@ def run_flatfile_replay(
     prior_days = {
         item["trading_date"]: item for item in prior.get("days", [])
     }
-    days: dict[str, dict[str, Any]] = {}
+    days: dict[str, dict[str, Any]] = {
+        value: _normalize_day_record(
+            item,
+            smoke_mode=smoke_mode,
+            max_tickers=max_tickers,
+        )
+        for value, item in prior_days.items()
+        if value in dates
+    }
     failures: dict[str, str] = dict(prior.get("failed_dates", {}))
 
-    def checkpoint() -> dict[str, Any]:
+    def checkpoint(
+        *,
+        status_override: str | None = None,
+        current_trading_date: str | None = None,
+        current_phase: str | None = None,
+    ) -> dict[str, Any]:
         ordered = [days[value] for value in dates if value in days]
         completed = [
             item["trading_date"]
             for item in ordered
             if item["status"] == "COMPLETE"
         ]
-        if len(completed) == len(dates):
+        if status_override is not None:
+            status = status_override
+        elif len(completed) == len(dates):
             status = "COMPLETE"
         elif completed:
             status = "PARTIAL"
@@ -329,6 +501,10 @@ def run_flatfile_replay(
             "start_date": dates[0],
             "end_date": dates[-1],
             "status": status,
+            "current_trading_date": current_trading_date,
+            "current_phase": current_phase,
+            "smoke_mode": smoke_mode,
+            "max_tickers": max_tickers,
             "massive_plan": active_plan,
             "datasets": [MINUTE_AGGS_DATASET, DAY_AGGS_DATASET],
             "baseline_lookback_sessions": lookback_sessions,
@@ -356,6 +532,8 @@ def run_flatfile_replay(
         _write_json(manifest_path, manifest)
         return manifest
 
+    checkpoint(status_override="IN_PROGRESS", current_phase="STARTING")
+
     for trading_date in dates:
         previous = prior_days.get(trading_date)
         if (
@@ -363,9 +541,22 @@ def run_flatfile_replay(
             and previous.get("status") == "COMPLETE"
             and _artifact_paths_exist(output_root, previous)
         ):
-            days[trading_date] = previous
             failures.pop(trading_date, None)
             continue
+        days[trading_date] = _new_day_record(
+            trading_date,
+            smoke_mode=smoke_mode,
+            max_tickers=max_tickers,
+        )
+
+        def persist_progress(record: dict[str, Any]) -> None:
+            days[trading_date] = deepcopy(record)
+            checkpoint(
+                status_override="IN_PROGRESS",
+                current_trading_date=trading_date,
+                current_phase=record["current_phase"],
+            )
+
         try:
             record = day_runner(
                 reference_client,
@@ -376,7 +567,14 @@ def run_flatfile_replay(
                 strategy_capital=strategy_capital,
                 threshold_pct=threshold_pct,
                 exploration_top_k=exploration_top_k,
+                max_tickers=max_tickers,
                 reference_cache_root=reference_cache_root,
+                progress_callback=persist_progress,
+            )
+            record = _normalize_day_record(
+                record,
+                smoke_mode=smoke_mode,
+                max_tickers=max_tickers,
             )
             days[trading_date] = record
             if record["status"] == "COMPLETE":
@@ -386,21 +584,20 @@ def run_flatfile_replay(
         except Exception as exc:
             error = f"{type(exc).__name__}: {exc}"
             days[trading_date] = {
-                "trading_date": trading_date,
+                **days[trading_date],
                 "status": "FAILED",
-                "universe_size": 0,
-                "universe_manifest_hash": None,
-                "scored_ticker_count": 0,
-                "padded_bar_statistics": None,
-                "files": [],
+                "current_phase": days[trading_date].get("current_phase"),
                 "reference_cache": _persisted_reference_cache_metrics(
                     output_root, trading_date
                 ),
-                "artifacts": {},
                 "error": error,
             }
             failures[trading_date] = error
-        checkpoint()
+        checkpoint(
+            status_override="IN_PROGRESS",
+            current_trading_date=trading_date,
+            current_phase=days[trading_date].get("current_phase"),
+        )
     return checkpoint()
 
 
@@ -432,6 +629,14 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--threshold-pct", type=float)
     parser.add_argument("--exploration-top-k", type=int, default=0)
+    parser.add_argument(
+        "--max-tickers",
+        type=int,
+        help=(
+            "Cap the sorted universe before overview fetches. This enables "
+            "smoke mode and makes all resulting artifacts non-research."
+        ),
+    )
     parser.add_argument("--no-resume", action="store_true")
     return parser.parse_args()
 
@@ -443,7 +648,9 @@ def main() -> None:
         Path(load_flatfile_replay_config()["output_root"])
         / f"{args.start}-to-{args.end}"
     )
-    reference_client = MassiveClient.from_environment()
+    reference_client = MassiveClient.from_environment(
+        rate_limiter=AdaptiveRateLimiter()
+    )
     flatfiles = MassiveFlatFileStore.from_environment(
         cache_root=args.cache_root
     )
@@ -456,6 +663,7 @@ def main() -> None:
         strategy_capital=args.strategy_capital,
         threshold_pct=args.threshold_pct,
         exploration_top_k=args.exploration_top_k,
+        max_tickers=args.max_tickers,
         reference_cache_root=args.reference_cache_root,
         resume=not args.no_resume,
     )

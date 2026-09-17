@@ -5,7 +5,8 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "version", "run_id", "start_date", "end_date", "status", "massive_plan",
+    "version", "run_id", "start_date", "end_date", "status",
+    "current_trading_date", "current_phase", "smoke_mode", "max_tickers", "massive_plan",
     "datasets", "baseline_lookback_sessions", "strategy_capital_usd",
     "selection_policy", "universe_policy", "requested_dates",
     "completed_dates", "failed_dates", "reference_cache_summary", "days"
@@ -15,7 +16,14 @@
     "run_id": {"type": "string", "minLength": 1},
     "start_date": {"type": "string", "format": "date"},
     "end_date": {"type": "string", "format": "date"},
-    "status": {"enum": ["COMPLETE", "PARTIAL", "FAILED"]},
+    "status": {"enum": ["IN_PROGRESS", "COMPLETE", "PARTIAL", "FAILED"]},
+    "current_trading_date": {"type": ["string", "null"], "format": "date"},
+    "current_phase": {
+      "type": ["string", "null"],
+      "enum": [null, "STARTING", "download", "universe", "snapshot", "scoring", "grading", "benchmark", "postmortem"]
+    },
+    "smoke_mode": {"type": "boolean"},
+    "max_tickers": {"type": ["integer", "null"], "minimum": 1},
     "massive_plan": {"$ref": "#/$defs/massivePlan"},
     "datasets": {
       "type": "array",
@@ -116,13 +124,36 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "trading_date", "status", "universe_size", "universe_manifest_hash",
+        "trading_date", "status", "current_phase", "phase_status",
+        "smoke_mode", "max_tickers", "research_evidence",
+        "universe_size", "universe_manifest_hash",
         "scored_ticker_count", "padded_bar_statistics", "files",
         "reference_cache", "artifacts", "error"
       ],
       "properties": {
         "trading_date": {"type": "string", "format": "date"},
-        "status": {"enum": ["COMPLETE", "UNSUPPORTED", "FAILED"]},
+        "status": {"enum": ["IN_PROGRESS", "COMPLETE", "UNSUPPORTED", "FAILED"]},
+        "current_phase": {
+          "type": ["string", "null"],
+          "enum": [null, "download", "universe", "snapshot", "scoring", "grading", "benchmark", "postmortem"]
+        },
+        "phase_status": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["download", "universe", "snapshot", "scoring", "grading", "benchmark", "postmortem"],
+          "properties": {
+            "download": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
+            "universe": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
+            "snapshot": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
+            "scoring": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
+            "grading": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
+            "benchmark": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
+            "postmortem": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]}
+          }
+        },
+        "smoke_mode": {"type": "boolean"},
+        "max_tickers": {"type": ["integer", "null"], "minimum": 1},
+        "research_evidence": {"type": "boolean"},
         "universe_size": {"type": "integer", "minimum": 0},
         "universe_manifest_hash": {
           "type": ["string", "null"],

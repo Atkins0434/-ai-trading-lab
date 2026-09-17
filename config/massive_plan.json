@@ -1,6 +1,7 @@
 {
   "plan": "DEVELOPER",
   "rest_calls_per_minute": null,
+  "reference_fetch_workers": 8,
   "history_years": 10,
   "flat_files": true
 }
