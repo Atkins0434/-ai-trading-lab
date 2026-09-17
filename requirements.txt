@@ -3,4 +3,5 @@ python-dotenv>=1.0.1
 requests>=2.32.0
 pytest>=8.3.0
 reportlab
+pypdf
 boto3>=1.35.0

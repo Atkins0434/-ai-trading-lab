@@ -355,6 +355,11 @@ def test_smoke_day_grades_benchmark_but_skips_trainer_postmortem(
         "generate_scout_pdf_report",
         lambda *args, **kwargs: None,
     )
+    monkeypatch.setattr(
+        flatfile_replay,
+        "generate_daily_replay_report",
+        lambda *args, **kwargs: None,
+    )
 
     result = flatfile_replay.run_flatfile_day(
         object(),
@@ -372,7 +377,9 @@ def test_smoke_day_grades_benchmark_but_skips_trainer_postmortem(
     assert result["research_evidence"] is False
     assert result["phase_status"]["benchmark"] == "COMPLETE"
     assert result["phase_status"]["postmortem"] == "SKIPPED"
+    assert result["phase_status"]["report"] == "COMPLETE"
     assert "benchmark_result" in result["artifacts"]
+    assert "replay_report" in result["artifacts"]
     assert "postmortem" not in result["artifacts"]
 
 

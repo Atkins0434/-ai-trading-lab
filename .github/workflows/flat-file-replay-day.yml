@@ -283,6 +283,13 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Generate cumulative replay report
+        if: always()
+        shell: bash
+        env:
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: python -m trainer.replay_report --output-root "$OUTPUT_ROOT"
+
       - name: Verify required replay artifacts
         if: always()
         shell: bash
@@ -296,6 +303,8 @@ jobs:
             "$day_root/daily_universe_manifest.json"
             "$OUTPUT_ROOT/flatfile_replay_manifest.json"
             "$day_root/benchmark_result.json"
+            "$day_root/replay_report.pdf"
+            "$OUTPUT_ROOT/replay_summary.pdf"
           )
           if [ -z "$MAX_TICKERS" ]; then
             required+=("$day_root/postmortem.json")

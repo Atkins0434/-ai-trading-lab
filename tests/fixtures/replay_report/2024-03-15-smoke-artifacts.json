@@ -1,0 +1,81 @@
+{
+  "fixture_note": "Reduced from the 2024-03-15 smoke run; intraday_path arrays are intentionally stripped.",
+  "universe": {
+    "manifest_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "eligible_symbol_count": 5,
+    "securities": [
+      {"ticker": "ACHR", "inclusion": true, "reason_codes": []},
+      {"ticker": "AA", "inclusion": true, "reason_codes": []},
+      {"ticker": "AAL", "inclusion": true, "reason_codes": []},
+      {"ticker": "PREF", "inclusion": false, "reason_codes": ["SECURITY_TYPE_PREFERRED_SHARE", "LISTING_DATE_MISSING"], "deciding_definitive_reason": "SECURITY_TYPE_PREFERRED_SHARE"},
+      {"ticker": "GAP", "inclusion": false, "reason_codes": ["OVERVIEW_FETCH_FAILED"]}
+    ]
+  },
+  "snapshot": {
+    "replay_id": "flatfile-replay-2024-03-15",
+    "trading_date": "2024-03-15",
+    "freeze_timestamp": "2024-03-15T09:15:00-04:00",
+    "securities": [
+      {"ticker": "ACHR", "market_data": {"real_bar_count_60m": {"value": 30}}},
+      {"ticker": "AA", "market_data": {"real_bar_count_60m": {"value": 15}}},
+      {"ticker": "AAL", "market_data": {"real_bar_count_60m": {"value": 16}}},
+      {"ticker": "AAP", "market_data": {"real_bar_count_60m": {"value": 5}}},
+      {"ticker": "AES", "market_data": {"real_bar_count_60m": {"value": 0}}}
+    ]
+  },
+  "scout": {
+    "scorable_candidate_count": 1,
+    "candidates": [
+      {
+        "ticker": "ACHR", "status": "SCORED", "rank": 1, "total_score": 40,
+        "maximum_possible_score": 48, "score_pct": 83.33,
+        "qualification_selected": true, "research_selected": true,
+        "component_scores": {
+          "relative_volume": {"score": 4, "raw_value": 2.7},
+          "price_slope_15m": {"score": 3, "raw_value": 0.06},
+          "price_slope_30m": {"score": 3, "raw_value": 0.05},
+          "price_slope_60m": {"score": 3, "raw_value": 0.04},
+          "volume_slope_15m": {"score": 4, "raw_value": 2.1},
+          "volume_slope_30m": {"score": 4, "raw_value": 1.7},
+          "volume_slope_60m": {"score": 3, "raw_value": 1.2},
+          "premarket_gap_strength": {"score": 4, "raw_value": 6.3},
+          "price_vs_premarket_vwap": {"score": 3, "raw_value": 1.1},
+          "premarket_trend_consistency": {"score": 3, "raw_value": 74.0},
+          "price_volume_confirmation": {"score": 3, "raw_value": 1.0},
+          "premarket_range_expansion": {"score": 3, "raw_value": 1.6}
+        },
+        "guardrails": {"liquidity": {"action": "PASS"}, "spread": {"action": "NOT_EVALUATED"}},
+        "rejection_reasons": []
+      },
+      {"ticker": "AA", "status": "NOT_SCORABLE", "rank": null, "score_pct": 0, "qualification_selected": false, "research_selected": false, "component_scores": {}, "guardrails": {}, "rejection_reasons": ["INSUFFICIENT_PREMARKET_BARS"]},
+      {"ticker": "AAL", "status": "NOT_SCORABLE", "rank": null, "score_pct": 0, "qualification_selected": false, "research_selected": false, "component_scores": {}, "guardrails": {}, "rejection_reasons": ["INSUFFICIENT_PREMARKET_BARS"]}
+    ]
+  },
+  "outcome": {
+    "outcomes": [
+      {
+        "ticker": "ACHR", "mfe_pct": 12.50, "mae_pct": -1.25, "intraday_path": [],
+        "execution_result": {"entry_timestamp": "2024-03-15T09:30:00-04:00", "entry_price": 5.10, "position_size_shares": 490, "exit_timestamp": "2024-03-15T10:12:00-04:00", "exit_price": 5.61, "exit_reason": "TRAILING_STOP", "realized_pnl_usd": 249.90, "realized_return_pct": 9.996, "capture_ratio": 0.79968}
+      },
+      {"ticker": "AA", "mfe_pct": 9.00, "mae_pct": -1.50, "intraday_path": [], "execution_result": {}},
+      {"ticker": "AAL", "mfe_pct": 7.00, "mae_pct": -1.00, "intraday_path": [], "execution_result": {}}
+    ]
+  },
+  "benchmark": {
+    "massive_plan": {"plan": "Stocks Advanced"},
+    "comparison": {"result_code": "SCOUT_OUTPERFORMED"},
+    "scout_summary": {"realized_return_pct": 9.996},
+    "return_baselines": {"random_draw_mean_realized_return_pct": 1.25},
+    "benchmark_summary": {"trades_executed": 3, "win_rate_pct": 33.33, "profit_factor": 2.40, "realized_pnl_usd": 140.25, "average_capture_ratio": 0.31},
+    "benchmark_candidates": [
+      {"ticker": "ACHR", "benchmark_rank": 1, "maximum_capturable_move_pct": 12.50, "scout_selected": true, "realized_return_pct": 9.996, "exit_reason": "TRAILING_STOP", "simulation_exclusion_reason": null},
+      {"ticker": "AA", "benchmark_rank": 2, "maximum_capturable_move_pct": 9.00, "scout_selected": false, "realized_return_pct": -1.00, "exit_reason": "TRAILING_STOP", "simulation_exclusion_reason": null},
+      {"ticker": "AAL", "benchmark_rank": 3, "maximum_capturable_move_pct": 7.00, "scout_selected": false, "realized_return_pct": -1.00, "exit_reason": "TRAILING_STOP", "simulation_exclusion_reason": null}
+    ]
+  },
+  "postmortem": null,
+  "day_record": {
+    "smoke_mode": true,
+    "phase_wall_time_seconds": {"download": 2.1, "universe": 5.2, "snapshot": 8.4, "scoring": 0.3, "grading": 0.5, "benchmark": 0.2, "postmortem": 0.0, "report": 0.1}
+  }
+}
