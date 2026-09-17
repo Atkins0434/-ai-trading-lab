@@ -420,6 +420,8 @@ def build_point_in_time_universe(
         reasons, is_shell, is_spac, is_spac_suffix = _exclusion_reasons(
             raw, overview, config
         )
+        if prior is None:
+            reasons.append("NO_PRIOR_SESSION_TRADE")
         if overview_failure is not None:
             reasons.append(
                 "OVERVIEW_UNAVAILABLE_AT_LAGGED_DATE"

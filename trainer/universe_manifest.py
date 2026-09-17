@@ -38,6 +38,53 @@ TYPE_REASONS = {
     "FUND": "SECURITY_TYPE_FUND",
     "MUTUAL_FUND": "SECURITY_TYPE_FUND",
 }
+# This registry is the single authority for deciding whether an exclusion is
+# proven from point-in-time evidence or exposes a coverage gap. New reason
+# codes must be added here deliberately; unknown codes fail manifest creation.
+DEFINITIVE = "DEFINITIVE"
+GAP = "GAP"
+EXCLUSION_REASON_CLASSIFICATION = {
+    "SECURITY_TYPE_ETF": DEFINITIVE,
+    "SECURITY_TYPE_ETN": DEFINITIVE,
+    "SECURITY_TYPE_PREFERRED_SHARE": DEFINITIVE,
+    "SECURITY_TYPE_WARRANT": DEFINITIVE,
+    "SECURITY_TYPE_RIGHT": DEFINITIVE,
+    "SECURITY_TYPE_UNIT": DEFINITIVE,
+    "SECURITY_TYPE_FUND": DEFINITIVE,
+    "SECURITY_TYPE_NOT_COMMON_EQUITY": DEFINITIVE,
+    "INELIGIBLE_LISTING_VENUE": DEFINITIVE,
+    "NON_US_LISTING": DEFINITIVE,
+    "NON_EQUITY_MARKET": DEFINITIVE,
+    "MARKET_CAP_OUT_OF_RANGE": DEFINITIVE,
+    "SPAC_SECURITY": DEFINITIVE,
+    "SPAC_SUFFIX_SECURITY": DEFINITIVE,
+    "SHELL_COMPANY": DEFINITIVE,
+    "TEST_ISSUE": DEFINITIVE,
+    "OTC_SECURITY": DEFINITIVE,
+    "NON_OPERATING_PLACEHOLDER": DEFINITIVE,
+    "SHARE_PRICE_ABOVE_CAP": DEFINITIVE,
+    "DUPLICATE_SHARE_CLASS": DEFINITIVE,
+    "DUPLICATE_STABLE_SECURITY_ID_FOR_DATE": DEFINITIVE,
+    "OVERVIEW_UNAVAILABLE_AT_LAGGED_DATE": DEFINITIVE,
+    "LISTED_AFTER_LAGGED_DATE": DEFINITIVE,
+    "NO_PRIOR_SESSION_TRADE": DEFINITIVE,
+    "NOT_YET_LISTED": DEFINITIVE,
+    "TICKER_NOT_YET_VALID": DEFINITIVE,
+    "TICKER_NO_LONGER_VALID": DEFINITIVE,
+    "DELISTED_EFFECTIVE": DEFINITIVE,
+    "AFTER_LAST_TRADING_DATE": DEFINITIVE,
+    "NOT_TRADABLE_ON_DATE": DEFINITIVE,
+    "OVERVIEW_FETCH_FAILED": GAP,
+    "FUTURE_METADATA_AFTER_CUTOFF": GAP,
+    "LISTING_DATE_MISSING": GAP,
+    "STABLE_SECURITY_ID_MISSING": GAP,
+    "MARKET_CAP_POINT_IN_TIME_UNPROVEN": GAP,
+    "METADATA_AVAILABILITY_MISSING": GAP,
+    "TICKER_MISSING": GAP,
+    "HISTORICAL_TRADING_STATUS_MISSING": GAP,
+    "MARKET_CAP_MISSING": GAP,
+    "SHARES_PERIOD_AFTER_REPLAY_DATE": GAP,
+}
 REQUIRED_CAPABILITIES = {
     "point_in_time_listings",
     "delisted_securities",
@@ -159,6 +206,31 @@ def _date_value(record: dict[str, Any], *fields: str) -> date | None:
     return None
 
 
+def _classify_reasons(reasons: list[str]) -> tuple[list[str], list[str]]:
+    definitive: list[str] = []
+    gaps: list[str] = []
+    for reason in reasons:
+        classification = EXCLUSION_REASON_CLASSIFICATION.get(reason)
+        if classification is None:
+            raise UniverseManifestError(
+                f"Unknown universe exclusion reason code: {reason}"
+            )
+        (definitive if classification == DEFINITIVE else gaps).append(reason)
+    return definitive, gaps
+
+
+def _deciding_definitive_reason(reasons: list[str]) -> str | None:
+    reason_set = set(reasons)
+    return next(
+        (
+            reason
+            for reason, classification in EXCLUSION_REASON_CLASSIFICATION.items()
+            if classification == DEFINITIVE and reason in reason_set
+        ),
+        None,
+    )
+
+
 def _evaluate_record(
     record: dict[str, Any], trading_date: str, cutoff: datetime
 ) -> tuple[dict[str, Any], list[str]]:
@@ -172,6 +244,16 @@ def _evaluate_record(
     last_trading = _date_value(record, "last_trading_date", "delisted_utc")
     ticker_from = _date_value(record, "ticker_valid_from")
     ticker_through = _date_value(record, "ticker_valid_through")
+    precomputed_reasons = record.get("eligibility_exclusion_reasons", [])
+    if not isinstance(precomputed_reasons, list):
+        precomputed_reasons = []
+    definitive_overview_miss = (
+        "OVERVIEW_UNAVAILABLE_AT_LAGGED_DATE" in precomputed_reasons
+        or (
+            isinstance(record.get("overview_failure"), dict)
+            and record["overview_failure"].get("classification") == DEFINITIVE
+        )
+    )
     reasons: list[str] = []
 
     metadata_available_at = _parse_timestamp(record.get("metadata_available_at"))
@@ -185,9 +267,9 @@ def _evaluate_record(
         stable_id = f"MISSING:{ticker or 'UNKNOWN'}"
     if not ticker:
         reasons.append("TICKER_MISSING")
-    if listing is None:
+    if listing is None and not definitive_overview_miss:
         reasons.append("LISTING_DATE_MISSING")
-    elif listing > day:
+    elif listing is not None and listing > day:
         reasons.append("NOT_YET_LISTED")
     if ticker_from and ticker_from > day:
         reasons.append("TICKER_NOT_YET_VALID")
@@ -229,11 +311,9 @@ def _evaluate_record(
         reasons.append("SPAC_SECURITY")
     if record.get("is_spac_suffix") is True:
         reasons.append("SPAC_SUFFIX_SECURITY")
-    precomputed_reasons = record.get("eligibility_exclusion_reasons", [])
-    if isinstance(precomputed_reasons, list):
-        reasons.extend(
-            str(reason) for reason in precomputed_reasons if str(reason)
-        )
+    reasons.extend(
+        str(reason) for reason in precomputed_reasons if str(reason)
+    )
 
     market_cap = record.get("market_cap_usd", record.get("market_cap"))
     if not reasons:
@@ -291,6 +371,7 @@ def _evaluate_record(
             "duplicate_share_class_kept_ticker"
         ),
         "overview_failure": record.get("overview_failure"),
+        "deciding_definitive_reason": _deciding_definitive_reason(reasons),
         "inclusion": not reasons,
         "reason_codes": reasons or ["ELIGIBLE"],
     }
@@ -374,6 +455,7 @@ def build_fixture_manifest(
             "security_type": "COMMON_STOCK_FIXTURE",
             "listing_date": None,
             "delisting_date": None,
+            "deciding_definitive_reason": None,
             "inclusion": ticker in eligible if eligible_securities is not None else ticker not in rejected,
             "reason_codes": (
                 ["CI_FIXTURE_ELIGIBLE"]
@@ -488,7 +570,8 @@ def build_research_manifest(
                 item["inclusion"] = False
                 item["reason_codes"] = ["DUPLICATE_SHARE_CLASS"]
                 item["duplicate_share_class_kept_ticker"] = kept_ticker
-                reasons.append("DUPLICATE_SHARE_CLASS")
+                item["deciding_definitive_reason"] = "DUPLICATE_SHARE_CLASS"
+                reasons[:] = ["DUPLICATE_SHARE_CLASS"]
 
     # A stable identity may have several ticker-history rows; at most one row
     # may be eligible for a date. This prevents ticker changes from duplicating
@@ -502,15 +585,17 @@ def build_research_manifest(
             if prior is not None:
                 item["inclusion"] = False
                 item["reason_codes"] = ["DUPLICATE_STABLE_SECURITY_ID_FOR_DATE"]
-                coverage_reasons.append("AMBIGUOUS_TICKER_HISTORY")
+                item["deciding_definitive_reason"] = (
+                    "DUPLICATE_STABLE_SECURITY_ID_FOR_DATE"
+                )
+                reasons[:] = ["DUPLICATE_STABLE_SECURITY_ID_FOR_DATE"]
             else:
                 included_by_id[item["stable_security_id"]] = item
-        if any(
-            reason.endswith("MISSING")
-            or reason.endswith("UNPROVEN")
-            or reason == "FUTURE_METADATA_AFTER_CUTOFF"
-            for reason in reasons
-        ):
+        definitive_reasons, gap_reasons = _classify_reasons(reasons)
+        item["deciding_definitive_reason"] = (
+            _deciding_definitive_reason(definitive_reasons)
+        )
+        if gap_reasons and not definitive_reasons:
             coverage_reasons.append(
                 f"SECURITY_METADATA_INCOMPLETE:{item['stable_security_id']}"
             )

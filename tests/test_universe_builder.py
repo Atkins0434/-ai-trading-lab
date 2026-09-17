@@ -575,7 +575,11 @@ def test_definitive_overview_misses_and_recovered_503_keep_day_complete(
             self.calls = []
 
         def get_tickers(self, *args, **kwargs):
-            return [_ticker_row(ticker) for ticker in tickers]
+            rows = [_ticker_row(ticker) for ticker in tickers]
+            for row in rows:
+                if row["ticker"] in {"MISSING1", "MISSING2"}:
+                    row.pop("list_date")
+            return rows
 
         def get_ticker_overview(self, ticker, as_of_date):
             self.calls.append((ticker, as_of_date))
@@ -624,6 +628,9 @@ def test_definitive_overview_misses_and_recovered_503_keep_day_complete(
         assert by_ticker[ticker]["reason_codes"] == [
             "OVERVIEW_UNAVAILABLE_AT_LAGGED_DATE"
         ]
+        assert by_ticker[ticker]["deciding_definitive_reason"] == (
+            "OVERVIEW_UNAVAILABLE_AT_LAGGED_DATE"
+        )
         assert by_ticker[ticker]["overview_failure"] == {
             "classification": "DEFINITIVE",
             "http_status": 404,
@@ -697,12 +704,81 @@ def test_persistent_503_marks_day_incomplete_and_is_not_cached(
     assert telemetry["errors"] == 1
     assert failed["inclusion"] is False
     assert failed["reason_codes"] == ["OVERVIEW_FETCH_FAILED"]
+    assert failed["deciding_definitive_reason"] is None
     assert failed["overview_failure"] == {
         "classification": "TRANSIENT",
         "http_status": 503,
         "exception_type": "HTTPError",
     }
     assert not list(cache_root.rglob("*.json"))
+
+
+def test_missing_prior_session_trade_is_definitive_exclusion(tmp_path: Path):
+    ticker = "NOHISTORY"
+
+    class NoPriorTradeClient:
+        provider_name = "MASSIVE"
+
+        def get_tickers(self, *args, **kwargs):
+            return [_ticker_row(ticker)]
+
+        def get_ticker_overview(self, ticker, as_of_date):
+            return _overview(ticker)
+
+    manifest = build_point_in_time_universe(
+        NoPriorTradeClient(),
+        _failure_fixture_flatfiles(()),
+        "2018-01-03",
+        tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference-cache",
+        reference_fetch_workers=1,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+    security = manifest["securities"][0]
+
+    assert security["reason_codes"] == ["NO_PRIOR_SESSION_TRADE"]
+    assert security["deciding_definitive_reason"] == (
+        "NO_PRIOR_SESSION_TRADE"
+    )
+    assert manifest["coverage_status"] == "complete"
+    assert manifest["coverage_reasons"] == []
+
+
+def test_successful_overview_with_only_missing_listing_date_is_gap(
+    tmp_path: Path,
+):
+    ticker = "NOLISTDATE"
+
+    class MissingListingDateClient:
+        provider_name = "MASSIVE"
+
+        def get_tickers(self, *args, **kwargs):
+            row = _ticker_row(ticker)
+            row.pop("list_date")
+            return [row]
+
+        def get_ticker_overview(self, ticker, as_of_date):
+            overview = _overview(ticker)
+            overview.pop("list_date")
+            return overview
+
+    manifest = build_point_in_time_universe(
+        MissingListingDateClient(),
+        _failure_fixture_flatfiles((ticker,)),
+        "2018-01-03",
+        tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference-cache",
+        reference_fetch_workers=1,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+    security = manifest["securities"][0]
+
+    assert security["reason_codes"] == ["LISTING_DATE_MISSING"]
+    assert security["deciding_definitive_reason"] is None
+    assert manifest["coverage_status"] == "incomplete"
+    assert manifest["coverage_reasons"] == [
+        f"SECURITY_METADATA_INCOMPLETE:{security['stable_security_id']}"
+    ]
 
 
 def test_listing_after_lagged_date_skips_overview_fetch(tmp_path: Path):

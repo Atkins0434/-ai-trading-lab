@@ -65,7 +65,7 @@
     },
     "security": {
       "type": "object", "additionalProperties": false,
-      "required": ["stable_security_id", "ticker", "listing_venue", "security_type", "listing_date", "delisting_date", "inclusion", "reason_codes"],
+      "required": ["stable_security_id", "ticker", "listing_venue", "security_type", "listing_date", "delisting_date", "deciding_definitive_reason", "inclusion", "reason_codes"],
       "properties": {
         "stable_security_id": {"type": "string", "minLength": 1},
         "ticker": {"type": "string"},
@@ -73,6 +73,7 @@
         "security_type": {"type": "string"},
         "listing_date": {"type": ["string", "null"], "format": "date"},
         "delisting_date": {"type": ["string", "null"], "format": "date"},
+        "deciding_definitive_reason": {"type": ["string", "null"]},
         "reference_data_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
         "market_cap_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
         "shares_outstanding": {"type": ["number", "null"], "minimum": 0},

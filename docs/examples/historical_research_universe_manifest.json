@@ -15,7 +15,7 @@
   "eligible_symbol_count": 1,
   "excluded_symbol_count": 0,
   "information_cutoff": "2024-06-10T07:00:00-04:00",
-  "manifest_hash": "sha256:55475b310f32a9c0ab57b26a8ddea181c7d29fe176648b47b5eb978f95b3bedd",
+  "manifest_hash": "sha256:c4f182e17095bf6c5fe57d1827cd76cbbc668c49e79e1d05081aba2d0910cc9d",
   "massive_plan": {
     "flat_files": true,
     "history_years": 10,
@@ -32,6 +32,7 @@
   "securities": [
     {
       "delisting_date": null,
+      "deciding_definitive_reason": null,
       "inclusion": true,
       "listing_date": "2010-01-01",
       "listing_venue": "XNYS",

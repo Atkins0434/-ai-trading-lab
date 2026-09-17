@@ -146,57 +146,37 @@ jobs:
 
           if universe_path.is_file():
               universe = json.loads(universe_path.read_text(encoding="utf-8"))
-              print(f"Universe size: {universe['eligible_symbol_count']}")
-              reasons = Counter(
+              print(f"Eligible count: {universe['eligible_symbol_count']}")
+              definitive_reasons = Counter(
+                  security["deciding_definitive_reason"]
+                  for security in universe["securities"]
+                  if not security["inclusion"]
+                  and security.get("deciding_definitive_reason")
+              )
+              coverage_gaps = Counter(
                   reason
                   for security in universe["securities"]
                   if not security["inclusion"]
+                  and not security.get("deciding_definitive_reason")
                   for reason in security["reason_codes"]
               )
-              security_type_reasons = {
-                  "SHELL_COMPANY", "SPAC_SECURITY", "SPAC_SUFFIX_SECURITY",
-                  "TEST_ISSUE", "OTC_SECURITY", "NON_OPERATING_PLACEHOLDER",
-              }
-
-              def exclusion_category(reason):
-                  if reason.startswith("SECURITY_TYPE_") or reason in security_type_reasons:
-                      return "security type"
-                  if reason == "DUPLICATE_SHARE_CLASS":
-                      return "security type"
-                  if reason in {
-                      "INELIGIBLE_LISTING_VENUE", "NON_US_LISTING",
-                      "NON_EQUITY_MARKET",
-                  }:
-                      return "venue"
-                  if (
-                      reason.startswith("MARKET_CAP_")
-                      or reason.startswith("SHARES_")
-                      or reason in {
-                          "LISTED_AFTER_LAGGED_DATE",
-                          "SHARE_PRICE_ABOVE_CAP",
-                      }
-                  ):
-                      return "market cap"
-                  if reason == "OVERVIEW_UNAVAILABLE_AT_LAGGED_DATE":
-                      return "overview unavailable"
-                  if reason == "OVERVIEW_FETCH_FAILED":
-                      return "overview failed"
-                  return "other"
-
-              categorized = {
-                  name: Counter()
-                  for name in (
-                      "security type", "venue", "market cap",
-                      "overview unavailable", "overview failed", "other",
-                  )
-              }
-              for reason, count in reasons.items():
-                  categorized[exclusion_category(reason)][reason] += count
-              print("Exclusion reasons by category:")
-              for category, category_reasons in categorized.items():
-                  print(f"  {category}: {sum(category_reasons.values())}")
-                  for reason, count in sorted(category_reasons.items()):
-                      print(f"    {reason}: {count}")
+              coverage_gap_count = sum(
+                  1
+                  for security in universe["securities"]
+                  if not security["inclusion"]
+                  and not security.get("deciding_definitive_reason")
+              )
+              print(
+                  "Definitive-exclusion count: "
+                  f"{sum(definitive_reasons.values())}"
+              )
+              print("Definitive exclusions by reason:")
+              for reason, count in sorted(definitive_reasons.items()):
+                  print(f"  {reason}: {count}")
+              print(f"Coverage-gap count: {coverage_gap_count}")
+              print("Coverage gaps by reason:")
+              for reason, count in sorted(coverage_gaps.items()):
+                  print(f"  {reason}: {count}")
           else:
               print(f"Universe manifest unavailable: {universe_path}")
 
