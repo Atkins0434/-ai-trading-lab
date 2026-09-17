@@ -26,10 +26,17 @@ def _nanos(value: datetime) -> int:
     return int(value.timestamp() * 1_000_000_000)
 
 
-def _row(ticker: str, value: datetime, *, close: float, volume: int) -> str:
+def _row(
+    ticker: str,
+    value: datetime,
+    *,
+    close: float,
+    volume: int,
+    transactions: int = 1,
+) -> str:
     return (
         f"{ticker},{volume},{close},{close},{close},{close},"
-        f"{_nanos(value)},1"
+        f"{_nanos(value)},{transactions}"
     )
 
 
@@ -127,3 +134,73 @@ def test_nanosecond_flatfile_premarket_bar_respects_dst(
     assert all("09:15:00" not in bar["timestamp"] for bar in bars)
     assert result.bar_statistics["by_ticker"]["AAL"]["real_premarket"] == 1
     assert result.bar_statistics["by_ticker"]["AAL"]["real_premarket_60m"] == 1
+
+
+def test_regular_bars_are_sorted_and_duplicate_minutes_are_audited(
+    tmp_path: Path,
+):
+    trading_date = "2024-03-15"
+    store = MassiveFlatFileStore(object(), cache_root=tmp_path)
+    previous_date = previous_trading_sessions(trading_date, 1)[0]
+    previous_midnight = datetime.combine(
+        date.fromisoformat(previous_date), time(0), tzinfo=timezone.utc
+    )
+    _write_cached_csv(
+        store.cache_path(DAY_AGGS_DATASET, previous_date),
+        [_row("AAL", previous_midnight, close=10.0, volume=1_000_000)],
+    )
+    _write_cached_csv(
+        store.cache_path(MINUTE_AGGS_DATASET, previous_date), []
+    )
+    at_1000 = datetime(2024, 3, 15, 10, 0, tzinfo=ET)
+    at_1005 = datetime(2024, 3, 15, 10, 5, tzinfo=ET)
+    _write_cached_csv(
+        store.cache_path(MINUTE_AGGS_DATASET, trading_date),
+        [
+            _row("AAL", at_1005, close=10.5, volume=500),
+            _row(
+                "AAL", at_1000, close=10.1, volume=300, transactions=2
+            ),
+            _row(
+                "AAL", at_1000, close=10.2, volume=200, transactions=5
+            ),
+        ],
+    )
+
+    result = build_flatfile_snapshot(
+        trading_date,
+        _manifest(trading_date),
+        store,
+        lookback_sessions=1,
+    )
+
+    path = result.outcome_bars["AAL"]
+    assert [bar["timestamp"] for bar in path] == [
+        "2024-03-15T10:00:00-04:00",
+        "2024-03-15T10:05:00-04:00",
+    ]
+    assert path[0]["close"] == 10.2
+    assert path[0]["volume"] == 200
+    assert result.bar_statistics["by_ticker"]["AAL"]["real_regular"] == 2
+    assert result.bar_statistics["duplicate_minute_rows"] == [
+        {
+            "ticker": "AAL",
+            "timestamp": "2024-03-15T10:00:00-04:00",
+            "kept_row": {
+                "open": 10.2,
+                "high": 10.2,
+                "low": 10.2,
+                "close": 10.2,
+                "volume": 200.0,
+                "transactions": 5,
+            },
+            "discarded_row": {
+                "open": 10.1,
+                "high": 10.1,
+                "low": 10.1,
+                "close": 10.1,
+                "volume": 300.0,
+                "transactions": 2,
+            },
+        }
+    ]

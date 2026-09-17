@@ -81,6 +81,13 @@ def _simulate_outcome(
     outcome: dict[str, Any], strategy_capital: float
 ) -> dict[str, Any]:
     bars = outcome["intraday_path"]
+    if not bars:
+        return {
+            **outcome["execution_result"],
+            "exit_reason": "NO_REGULAR_SESSION_PATH",
+            "capture_ratio": None,
+            "maximum_position_drawdown_pct": None,
+        }
     raw = simulate_trade(
         outcome["ticker"], float(bars[0]["open"]), bars, strategy_capital
     )
@@ -200,7 +207,11 @@ def build_same_universe_benchmark(
     ]
 
     top_outcomes = sorted(
-        outcome_result["outcomes"],
+        (
+            item
+            for item in outcome_result["outcomes"]
+            if item["intraday_path"]
+        ),
         key=lambda item: (-item["mfe_pct"], item["ticker"]),
     )[:10]
     benchmark_candidates: list[dict[str, Any]] = []

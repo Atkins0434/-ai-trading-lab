@@ -271,6 +271,7 @@
             "MIDDAY_LIQUIDATION",
             "SESSION_END",
             "ENTRY_REJECTED",
+            "NO_REGULAR_SESSION_PATH",
             null
           ]
         },
