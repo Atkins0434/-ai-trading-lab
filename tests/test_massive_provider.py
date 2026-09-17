@@ -5,7 +5,12 @@ from datetime import datetime, timezone
 import pytest
 
 from trainer.massive_capability_report import build_report
-from trainer.providers.base import ProviderError
+from trainer.providers.base import (
+    DEFINITIVE,
+    TRANSIENT,
+    ClassifiedProviderError,
+    ProviderError,
+)
 from trainer.providers.massive import (
     MassiveClient,
     canonical_price_bar,
@@ -225,3 +230,178 @@ def test_massive_retries_throttled_request_without_leaking_key():
     assert len(response_session.calls) == 2
     assert sleeps == [0]
     assert "secret-key" not in response_session.calls[0][0]
+
+
+def test_ticker_overview_classifies_404_and_empty_results_as_definitive():
+    class ResponseSession:
+        def __init__(self, responses):
+            self.responses = list(responses)
+
+        def get(self, *args, **kwargs):
+            return self.responses.pop(0)
+
+    not_found = MassiveClient(
+        "secret-key",
+        session=ResponseSession([
+            FakeResponse({"status": "ERROR"}, status_code=404),
+        ]),
+    )
+    with pytest.raises(ClassifiedProviderError) as caught:
+        not_found.get_ticker_overview("MISS", "2024-01-01")
+    assert caught.value.classification == DEFINITIVE
+    assert caught.value.http_status == 404
+    assert caught.value.retry_count == 0
+
+    no_results = MassiveClient(
+        "secret-key",
+        session=ResponseSession([
+            FakeResponse({"status": "OK", "results": None}),
+        ]),
+    )
+    with pytest.raises(ClassifiedProviderError) as caught:
+        no_results.get_ticker_overview("EMPTY", "2024-01-01")
+    assert caught.value.classification == DEFINITIVE
+    assert caught.value.http_status == 200
+    assert caught.value.exception_type == "EMPTY_RESULTS"
+
+
+def test_ticker_overview_retries_transient_status_and_exposes_retry_count():
+    from trainer.rate_control import RetryPolicy
+
+    class ResponseSession:
+        def __init__(self, responses):
+            self.responses = list(responses)
+            self.calls = 0
+
+        def get(self, *args, **kwargs):
+            self.calls += 1
+            return self.responses.pop(0)
+
+    sleeps = []
+    session = ResponseSession([
+        FakeResponse({"status": "ERROR"}, status_code=503),
+        FakeResponse({
+            "status": "OK",
+            "results": {"ticker": "RECOVERED"},
+        }),
+    ])
+    client = MassiveClient(
+        "secret-key",
+        session=session,
+        retry_policy=RetryPolicy(max_attempts=5),
+        sleep=sleeps.append,
+        jitter=lambda low, high: 0.0,
+    )
+
+    overview = client.get_ticker_overview("RECOVERED", "2024-01-01")
+
+    assert overview["ticker"] == "RECOVERED"
+    assert overview.transient_retries == 1
+    assert session.calls == 2
+    assert sleeps == [1.0]
+
+
+def test_ticker_overview_honors_retry_after_when_longer_than_backoff():
+    from trainer.rate_control import RetryPolicy
+
+    class ResponseSession:
+        def __init__(self, responses):
+            self.responses = list(responses)
+
+        def get(self, *args, **kwargs):
+            return self.responses.pop(0)
+
+    sleeps = []
+    client = MassiveClient(
+        "secret-key",
+        session=ResponseSession([
+            FakeResponse(
+                {"status": "ERROR"},
+                status_code=429,
+                headers={"Retry-After": "7"},
+            ),
+            FakeResponse({
+                "status": "OK",
+                "results": {"ticker": "RECOVERED"},
+            }),
+        ]),
+        retry_policy=RetryPolicy(max_attempts=5),
+        sleep=sleeps.append,
+        jitter=lambda low, high: 0.0,
+    )
+
+    assert client.get_ticker_overview(
+        "RECOVERED", "2024-01-01"
+    )["ticker"] == "RECOVERED"
+    assert sleeps == [7.0]
+
+
+def test_ticker_overview_persistent_503_exhausts_four_retries():
+    from trainer.rate_control import RetryPolicy
+
+    class ResponseSession:
+        def __init__(self):
+            self.calls = 0
+
+        def get(self, *args, **kwargs):
+            self.calls += 1
+            return FakeResponse({"status": "ERROR"}, status_code=503)
+
+    session = ResponseSession()
+    sleeps = []
+    client = MassiveClient(
+        "secret-key",
+        session=session,
+        retry_policy=RetryPolicy(max_attempts=5),
+        sleep=sleeps.append,
+        jitter=lambda low, high: 0.0,
+    )
+
+    with pytest.raises(ClassifiedProviderError) as caught:
+        client.get_ticker_overview("FAILED", "2024-01-01")
+
+    assert caught.value.classification == TRANSIENT
+    assert caught.value.http_status == 503
+    assert caught.value.retry_count == 4
+    assert caught.value.retries_exhausted is True
+    assert session.calls == 5
+    assert sleeps == [1.0, 2.0, 4.0, 8.0]
+
+
+@pytest.mark.parametrize(
+    "transport_error",
+    [pytest.param("timeout", id="timeout"), pytest.param("connection", id="connection")],
+)
+def test_ticker_overview_retries_transient_transport_errors(transport_error):
+    import requests
+
+    class ResponseSession:
+        def __init__(self):
+            self.calls = 0
+
+        def get(self, *args, **kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                if transport_error == "timeout":
+                    raise requests.Timeout("timed out")
+                raise requests.ConnectionError("connection dropped")
+            return FakeResponse({
+                "status": "OK",
+                "results": {"ticker": "RECOVERED"},
+            })
+
+    session = ResponseSession()
+    sleeps = []
+    client = MassiveClient(
+        "secret-key",
+        session=session,
+        sleep=sleeps.append,
+        jitter=lambda low, high: 0.0,
+    )
+
+    overview = client.get_ticker_overview("RECOVERED", "2024-01-01")
+
+    assert overview["ticker"] == "RECOVERED"
+    assert overview.transient_retries == 1
+    assert session.calls == 2
+    assert sleeps == [1.0]

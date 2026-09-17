@@ -4,12 +4,19 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import pytest
+
 from trainer.flatfile_snapshot import build_flatfile_snapshot
 from trainer.providers.massive_flatfiles import (
     DAY_AGGS_DATASET,
     MINUTE_AGGS_DATASET,
     PADDED_SOURCE,
     SOURCE,
+)
+from trainer.providers.base import (
+    DEFINITIVE,
+    TRANSIENT,
+    ClassifiedProviderError,
 )
 from trainer.replay_engine import (
     validate_freeze_timestamp,
@@ -348,12 +355,20 @@ def test_quarter_bucket_cache_reuses_first_lagged_fetch(tmp_path: Path):
         "fetches": 6,
         "quarter_reuse_hits": 0,
         "errors": 0,
+        "definitive_misses": 0,
+        "transient_retries": 0,
+        "unresolved_failures": 0,
+        "listed_after_lagged_date": 0,
     }
     assert second["source"]["query_parameters"]["ticker_overview_cache"] == {
         "hits": 6,
         "fetches": 0,
         "quarter_reuse_hits": 6,
         "errors": 0,
+        "definitive_misses": 0,
+        "transient_retries": 0,
+        "unresolved_failures": 0,
+        "listed_after_lagged_date": 0,
     }
     old = next(
         item for item in second["securities"] if item["ticker"] == "OLD"
@@ -495,3 +510,341 @@ def test_smoke_cap_is_sorted_before_fetch_and_disables_evidence(
     assert manifest["coverage_status"] == "complete"
     assert manifest["research_evidence"] is False
     assert manifest["promotion_eligible"] is False
+
+
+def _failure_fixture_flatfiles(tickers: tuple[str, ...]) -> FakeFlatFiles:
+    flatfiles = FakeFlatFiles()
+    flatfiles.records[(DAY_AGGS_DATASET, "2018-01-02")] = [
+        bar(
+            ticker,
+            datetime(2018, 1, 2, 0, 0, tzinfo=ET),
+            trading_date="2018-01-02",
+            session="DAILY",
+        )
+        for ticker in tickers
+    ]
+    return flatfiles
+
+
+def _ticker_row(ticker: str) -> dict:
+    return {
+        "ticker": ticker,
+        "active": True,
+        "type": "CS",
+        "primary_exchange": "XNAS",
+        "locale": "us",
+        "market": "stocks",
+        "share_class_figi": f"FIGI-{ticker}",
+        "list_date": "2010-01-01",
+    }
+
+
+def _overview(ticker: str) -> dict:
+    return {
+        "ticker": ticker,
+        "name": f"{ticker} OPERATING COMPANY",
+        "list_date": "2010-01-01",
+        "weighted_shares_outstanding": 100_000_000,
+        "period_of_report_date": "2017-06-30",
+    }
+
+
+def _disable_reference_retry_sleeps(monkeypatch):
+    original = universe_builder.TickerOverviewCache
+    monkeypatch.setattr(
+        universe_builder,
+        "TickerOverviewCache",
+        lambda root: original(
+            root,
+            sleep=lambda _: None,
+            jitter=lambda low, high: 0.0,
+        ),
+    )
+
+
+def test_definitive_overview_misses_and_recovered_503_keep_day_complete(
+    tmp_path: Path,
+    monkeypatch,
+):
+    tickers = ("MISSING1", "MISSING2", "RECOVERED")
+
+    class MixedFailureClient:
+        provider_name = "MASSIVE"
+
+        def __init__(self):
+            self.calls = []
+
+        def get_tickers(self, *args, **kwargs):
+            return [_ticker_row(ticker) for ticker in tickers]
+
+        def get_ticker_overview(self, ticker, as_of_date):
+            self.calls.append((ticker, as_of_date))
+            if ticker in {"MISSING1", "MISSING2"}:
+                raise ClassifiedProviderError(
+                    f"{ticker} not found",
+                    classification=DEFINITIVE,
+                    http_status=404,
+                    exception_type="HTTPError",
+                )
+            if sum(call[0] == ticker for call in self.calls) == 1:
+                raise ClassifiedProviderError(
+                    "temporary service outage",
+                    classification=TRANSIENT,
+                    http_status=503,
+                    exception_type="HTTPError",
+                )
+            return _overview(ticker)
+
+    _disable_reference_retry_sleeps(monkeypatch)
+    client = MixedFailureClient()
+    cache_root = tmp_path / "reference-cache"
+    manifest = build_point_in_time_universe(
+        client,
+        _failure_fixture_flatfiles(tickers),
+        "2018-01-03",
+        tmp_path / "first" / "daily_universe_manifest.json",
+        reference_cache_root=cache_root,
+        reference_fetch_workers=1,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+    telemetry = manifest["source"]["query_parameters"][
+        "ticker_overview_cache"
+    ]
+    by_ticker = {item["ticker"]: item for item in manifest["securities"]}
+
+    assert manifest["coverage_status"] == "complete"
+    assert manifest["capabilities"]["provider_response_complete"] is True
+    assert telemetry["definitive_misses"] == 2
+    assert telemetry["transient_retries"] == 1
+    assert telemetry["unresolved_failures"] == 0
+    assert telemetry["errors"] == 0
+    assert by_ticker["RECOVERED"]["inclusion"] is True
+    for ticker in ("MISSING1", "MISSING2"):
+        assert by_ticker[ticker]["inclusion"] is False
+        assert by_ticker[ticker]["reason_codes"] == [
+            "OVERVIEW_UNAVAILABLE_AT_LAGGED_DATE"
+        ]
+        assert by_ticker[ticker]["overview_failure"] == {
+            "classification": "DEFINITIVE",
+            "http_status": 404,
+            "exception_type": "HTTPError",
+        }
+
+    calls_after_first = list(client.calls)
+    resumed_from_negative_cache = build_point_in_time_universe(
+        client,
+        _failure_fixture_flatfiles(tickers),
+        "2018-01-03",
+        tmp_path / "second" / "daily_universe_manifest.json",
+        reference_cache_root=cache_root,
+        reference_fetch_workers=1,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+    assert client.calls == calls_after_first
+    assert resumed_from_negative_cache["source"]["query_parameters"][
+        "ticker_overview_cache"
+    ]["hits"] == 3
+
+
+def test_persistent_503_marks_day_incomplete_and_is_not_cached(
+    tmp_path: Path,
+    monkeypatch,
+):
+    ticker = "FAILED"
+
+    class PersistentFailureClient:
+        provider_name = "MASSIVE"
+
+        def __init__(self):
+            self.calls = 0
+
+        def get_tickers(self, *args, **kwargs):
+            return [_ticker_row(ticker)]
+
+        def get_ticker_overview(self, ticker, as_of_date):
+            self.calls += 1
+            raise ClassifiedProviderError(
+                "temporary service outage",
+                classification=TRANSIENT,
+                http_status=503,
+                exception_type="HTTPError",
+            )
+
+    _disable_reference_retry_sleeps(monkeypatch)
+    client = PersistentFailureClient()
+    cache_root = tmp_path / "reference-cache"
+    manifest = build_point_in_time_universe(
+        client,
+        _failure_fixture_flatfiles((ticker,)),
+        "2018-01-03",
+        tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=cache_root,
+        reference_fetch_workers=1,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+    telemetry = manifest["source"]["query_parameters"][
+        "ticker_overview_cache"
+    ]
+    failed = manifest["securities"][0]
+
+    assert client.calls == 5
+    assert manifest["coverage_status"] == "incomplete"
+    assert manifest["capabilities"]["provider_response_complete"] is False
+    assert manifest["research_evidence"] is False
+    assert telemetry["definitive_misses"] == 0
+    assert telemetry["transient_retries"] == 4
+    assert telemetry["unresolved_failures"] == 1
+    assert telemetry["errors"] == 1
+    assert failed["inclusion"] is False
+    assert failed["reason_codes"] == ["OVERVIEW_FETCH_FAILED"]
+    assert failed["overview_failure"] == {
+        "classification": "TRANSIENT",
+        "http_status": 503,
+        "exception_type": "HTTPError",
+    }
+    assert not list(cache_root.rglob("*.json"))
+
+
+def test_listing_after_lagged_date_skips_overview_fetch(tmp_path: Path):
+    ticker = "NEWLY"
+
+    class NewlyListedClient:
+        provider_name = "MASSIVE"
+
+        def __init__(self):
+            self.overview_calls = []
+
+        def get_tickers(self, *args, **kwargs):
+            return [{
+                **_ticker_row(ticker),
+                "list_date": "2017-12-01",
+            }]
+
+        def get_ticker_overview(self, ticker, as_of_date):
+            self.overview_calls.append((ticker, as_of_date))
+            raise AssertionError("post-lag listing must not fetch an overview")
+
+    client = NewlyListedClient()
+    manifest = build_point_in_time_universe(
+        client,
+        _failure_fixture_flatfiles((ticker,)),
+        "2018-01-03",
+        tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference-cache",
+        reference_fetch_workers=1,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+    skipped = manifest["securities"][0]
+    telemetry = manifest["source"]["query_parameters"][
+        "ticker_overview_cache"
+    ]
+
+    assert client.overview_calls == []
+    assert manifest["coverage_status"] == "complete"
+    assert manifest["capabilities"]["provider_response_complete"] is True
+    assert telemetry["listed_after_lagged_date"] == 1
+    assert telemetry["fetches"] == 0
+    assert skipped["inclusion"] is False
+    assert skipped["reason_codes"] == ["LISTED_AFTER_LAGGED_DATE"]
+    assert skipped["overview_failure"] is None
+
+
+def test_prior_close_above_configured_cap_is_excluded(tmp_path: Path):
+    ticker = "PRICEY"
+
+    class PriceCapClient:
+        provider_name = "MASSIVE"
+
+        def get_tickers(self, *args, **kwargs):
+            return [_ticker_row(ticker)]
+
+        def get_ticker_overview(self, ticker, as_of_date):
+            return {
+                **_overview(ticker),
+                "weighted_shares_outstanding": 1_000_000,
+            }
+
+    flatfiles = _failure_fixture_flatfiles((ticker,))
+    flatfiles.records[(DAY_AGGS_DATASET, "2018-01-02")][0] = bar(
+        ticker,
+        datetime(2018, 1, 2, 0, 0, tzinfo=ET),
+        trading_date="2018-01-02",
+        session="DAILY",
+        close=501.0,
+    )
+    manifest = build_point_in_time_universe(
+        PriceCapClient(),
+        flatfiles,
+        "2018-01-03",
+        tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference-cache",
+        reference_fetch_workers=1,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+    security = manifest["securities"][0]
+
+    assert security["prior_close"] == 501.0
+    assert security["market_cap_usd"] == 501_000_000
+    assert security["inclusion"] is False
+    assert security["reason_codes"] == ["SHARE_PRICE_ABOVE_CAP"]
+
+
+@pytest.mark.parametrize("issuer_field", ["cik", "composite_figi"])
+def test_one_class_per_issuer_keeps_highest_prior_dollar_volume(
+    tmp_path: Path,
+    issuer_field: str,
+):
+    tickers = ("CLASSA", "CLASSB")
+    issuer_value = "0001234567" if issuer_field == "cik" else "BBG000ISSUER"
+
+    class MultipleClassClient:
+        provider_name = "MASSIVE"
+
+        def get_tickers(self, *args, **kwargs):
+            return [
+                {**_ticker_row(ticker), issuer_field: issuer_value}
+                for ticker in tickers
+            ]
+
+        def get_ticker_overview(self, ticker, as_of_date):
+            return _overview(ticker)
+
+    flatfiles = _failure_fixture_flatfiles(tickers)
+    flatfiles.records[(DAY_AGGS_DATASET, "2018-01-02")] = [
+        bar(
+            "CLASSA",
+            datetime(2018, 1, 2, 0, 0, tzinfo=ET),
+            trading_date="2018-01-02",
+            session="DAILY",
+            close=10.0,
+            volume=1_000_000,
+        ),
+        bar(
+            "CLASSB",
+            datetime(2018, 1, 2, 0, 0, tzinfo=ET),
+            trading_date="2018-01-02",
+            session="DAILY",
+            close=10.0,
+            volume=2_000_000,
+        ),
+    ]
+    manifest = build_point_in_time_universe(
+        MultipleClassClient(),
+        flatfiles,
+        "2018-01-03",
+        tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference-cache",
+        reference_fetch_workers=1,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+    by_ticker = {item["ticker"]: item for item in manifest["securities"]}
+
+    assert by_ticker["CLASSB"]["inclusion"] is True
+    assert by_ticker["CLASSB"]["prior_session_dollar_volume"] == 20_000_000
+    assert by_ticker["CLASSA"]["inclusion"] is False
+    assert by_ticker["CLASSA"]["reason_codes"] == [
+        "DUPLICATE_SHARE_CLASS"
+    ]
+    assert by_ticker["CLASSA"][
+        "duplicate_share_class_kept_ticker"
+    ] == "CLASSB"

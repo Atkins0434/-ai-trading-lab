@@ -282,6 +282,15 @@ def _evaluate_record(
             "prior_close_as_of_timestamp"
         ),
         "market_cap_usd": market_cap,
+        "cik": record.get("cik"),
+        "composite_figi": record.get("composite_figi"),
+        "prior_session_dollar_volume": record.get(
+            "prior_session_dollar_volume"
+        ),
+        "duplicate_share_class_kept_ticker": record.get(
+            "duplicate_share_class_kept_ticker"
+        ),
+        "overview_failure": record.get("overview_failure"),
         "inclusion": not reasons,
         "reason_codes": reasons or ["ELIGIBLE"],
     }
@@ -390,6 +399,7 @@ def build_research_manifest(
     feed_version: str,
     query_parameters: dict[str, Any],
     capabilities: dict[str, Any],
+    one_class_per_issuer: bool | None = None,
     retrieved_at: str | None = None,
 ) -> dict[str, Any]:
     manifest = _base_manifest(
@@ -412,6 +422,73 @@ def build_research_manifest(
     cutoff = _parse_timestamp(manifest["information_cutoff"])
     assert cutoff is not None
     evaluated = [_evaluate_record(record, trading_date, cutoff) for record in records]
+
+    deduplicate_share_classes = (
+        _UNIVERSE_CONFIG.get("one_class_per_issuer") is True
+        if one_class_per_issuer is None
+        else one_class_per_issuer
+    )
+    if deduplicate_share_classes:
+        parent = list(range(len(evaluated)))
+
+        def find(index: int) -> int:
+            while parent[index] != index:
+                parent[index] = parent[parent[index]]
+                index = parent[index]
+            return index
+
+        def union(left: int, right: int) -> None:
+            left_root = find(left)
+            right_root = find(right)
+            if left_root != right_root:
+                parent[right_root] = left_root
+
+        issuer_owner: dict[tuple[str, str], int] = {}
+        for index, (item, _) in enumerate(evaluated):
+            if not item["inclusion"]:
+                continue
+            identifiers = []
+            if item.get("cik"):
+                identifiers.append(("CIK", str(item["cik"]).strip().upper()))
+            if item.get("composite_figi"):
+                identifiers.append((
+                    "COMPOSITE_FIGI",
+                    str(item["composite_figi"]).strip().upper(),
+                ))
+            for identifier in identifiers:
+                prior_index = issuer_owner.setdefault(identifier, index)
+                union(index, prior_index)
+
+        issuer_groups: dict[int, list[int]] = {}
+        for index, (item, _) in enumerate(evaluated):
+            if item["inclusion"] and (
+                item.get("cik") or item.get("composite_figi")
+            ):
+                issuer_groups.setdefault(find(index), []).append(index)
+        for indices in issuer_groups.values():
+            if len(indices) < 2:
+                continue
+            kept_index = min(
+                indices,
+                key=lambda index: (
+                    -float(
+                        evaluated[index][0].get(
+                            "prior_session_dollar_volume"
+                        )
+                        or 0
+                    ),
+                    evaluated[index][0]["ticker"],
+                ),
+            )
+            kept_ticker = evaluated[kept_index][0]["ticker"]
+            for index in indices:
+                if index == kept_index:
+                    continue
+                item, reasons = evaluated[index]
+                item["inclusion"] = False
+                item["reason_codes"] = ["DUPLICATE_SHARE_CLASS"]
+                item["duplicate_share_class_kept_ticker"] = kept_ticker
+                reasons.append("DUPLICATE_SHARE_CLASS")
 
     # A stable identity may have several ticker-history rows; at most one row
     # may be eligible for a date. This prevents ticker changes from duplicating

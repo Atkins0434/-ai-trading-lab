@@ -153,12 +153,50 @@ jobs:
                   if not security["inclusion"]
                   for reason in security["reason_codes"]
               )
-              print("Exclusion-reason counts:")
-              if reasons:
-                  for reason, count in sorted(reasons.items()):
-                      print(f"  {reason}: {count}")
-              else:
-                  print("  none")
+              security_type_reasons = {
+                  "SHELL_COMPANY", "SPAC_SECURITY", "SPAC_SUFFIX_SECURITY",
+                  "TEST_ISSUE", "OTC_SECURITY", "NON_OPERATING_PLACEHOLDER",
+              }
+
+              def exclusion_category(reason):
+                  if reason.startswith("SECURITY_TYPE_") or reason in security_type_reasons:
+                      return "security type"
+                  if reason == "DUPLICATE_SHARE_CLASS":
+                      return "security type"
+                  if reason in {
+                      "INELIGIBLE_LISTING_VENUE", "NON_US_LISTING",
+                      "NON_EQUITY_MARKET",
+                  }:
+                      return "venue"
+                  if (
+                      reason.startswith("MARKET_CAP_")
+                      or reason.startswith("SHARES_")
+                      or reason in {
+                          "LISTED_AFTER_LAGGED_DATE",
+                          "SHARE_PRICE_ABOVE_CAP",
+                      }
+                  ):
+                      return "market cap"
+                  if reason == "OVERVIEW_UNAVAILABLE_AT_LAGGED_DATE":
+                      return "overview unavailable"
+                  if reason == "OVERVIEW_FETCH_FAILED":
+                      return "overview failed"
+                  return "other"
+
+              categorized = {
+                  name: Counter()
+                  for name in (
+                      "security type", "venue", "market cap",
+                      "overview unavailable", "overview failed", "other",
+                  )
+              }
+              for reason, count in reasons.items():
+                  categorized[exclusion_category(reason)][reason] += count
+              print("Exclusion reasons by category:")
+              for category, category_reasons in categorized.items():
+                  print(f"  {category}: {sum(category_reasons.values())}")
+                  for reason, count in sorted(category_reasons.items()):
+                      print(f"    {reason}: {count}")
           else:
               print(f"Universe manifest unavailable: {universe_path}")
 
@@ -170,6 +208,18 @@ jobs:
                   f"date={replay.get('current_trading_date') or 'none'}, "
                   f"phase={replay.get('current_phase') or 'none'}"
               )
+              failed_day = next(
+                  (
+                      day for day in reversed(replay.get("days", []))
+                      if day.get("status") == "FAILED"
+                  ),
+                  None,
+              )
+              print(
+                  "Last phase: "
+                  f"{(failed_day or {}).get('current_phase') or replay.get('current_phase') or 'none'}"
+              )
+              print(f"Error: {(failed_day or {}).get('error') or 'none'}")
               print(
                   "Smoke mode: "
                   f"{replay.get('smoke_mode', False)} "
@@ -179,6 +229,10 @@ jobs:
               print(
                   "Reference cache: "
                   f"hits={cache['hits']}, fetches={cache['fetches']}, "
+                  f"definitive_misses={cache['definitive_misses']}, "
+                  f"transient_retries={cache['transient_retries']}, "
+                  f"unresolved_failures={cache['unresolved_failures']}, "
+                  f"listed_after_lagged_date={cache['listed_after_lagged_date']}, "
                   f"errors={cache['errors']}"
               )
               padded = (

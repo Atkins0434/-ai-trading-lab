@@ -7,6 +7,37 @@ class ProviderError(Exception):
     """Raised when provider data cannot be safely admitted to a replay."""
 
 
+DEFINITIVE = "DEFINITIVE"
+TRANSIENT = "TRANSIENT"
+
+
+class ClassifiedProviderError(ProviderError):
+    """Provider failure with evidence-safe retry and exclusion semantics."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        classification: str,
+        http_status: int | None = None,
+        exception_type: str | None = None,
+        retry_count: int = 0,
+        retry_after_seconds: float | None = None,
+        retries_exhausted: bool = False,
+    ) -> None:
+        if classification not in {DEFINITIVE, TRANSIENT}:
+            raise ValueError(
+                "classification must be DEFINITIVE or TRANSIENT."
+            )
+        super().__init__(message)
+        self.classification = classification
+        self.http_status = http_status
+        self.exception_type = exception_type or type(self).__name__
+        self.retry_count = retry_count
+        self.retry_after_seconds = retry_after_seconds
+        self.retries_exhausted = retries_exhausted
+
+
 class MarketDataProvider(Protocol):
     """Provider-neutral boundary used by historical snapshot builders."""
 

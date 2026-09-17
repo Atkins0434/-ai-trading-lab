@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import date, datetime, timezone
+from email.utils import parsedate_to_datetime
 import os
+import random
 import threading
 import time
 from typing import Any, Callable
@@ -9,13 +12,39 @@ from urllib.parse import urlparse
 
 import requests
 
-from trainer.providers.base import ProviderError
+from trainer.providers.base import (
+    DEFINITIVE,
+    TRANSIENT,
+    ClassifiedProviderError,
+    ProviderError,
+)
 from trainer.rate_control import (
     AdaptiveRateLimiter,
     RETRYABLE_STATUS_CODES,
     RetryPolicy,
     load_massive_plan,
 )
+
+
+@dataclass(frozen=True)
+class _RequestMetadata:
+    transient_retries: int
+    http_status: int | None
+
+
+class TickerOverviewResult(dict[str, Any]):
+    """Dictionary-compatible overview carrying operational retry metadata."""
+
+    def __init__(
+        self,
+        payload: dict[str, Any],
+        *,
+        transient_retries: int,
+        http_status: int | None,
+    ) -> None:
+        super().__init__(payload)
+        self.transient_retries = transient_retries
+        self.http_status = http_status
 
 
 class MassiveClient:
@@ -34,6 +63,7 @@ class MassiveClient:
         rate_limiter: AdaptiveRateLimiter | None = None,
         retry_policy: RetryPolicy | None = None,
         sleep: Callable[[float], None] = time.sleep,
+        jitter: Callable[[float, float], float] = random.uniform,
     ) -> None:
         if not api_key.strip():
             raise ProviderError("Massive API key is required.")
@@ -45,6 +75,7 @@ class MassiveClient:
         self._rate_limiter = rate_limiter
         self._retry_policy = retry_policy or RetryPolicy()
         self._sleep = sleep
+        self._jitter = jitter
         self.massive_plan = load_massive_plan()
 
     @classmethod
@@ -77,6 +108,165 @@ class MassiveClient:
             self._thread_local.session = session
         return session
 
+    @staticmethod
+    def _retry_after_seconds(response: Any) -> float | None:
+        raw = getattr(response, "headers", {}).get("Retry-After")
+        if raw is None:
+            return None
+        try:
+            return max(0.0, float(raw))
+        except (TypeError, ValueError):
+            try:
+                retry_at = parsedate_to_datetime(str(raw))
+                if retry_at.tzinfo is None:
+                    retry_at = retry_at.replace(tzinfo=timezone.utc)
+                return max(
+                    0.0,
+                    (retry_at - datetime.now(timezone.utc)).total_seconds(),
+                )
+            except (TypeError, ValueError, OverflowError):
+                return None
+
+    def _retry_delay(
+        self,
+        attempt: int,
+        retry_after_seconds: float | None,
+    ) -> float:
+        base = self._retry_policy.delay_for_attempt(attempt)
+        jittered = base + self._jitter(0.0, base * 0.25)
+        return max(jittered, retry_after_seconds or 0.0)
+
+    def _get_page_with_metadata(
+        self,
+        path_or_url: str,
+        params: dict[str, Any] | None = None,
+        *,
+        results_type: str = "array",
+        allow_missing_results: bool = False,
+    ) -> tuple[dict[str, Any], _RequestMetadata]:
+        if path_or_url.startswith("http"):
+            parsed = urlparse(path_or_url)
+            if parsed.scheme != "https" or parsed.netloc != "api.massive.com":
+                raise ProviderError("Massive pagination URL changed origin.")
+            url = path_or_url
+        else:
+            url = f"{self.base_url}{path_or_url}"
+
+        headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Accept": "application/json",
+        }
+        transient_retries = 0
+        max_attempts = min(self._retry_policy.max_attempts, 5)
+        for attempt in range(1, max_attempts + 1):
+            self._before_request()
+            if self._rate_limiter is not None:
+                self._rate_limiter.wait()
+            try:
+                response = self._request_session().get(
+                    url,
+                    params=params,
+                    headers=headers,
+                    timeout=self._timeout_seconds,
+                )
+            except (requests.ConnectionError, requests.Timeout) as exc:
+                if attempt < max_attempts:
+                    transient_retries += 1
+                    self._sleep(self._retry_delay(attempt, None))
+                    continue
+                raise ClassifiedProviderError(
+                    f"Massive request failed after transient retries: {exc}",
+                    classification=TRANSIENT,
+                    exception_type=type(exc).__name__,
+                    retry_count=transient_retries,
+                    retries_exhausted=True,
+                ) from exc
+            except requests.RequestException as exc:
+                raise ProviderError(
+                    f"Massive request failed: {exc}"
+                ) from exc
+
+            status_code = int(getattr(response, "status_code", 200))
+            retry_after_seconds = self._retry_after_seconds(response)
+            if status_code == 404:
+                raise ClassifiedProviderError(
+                    "Massive returned HTTP 404.",
+                    classification=DEFINITIVE,
+                    http_status=404,
+                    exception_type="HTTPError",
+                    retry_count=transient_retries,
+                )
+            is_transient_status = (
+                status_code == 429
+                or 500 <= status_code <= 599
+            )
+            if is_transient_status:
+                if self._rate_limiter is not None:
+                    self._rate_limiter.record_throttle(retry_after_seconds)
+                if attempt < max_attempts:
+                    transient_retries += 1
+                    self._sleep(
+                        self._retry_delay(attempt, retry_after_seconds)
+                    )
+                    continue
+                raise ClassifiedProviderError(
+                    f"Massive returned transient HTTP {status_code} after retries.",
+                    classification=TRANSIENT,
+                    http_status=status_code,
+                    exception_type="HTTPError",
+                    retry_count=transient_retries,
+                    retry_after_seconds=retry_after_seconds,
+                    retries_exhausted=True,
+                )
+            try:
+                response.raise_for_status()
+            except requests.RequestException as exc:
+                raise ProviderError(
+                    f"Massive request failed with HTTP {status_code}: {exc}"
+                ) from exc
+            try:
+                payload = response.json()
+            except ValueError as exc:
+                raise ProviderError(
+                    "Massive response was not valid JSON."
+                ) from exc
+            if self._rate_limiter is not None:
+                self._rate_limiter.record_success()
+            break
+        else:  # pragma: no cover - loop exits through success or exception.
+            raise ProviderError("Massive request loop ended unexpectedly.")
+
+        if not isinstance(payload, dict):
+            raise ProviderError("Massive response must be a JSON object.")
+        missing_allowed_result = (
+            allow_missing_results
+            and status_code == 200
+            and payload.get("results") in (None, {}, [])
+        )
+        if (
+            payload.get("status") not in {"OK", "DELAYED"}
+            and not missing_allowed_result
+        ):
+            message = payload.get("error") or payload.get("message") or "unknown"
+            raise ProviderError(f"Massive returned an error: {message}")
+        results = payload.get("results", [] if results_type == "array" else None)
+        if results_type == "array":
+            if not isinstance(results, list) or not all(
+                isinstance(item, dict) for item in results
+            ):
+                raise ProviderError("Massive results must be an array of objects.")
+        elif results_type == "object":
+            if allow_missing_results and results in (None, {}, []):
+                pass
+            elif not isinstance(results, dict):
+                raise ProviderError("Massive results must be an object.")
+        else:
+            raise ProviderError(f"Unsupported Massive results type: {results_type}")
+        return payload, _RequestMetadata(
+            transient_retries=transient_retries,
+            http_status=status_code,
+        )
+
     def _get_page(
         self,
         path_or_url: str,
@@ -84,6 +274,10 @@ class MassiveClient:
         *,
         results_type: str = "array",
     ) -> dict[str, Any]:
+        # Keep the established request behavior for aggregates, news, and
+        # ticker-list pagination. The classified retry path above is limited
+        # to Ticker Overview, whose per-ticker failures can be admitted or
+        # rejected independently by the universe builder.
         if path_or_url.startswith("http"):
             parsed = urlparse(path_or_url)
             if parsed.scheme != "https" or parsed.netloc != "api.massive.com":
@@ -111,7 +305,9 @@ class MassiveClient:
                 )
                 status_code = int(getattr(response, "status_code", 200))
                 if status_code in RETRYABLE_STATUS_CODES:
-                    retry_after = getattr(response, "headers", {}).get("Retry-After")
+                    retry_after = getattr(response, "headers", {}).get(
+                        "Retry-After"
+                    )
                     retry_after_seconds = None
                     if retry_after is not None:
                         try:
@@ -119,9 +315,13 @@ class MassiveClient:
                         except (TypeError, ValueError):
                             retry_after_seconds = None
                     if self._rate_limiter is not None:
-                        self._rate_limiter.record_throttle(retry_after_seconds)
+                        self._rate_limiter.record_throttle(
+                            retry_after_seconds
+                        )
                     if attempt < self._retry_policy.max_attempts:
-                        self._sleep(self._retry_policy.delay_for_attempt(attempt))
+                        self._sleep(
+                            self._retry_policy.delay_for_attempt(attempt)
+                        )
                         continue
                 response.raise_for_status()
                 payload = response.json()
@@ -134,24 +334,32 @@ class MassiveClient:
                     break
                 self._sleep(self._retry_policy.delay_for_attempt(attempt))
         if payload is None:
-            raise ProviderError(f"Massive request failed: {last_error}") from last_error
+            raise ProviderError(
+                f"Massive request failed: {last_error}"
+            ) from last_error
 
         if not isinstance(payload, dict):
             raise ProviderError("Massive response must be a JSON object.")
         if payload.get("status") not in {"OK", "DELAYED"}:
             message = payload.get("error") or payload.get("message") or "unknown"
             raise ProviderError(f"Massive returned an error: {message}")
-        results = payload.get("results", [] if results_type == "array" else None)
+        results = payload.get(
+            "results", [] if results_type == "array" else None
+        )
         if results_type == "array":
             if not isinstance(results, list) or not all(
                 isinstance(item, dict) for item in results
             ):
-                raise ProviderError("Massive results must be an array of objects.")
+                raise ProviderError(
+                    "Massive results must be an array of objects."
+                )
         elif results_type == "object":
             if not isinstance(results, dict):
                 raise ProviderError("Massive results must be an object.")
         else:
-            raise ProviderError(f"Unsupported Massive results type: {results_type}")
+            raise ProviderError(
+                f"Unsupported Massive results type: {results_type}"
+            )
         return payload
 
     def _get(
@@ -286,12 +494,28 @@ class MassiveClient:
     ) -> dict[str, Any]:
         """Return one point-in-time ticker details object."""
         date.fromisoformat(as_of_date)
-        payload = self._get_page(
+        payload, metadata = self._get_page_with_metadata(
             f"/v3/reference/tickers/{ticker.upper()}",
             {"date": as_of_date},
             results_type="object",
+            allow_missing_results=True,
         )
-        return payload["results"]
+        results = payload.get("results")
+        if results in (None, {}, []):
+            raise ClassifiedProviderError(
+                f"Massive returned no Ticker Overview for {ticker.upper()}.",
+                classification=DEFINITIVE,
+                http_status=200,
+                exception_type="EMPTY_RESULTS",
+                retry_count=metadata.transient_retries,
+            )
+        if not isinstance(results, dict):
+            raise ProviderError("Massive Ticker Overview must be an object.")
+        return TickerOverviewResult(
+            results,
+            transient_retries=metadata.transient_retries,
+            http_status=metadata.http_status,
+        )
 
     def historical_universe_capabilities(self) -> dict[str, Any]:
         """Declare only capabilities Massive can prove for this adapter.

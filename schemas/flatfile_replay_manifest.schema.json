@@ -112,12 +112,20 @@
     "referenceCache": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["hits", "fetches", "quarter_reuse_hits", "errors"],
+      "required": [
+        "hits", "fetches", "quarter_reuse_hits", "errors",
+        "definitive_misses", "transient_retries", "unresolved_failures",
+        "listed_after_lagged_date"
+      ],
       "properties": {
         "hits": {"type": "integer", "minimum": 0},
         "fetches": {"type": "integer", "minimum": 0},
         "quarter_reuse_hits": {"type": "integer", "minimum": 0},
-        "errors": {"type": "integer", "minimum": 0}
+        "errors": {"type": "integer", "minimum": 0},
+        "definitive_misses": {"type": "integer", "minimum": 0},
+        "transient_retries": {"type": "integer", "minimum": 0},
+        "unresolved_failures": {"type": "integer", "minimum": 0},
+        "listed_after_lagged_date": {"type": "integer", "minimum": 0}
       }
     },
     "day": {
