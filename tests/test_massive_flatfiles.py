@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
+from trainer.flatfile_inspect import inspect_cached_flatfile
 from trainer.providers.massive_flatfiles import (
     MINUTE_AGGS_DATASET,
     MassiveFlatFileError,
@@ -74,6 +75,40 @@ def test_flatfile_parser_uses_header_names_and_classifies_sessions(tmp_path: Pat
     assert bars[0]["open"] == 10.0
     assert bars[0]["high"] == 10.2
     assert bars[0]["source"] == SOURCE
+
+
+def test_flatfile_inspector_reports_raw_timestamps_and_session_buckets(
+    tmp_path: Path,
+):
+    store = MassiveFlatFileStore(object(), cache_root=tmp_path)
+    path = store.cache_path(MINUTE_AGGS_DATASET, "2018-01-02")
+    path.parent.mkdir(parents=True)
+    path.write_bytes(fixture_bytes())
+
+    result = inspect_cached_flatfile(
+        MINUTE_AGGS_DATASET,
+        "2018-01-02",
+        "TEST",
+        cache_root=tmp_path,
+    )
+
+    assert result["total_rows"] == 3
+    assert result["first_row"]["raw_timestamp"] == str(
+        nanos(datetime(2018, 1, 2, 6, 0, tzinfo=ET))
+    )
+    assert result["first_row"]["parsed_et_timestamp"] == (
+        "2018-01-02T06:00:00-05:00"
+    )
+    assert result["last_row"]["parsed_et_timestamp"] == (
+        "2018-01-02T16:01:00-05:00"
+    )
+    assert result["session_row_counts"] == {
+        "04:00-07:00": 1,
+        "07:00-09:30": 0,
+        "09:30-16:00": 1,
+        "16:00-20:00": 1,
+    }
+    assert len(result["first_three_positive_volume_before_09_30_et"]) == 1
 
 
 def test_s3_object_is_resolved_from_month_listing_and_verified_once(tmp_path: Path):

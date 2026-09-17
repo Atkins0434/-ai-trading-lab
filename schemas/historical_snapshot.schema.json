@@ -242,8 +242,7 @@
         "high",
         "low",
         "close",
-        "volume",
-        "source"
+        "volume"
       ],
       "properties": {
         "timestamp": {
@@ -255,8 +254,8 @@
         "low": {"type": "number", "exclusiveMinimum": 0},
         "close": {"type": "number", "exclusiveMinimum": 0},
         "volume": {"type": "number", "minimum": 0},
-        "source": {"type": "string", "minLength": 1},
-        "session": {"enum": ["PREMARKET", "REGULAR", "AFTERHOURS", "DAILY"]}
+        "source": {"type": "string"},
+        "session": {"type": "string"}
       }
     },
 

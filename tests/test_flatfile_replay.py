@@ -369,6 +369,72 @@ def test_smoke_day_grades_benchmark_but_skips_trainer_postmortem(
     assert "postmortem" not in result["artifacts"]
 
 
+def test_excessive_premarket_padding_fails_before_scoring(
+    tmp_path: Path,
+    monkeypatch,
+):
+    class SnapshotResult:
+        snapshot = {"execution_policy_version": "execution_disabled"}
+        outcome_bars = {}
+        padded_bar_statistics = {
+            "premarket_padded_bar_count": 55,
+            "premarket_bar_count": 60,
+            "premarket_padding_share": 55 / 60,
+        }
+
+    monkeypatch.setattr(
+        flatfile_replay,
+        "_ensure_day_files",
+        lambda *args, **kwargs: ([], []),
+    )
+    monkeypatch.setattr(
+        flatfile_replay,
+        "build_point_in_time_universe",
+        lambda *args, **kwargs: {
+            "coverage_status": "complete",
+            "coverage_reasons": [],
+            "eligible_symbol_count": 1,
+            "manifest_hash": "sha256:" + "a" * 64,
+            "research_evidence": True,
+            "source": {"query_parameters": {"ticker_overview_cache": {}}},
+        },
+    )
+    monkeypatch.setattr(
+        flatfile_replay,
+        "build_flatfile_snapshot",
+        lambda *args, **kwargs: SnapshotResult(),
+    )
+    monkeypatch.setattr(
+        flatfile_replay,
+        "run_research_scout_alpha",
+        lambda *args, **kwargs: pytest.fail(
+            "Premarket integrity failure must stop before scoring."
+        ),
+    )
+
+    result = flatfile_replay.run_flatfile_day(
+        object(),
+        object(),
+        "2018-01-03",
+        output_root=tmp_path,
+        lookback_sessions=1,
+        strategy_capital=2500.0,
+        threshold_pct=None,
+        exploration_top_k=0,
+        max_premarket_padding_share=0.90,
+    )
+
+    assert result["status"] == "FAILED"
+    assert result["error"] == "PREMARKET_DATA_ABSENT"
+    assert result["phase_status"]["snapshot"] == "COMPLETE"
+    assert result["phase_status"]["scoring"] == "SKIPPED"
+    assert result["scored_ticker_count"] == 0
+    assert result["padded_bar_statistics"]["premarket_padding_share"] == (
+        pytest.approx(55 / 60)
+    )
+    assert (tmp_path / "days" / "2018-01-03" / "historical_snapshot.json").is_file()
+
+
 def test_failure_between_phases_preserves_last_phase_and_error(
     tmp_path: Path,
     monkeypatch,
