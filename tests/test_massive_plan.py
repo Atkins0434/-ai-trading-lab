@@ -112,6 +112,8 @@ def test_flatfile_workflow_persists_versioned_provider_caches():
     assert "Definitive exclusions by reason:" in workflow
     assert "Coverage-gap count:" in workflow
     assert "Coverage gaps by reason:" in workflow
+    assert "Provider limitations:" in workflow
+    assert "provider_identifier_gap_count" in workflow
     assert "definitive_misses=" in workflow
     assert "transient_retries=" in workflow
     assert "unresolved_failures=" in workflow

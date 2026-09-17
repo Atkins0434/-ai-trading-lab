@@ -200,6 +200,12 @@ jobs:
               print("Coverage gaps by reason:")
               for reason, count in sorted(coverage_gaps.items()):
                   print(f"  {reason}: {count}")
+              provider_limitations = universe["provider_limitation_metrics"]
+              print("Provider limitations:")
+              print(
+                  "  provider_identifier_gap_count: "
+                  f"{provider_limitations['provider_identifier_gap_count']}"
+              )
           else:
               print(f"Universe manifest unavailable: {universe_path}")
 

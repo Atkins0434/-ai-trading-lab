@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime, time, timezone
 import hashlib
 import json
+import logging
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -14,6 +15,7 @@ from trainer.validate_contracts import validate_contract
 
 
 ET = ZoneInfo("America/New_York")
+LOGGER = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parent.parent
 UNIVERSE_CONFIG_PATH = ROOT / "config" / "universe.json"
 CI_FIXTURE = "ci_fixture"
@@ -67,6 +69,7 @@ EXCLUSION_REASON_CLASSIFICATION = {
     "DUPLICATE_SHARE_CLASS": DEFINITIVE,
     "DUPLICATE_STABLE_SECURITY_ID_FOR_DATE": DEFINITIVE,
     "OVERVIEW_UNAVAILABLE_AT_LAGGED_DATE": DEFINITIVE,
+    "OVERVIEW_NO_SHARE_COUNT": DEFINITIVE,
     "LISTED_AFTER_LAGGED_DATE": DEFINITIVE,
     "NO_PRIOR_SESSION_TRADE": DEFINITIVE,
     "NOT_YET_LISTED": DEFINITIVE,
@@ -78,7 +81,7 @@ EXCLUSION_REASON_CLASSIFICATION = {
     "OVERVIEW_FETCH_FAILED": GAP,
     "FUTURE_METADATA_AFTER_CUTOFF": GAP,
     "LISTING_DATE_MISSING": GAP,
-    "STABLE_SECURITY_ID_MISSING": GAP,
+    "STABLE_SECURITY_ID_MISSING": DEFINITIVE,
     "MARKET_CAP_POINT_IN_TIME_UNPROVEN": GAP,
     "METADATA_AVAILABILITY_MISSING": GAP,
     "TICKER_MISSING": GAP,
@@ -256,6 +259,15 @@ def _evaluate_record(
             and record["overview_failure"].get("classification") == DEFINITIVE
         )
     )
+    overview_no_share_count = (
+        "OVERVIEW_NO_SHARE_COUNT" in precomputed_reasons
+    )
+    share_count = record.get("shares_outstanding")
+    positive_share_count = (
+        isinstance(share_count, (int, float))
+        and not isinstance(share_count, bool)
+        and float(share_count) > 0
+    )
     reasons: list[str] = []
 
     metadata_available_at = _parse_timestamp(record.get("metadata_available_at"))
@@ -269,7 +281,12 @@ def _evaluate_record(
         stable_id = f"MISSING:{ticker or 'UNKNOWN'}"
     if not ticker:
         reasons.append("TICKER_MISSING")
-    if listing is None and not definitive_overview_miss:
+    if (
+        listing is None
+        and not definitive_overview_miss
+        and not overview_no_share_count
+        and not positive_share_count
+    ):
         reasons.append("LISTING_DATE_MISSING")
     elif listing is not None and listing > day:
         reasons.append("NOT_YET_LISTED")
@@ -321,6 +338,10 @@ def _evaluate_record(
     if not reasons:
         if not _known_by_cutoff(record, "market_cap", cutoff):
             reasons.append("MARKET_CAP_POINT_IN_TIME_UNPROVEN")
+            LOGGER.warning(
+                "MARKET_CAP_POINT_IN_TIME_UNPROVEN ticker=%s",
+                ticker or "UNKNOWN",
+            )
         elif not isinstance(market_cap, (int, float)):
             reasons.append("MARKET_CAP_MISSING")
         elif not MIN_MARKET_CAP <= float(market_cap) <= MAX_MARKET_CAP:
@@ -373,6 +394,7 @@ def _evaluate_record(
             "duplicate_share_class_kept_ticker"
         ),
         "overview_failure": record.get("overview_failure"),
+        "provider_identifier_gap": _stable_id(record) is None,
         "deciding_definitive_reason": _deciding_definitive_reason(reasons),
         "inclusion": not reasons,
         "reason_codes": reasons or ["ELIGIBLE"],
@@ -410,6 +432,9 @@ def _base_manifest(
         },
         "coverage_status": "incomplete",
         "coverage_reasons": [],
+        "provider_limitation_metrics": {
+            "provider_identifier_gap_count": 0,
+        },
         "securities": [],
         "eligible_symbol_count": 0,
         "excluded_symbol_count": 0,
@@ -461,6 +486,7 @@ def build_fixture_manifest(
             "listing_date": None,
             "delisting_date": None,
             "deciding_definitive_reason": None,
+            "provider_identifier_gap": False,
             "inclusion": ticker in eligible if eligible_securities is not None else ticker not in rejected,
             "reason_codes": (
                 ["CI_FIXTURE_ELIGIBLE"]
@@ -604,7 +630,8 @@ def build_research_manifest(
         )
         if gap_reasons and not definitive_reasons:
             coverage_reasons.append(
-                f"SECURITY_METADATA_INCOMPLETE:{item['stable_security_id']}"
+                "SECURITY_METADATA_INCOMPLETE:"
+                f"{item['stable_security_id']}:{item['ticker']}"
             )
         securities.append(item)
 
@@ -613,6 +640,12 @@ def build_research_manifest(
     )
     manifest["eligible_symbol_count"] = sum(item["inclusion"] for item in securities)
     manifest["excluded_symbol_count"] = len(securities) - manifest["eligible_symbol_count"]
+    manifest["provider_limitation_metrics"] = {
+        "provider_identifier_gap_count": sum(
+            bool(item["provider_identifier_gap"])
+            for item in securities
+        ),
+    }
     if not records:
         coverage_reasons.append("EMPTY_PROVIDER_UNIVERSE")
     manifest["coverage_reasons"] = sorted(set(coverage_reasons))
