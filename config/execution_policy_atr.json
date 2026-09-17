@@ -1,8 +1,8 @@
 {
-  "policy_id": "execution_policy_v1.0",
+  "policy_id": "execution_policy_atr_v1.0",
   "version": "1.0",
-  "status": "baseline",
-  "description": "Deterministic execution policy used by Scout Trainer for historical grading and later by the production execution layer.",
+  "status": "comparison",
+  "description": "ATR-based comparison policy for historical grading. It never supplies the primary benchmark verdict.",
 
   "capital": {
     "max_position_pct": 0.20,
@@ -26,10 +26,11 @@
   },
 
   "position_management": {
-    "exit_mode": "PERCENT",
-    "sizing_mode": "FIXED_FRACTION",
-    "trailing_stop_pct": 1.0,
-    "profit_take_pct": 20.0,
+    "exit_mode": "ATR",
+    "atr_stop_multiple": 1.5,
+    "atr_target_multiple": 4.0,
+    "sizing_mode": "RISK_PER_TRADE",
+    "risk_per_trade_pct": 1.0,
     "profit_take_action": "LIQUIDATE_FULL_POSITION"
   },
 

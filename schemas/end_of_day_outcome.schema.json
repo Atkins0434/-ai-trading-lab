@@ -17,7 +17,8 @@
     "universe_coverage",
     "research_evidence",
     "promotion_eligible",
-    "outcomes"
+    "outcomes",
+    "policy_comparisons"
   ],
 
   "properties": {
@@ -51,6 +52,11 @@
       "items": {
         "$ref": "#/$defs/securityOutcome"
       }
+    },
+
+    "policy_comparisons": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/policyComparison"}
     }
   },
 
@@ -203,7 +209,16 @@
 
       "required": [
         "trade_executed",
-        "realized_return_pct"
+        "realized_return_pct",
+        "policy_id",
+        "exit_mode",
+        "sizing_mode",
+        "stop_distance_usd",
+        "stop_distance_pct",
+        "target_distance_usd",
+        "target_distance_pct",
+        "risk_usd_at_entry",
+        "entry_rejection_reason"
       ],
 
       "properties": {
@@ -299,6 +314,93 @@
             "number",
             "null"
           ]
+        },
+
+        "policy_id": {"type": "string", "minLength": 1},
+        "exit_mode": {"enum": ["PERCENT", "ATR"]},
+        "sizing_mode": {"enum": ["FIXED_FRACTION", "RISK_PER_TRADE"]},
+        "stop_distance_usd": {"type": ["number", "null"], "minimum": 0},
+        "stop_distance_pct": {"type": ["number", "null"], "minimum": 0},
+        "target_distance_usd": {"type": ["number", "null"], "minimum": 0},
+        "target_distance_pct": {"type": ["number", "null"], "minimum": 0},
+        "risk_usd_at_entry": {"type": ["number", "null"], "minimum": 0},
+        "entry_rejection_reason": {
+          "type": ["string", "null"],
+          "enum": [
+            "ATR_UNAVAILABLE",
+            "POSITION_TOO_SMALL",
+            "MAX_POSITIONS_REACHED",
+            null
+          ]
+        }
+      }
+    },
+
+    "policyComparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy_id", "exit_mode", "sizing_mode", "executions", "summary"
+      ],
+      "properties": {
+        "policy_id": {"type": "string", "minLength": 1},
+        "exit_mode": {"enum": ["PERCENT", "ATR"]},
+        "sizing_mode": {"enum": ["FIXED_FRACTION", "RISK_PER_TRADE"]},
+        "executions": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/comparisonExecution"}
+        },
+        "summary": {"$ref": "#/$defs/policySummary"}
+      }
+    },
+
+    "comparisonExecution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ticker", "cohort", "benchmark_rank", "execution_result"
+      ],
+      "properties": {
+        "ticker": {"type": "string", "minLength": 1},
+        "cohort": {"enum": ["SCOUT_SELECTION", "TOP_10_MOVER"]},
+        "benchmark_rank": {"type": ["integer", "null"], "minimum": 1, "maximum": 10},
+        "execution_result": {"$ref": "#/$defs/executionResult"}
+      }
+    },
+
+    "policySummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "net_realized_pnl_usd", "realized_return_pct", "win_rate_pct",
+        "average_winner_pct", "average_loser_pct", "average_capture_ratio",
+        "max_drawdown_pct", "exit_reason_counts"
+      ],
+      "properties": {
+        "net_realized_pnl_usd": {"type": "number"},
+        "realized_return_pct": {"type": "number"},
+        "win_rate_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "average_winner_pct": {"type": ["number", "null"]},
+        "average_loser_pct": {"type": ["number", "null"]},
+        "average_capture_ratio": {"type": ["number", "null"]},
+        "max_drawdown_pct": {"type": ["number", "null"]},
+        "exit_reason_counts": {"$ref": "#/$defs/exitReasonCounts"}
+      }
+    },
+
+    "exitReasonCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "TRAILING_STOP", "PROFIT_TARGET", "SESSION_END", "ENTRY_REJECTED"
+      ],
+      "properties": {
+        "TRAILING_STOP": {"type": "integer", "minimum": 0},
+        "PROFIT_TARGET": {"type": "integer", "minimum": 0},
+        "SESSION_END": {"type": "integer", "minimum": 0},
+        "ENTRY_REJECTED": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 0}
         }
       }
     }

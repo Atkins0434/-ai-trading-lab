@@ -60,6 +60,7 @@
         "scout_realized_return_pct", "scout_exit_reason",
         "scout_exit_timestamp", "fair_simulation_possible",
         "simulation_exclusion_reason", "trade_executed",
+        "entry_timestamp", "entry_price", "exit_timestamp", "exit_price",
         "realized_return_pct", "realized_pnl_usd", "capture_ratio",
         "exit_reason"
       ],
@@ -81,6 +82,10 @@
         "fair_simulation_possible": {"type": "boolean"},
         "simulation_exclusion_reason": {"$ref": "#/$defs/nullableString"},
         "trade_executed": {"type": ["boolean", "null"]},
+        "entry_timestamp": {"type": ["string", "null"], "format": "date-time"},
+        "entry_price": {"$ref": "#/$defs/nullableNumber"},
+        "exit_timestamp": {"type": ["string", "null"], "format": "date-time"},
+        "exit_price": {"$ref": "#/$defs/nullableNumber"},
         "realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
         "realized_pnl_usd": {"$ref": "#/$defs/nullableNumber"},
         "capture_ratio": {"$ref": "#/$defs/nullableNumber"},

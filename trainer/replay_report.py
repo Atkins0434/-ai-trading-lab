@@ -4,6 +4,7 @@ import argparse
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
+from statistics import mean
 from typing import Any, Iterable
 
 from reportlab.lib import colors
@@ -31,6 +32,7 @@ from trainer.validate_contracts import load_json
 
 ROOT = Path(__file__).resolve().parents[1]
 SCOUT_CONFIG_PATH = ROOT / "config" / "scout_alpha_v1.json"
+EXECUTION_POLICY_PATH = ROOT / "config" / "execution_policy.json"
 PAGE_WIDTH, _ = landscape(letter)
 MARGIN = 24
 CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN
@@ -42,10 +44,11 @@ GROSS_FOOTER = "GROSS — no execution costs modeled"
 SECTIONS = (
     "1. Day summary",
     "2. Scout trades",
-    "3. Top-10 movers of the day",
-    "4. Scorability and universe",
-    "5. Scored candidates",
-    "6. Postmortem",
+    "3. Execution policy comparison",
+    "4. Top-10 movers of the day",
+    "5. Scorability and universe",
+    "6. Scored candidates",
+    "7. Postmortem",
 )
 METRIC_IDS = (
     "relative_volume",
@@ -223,6 +226,128 @@ def _zero_selection_reason(scout: dict[str, Any]) -> str:
     return "No Scout trades were selected because candidates failed the threshold and/or guardrails."
 
 
+def _policy_summary(
+    executions: list[dict[str, Any]],
+    realized_return_pct: float,
+) -> dict[str, Any]:
+    completed = [item for item in executions if item.get("trade_executed")]
+    returns = [float(item["realized_return_pct"]) for item in completed]
+    winners = [value for value in returns if value > 0]
+    losers = [value for value in returns if value < 0]
+    captures = [
+        float(item["capture_ratio"])
+        for item in completed
+        if item.get("capture_ratio") is not None
+    ]
+    drawdowns = [
+        float(item["maximum_position_drawdown_pct"])
+        for item in completed
+        if item.get("maximum_position_drawdown_pct") is not None
+    ]
+    normal = Counter(
+        item.get("exit_reason")
+        for item in executions
+        if item.get("exit_reason") in {
+            "TRAILING_STOP", "PROFIT_TARGET", "SESSION_END"
+        }
+    )
+    rejected = Counter(
+        item.get("entry_rejection_reason") or "UNSPECIFIED"
+        for item in executions
+        if item.get("exit_reason") == "ENTRY_REJECTED"
+    )
+    return {
+        "net_realized_pnl_usd": sum(
+            float(item.get("realized_pnl_usd") or 0) for item in completed
+        ),
+        "realized_return_pct": realized_return_pct,
+        "win_rate_pct": (
+            sum(value > 0 for value in returns) / len(returns) * 100
+            if returns else None
+        ),
+        "average_winner_pct": mean(winners) if winners else None,
+        "average_loser_pct": mean(losers) if losers else None,
+        "average_capture_ratio": mean(captures) if captures else None,
+        "max_drawdown_pct": min(drawdowns) if drawdowns else None,
+        "exit_reason_counts": {
+            "TRAILING_STOP": normal["TRAILING_STOP"],
+            "PROFIT_TARGET": normal["PROFIT_TARGET"],
+            "SESSION_END": normal["SESSION_END"],
+            "ENTRY_REJECTED": dict(sorted(rejected.items())),
+        },
+    }
+
+
+def _execution_matrix(
+    outcome: dict[str, Any],
+    benchmark: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    primary_executions = [
+        item["execution_result"]
+        for item in outcome.get("outcomes", [])
+        if item.get(
+            "selected", item.get("execution_result", {}).get("trade_executed", False)
+        )
+    ]
+    sample = next(iter(primary_executions), {})
+    primary_config = load_json(EXECUTION_POLICY_PATH)
+    primary_management = primary_config["position_management"]
+    combined = benchmark.get("combined_summary", benchmark["scout_summary"])
+    policies = [{
+        "policy_id": sample.get(
+            "policy_id", primary_config["policy_id"]
+        ),
+        "exit_mode": sample.get(
+            "exit_mode", primary_management["exit_mode"]
+        ),
+        "sizing_mode": sample.get(
+            "sizing_mode", primary_management["sizing_mode"]
+        ),
+        "summary": _policy_summary(
+            primary_executions,
+            float(combined["realized_return_pct"]),
+        ),
+    }]
+    policies.extend(outcome.get("policy_comparisons", []))
+
+    rows: dict[tuple[str, str, int | None], dict[str, Any]] = {}
+    primary_id = policies[0]["policy_id"]
+    for item in outcome.get("outcomes", []):
+        if item.get(
+            "selected", item.get("execution_result", {}).get("trade_executed", False)
+        ):
+            key = ("SCOUT_SELECTION", item["ticker"], None)
+            rows.setdefault(key, {"cohort": key[0], "ticker": key[1], "rank": None, "executions": {}})
+            rows[key]["executions"][primary_id] = item["execution_result"]
+    for item in benchmark.get("benchmark_candidates", []):
+        key = ("TOP_10_MOVER", item["ticker"], item["benchmark_rank"])
+        rows.setdefault(key, {"cohort": key[0], "ticker": key[1], "rank": key[2], "executions": {}})
+        rows[key]["executions"][primary_id] = {
+            "entry_timestamp": item.get("entry_timestamp"),
+            "entry_price": item.get("entry_price"),
+            "exit_timestamp": item.get("exit_timestamp"),
+            "exit_price": item.get("exit_price"),
+            "exit_reason": item.get("exit_reason") or item.get("simulation_exclusion_reason"),
+            "realized_return_pct": item.get("realized_return_pct"),
+            "capture_ratio": item.get("capture_ratio"),
+        }
+    for policy in outcome.get("policy_comparisons", []):
+        for item in policy.get("executions", []):
+            key = (item["cohort"], item["ticker"], item.get("benchmark_rank"))
+            rows.setdefault(key, {"cohort": key[0], "ticker": key[1], "rank": key[2], "executions": {}})
+            rows[key]["executions"][policy["policy_id"]] = item["execution_result"]
+    ordered = sorted(
+        rows.values(),
+        key=lambda item: (
+            0 if item["cohort"] == "SCOUT_SELECTION" else 1,
+            item["rank"] is None,
+            item["rank"] or 999,
+            item["ticker"],
+        ),
+    )
+    return policies, ordered
+
+
 def build_daily_report_model(
     artifacts: dict[str, Any],
     *,
@@ -300,6 +425,9 @@ def build_daily_report_model(
     minimum_real_bars_60m = int(
         load_json(SCOUT_CONFIG_PATH)["minimum_real_bars_60m"]
     )
+    execution_policies, execution_comparison_rows = _execution_matrix(
+        outcome, benchmark
+    )
     return {
         "replay_id": snapshot["replay_id"],
         "trading_date": snapshot["trading_date"],
@@ -330,6 +458,8 @@ def build_daily_report_model(
         "postmortem": postmortem,
         "miss_category_counts": miss_counts,
         "threshold_reviews": threshold_reviews,
+        "execution_policies": execution_policies,
+        "execution_comparison_rows": execution_comparison_rows,
     }
 
 
@@ -454,8 +584,100 @@ def _scout_trades(story: list[Any], model: dict[str, Any], styles: dict[str, Par
     story.append(_table(rows, [value*inch for value in widths], right_columns=(0,2,4,5,7,9,10,11,12,13), font_size=6.0))
 
 
-def _movers(story: list[Any], model: dict[str, Any], styles: dict[str, ParagraphStyle]) -> None:
+def _exit_counts(value: dict[str, Any]) -> str:
+    rejected = value.get("ENTRY_REJECTED", {})
+    rejected_text = ",".join(
+        f"{reason}:{count}" for reason, count in sorted(rejected.items())
+    ) or "0"
+    return (
+        f"STOP:{value.get('TRAILING_STOP', 0)} "
+        f"TARGET:{value.get('PROFIT_TARGET', 0)} "
+        f"EOD:{value.get('SESSION_END', 0)} "
+        f"REJECT:{rejected_text}"
+    )
+
+
+def _execution_policy_comparison(
+    story: list[Any],
+    model: dict[str, Any],
+    styles: dict[str, ParagraphStyle],
+) -> None:
     _page(story, SECTIONS[2], styles)
+    summary_rows = [[
+        "Policy", "Exit", "Sizing", "Net P&L", "Return", "Win rate",
+        "Avg winner", "Avg loser", "Avg capture", "Max DD", "Exit counts",
+    ]]
+    for policy in model["execution_policies"]:
+        summary = policy["summary"]
+        summary_rows.append([
+            policy["policy_id"], policy["exit_mode"], policy["sizing_mode"],
+            _fmt_money(summary["net_realized_pnl_usd"]),
+            _fmt_pct(summary["realized_return_pct"]),
+            _fmt_pct(summary["win_rate_pct"]),
+            _fmt_pct(summary["average_winner_pct"]),
+            _fmt_pct(summary["average_loser_pct"]),
+            _fmt_pct(
+                None if summary["average_capture_ratio"] is None
+                else float(summary["average_capture_ratio"]) * 100
+            ),
+            _fmt_pct(summary["max_drawdown_pct"]),
+            _exit_counts(summary["exit_reason_counts"]),
+        ])
+    story.append(_table(
+        summary_rows,
+        [1.35*inch,0.55*inch,0.9*inch,0.72*inch,0.62*inch,0.62*inch,
+         0.68*inch,0.68*inch,0.75*inch,0.62*inch,2.25*inch],
+        right_columns=(3,4,5,6,7,8,9),
+        font_size=5.8,
+    ))
+    story.append(Paragraph(
+        "Per-ticker Scout selections and top movers (policies shown side by side)",
+        styles["subsection"],
+    ))
+    policies = model["execution_policies"]
+    header = ["Cohort", "Rk", "Ticker"]
+    widths = [0.82*inch, 0.3*inch, 0.55*inch]
+    for policy in policies:
+        short = policy["policy_id"].replace("execution_policy_", "")
+        header.extend([
+            f"{short} entry", f"{short} exit", f"{short} reason",
+            f"{short} return", f"{short} capture",
+        ])
+        widths.extend([0.85*inch,0.85*inch,0.95*inch,0.58*inch,0.58*inch])
+    rows = [header]
+    for item in model["execution_comparison_rows"]:
+        row = [
+            "SCOUT" if item["cohort"] == "SCOUT_SELECTION" else "TOP-10",
+            str(item["rank"] or "—"),
+            item["ticker"],
+        ]
+        for policy in policies:
+            execution = item["executions"].get(policy["policy_id"], {})
+            row.extend([
+                f"{_fmt_time(execution.get('entry_timestamp'))} @ {_fmt_money(execution.get('entry_price'))}",
+                f"{_fmt_time(execution.get('exit_timestamp'))} @ {_fmt_money(execution.get('exit_price'))}",
+                execution.get("entry_rejection_reason") or execution.get("exit_reason") or "—",
+                _fmt_pct(execution.get("realized_return_pct")),
+                _fmt_pct(
+                    None if execution.get("capture_ratio") is None
+                    else float(execution["capture_ratio"]) * 100
+                ),
+            ])
+        rows.append(row)
+    if len(rows) == 1:
+        rows.append(["None", "—", "—"] + ["—"] * (5 * len(policies)))
+    story.append(_table(
+        rows, widths,
+        right_columns=tuple(
+            index for index, name in enumerate(header)
+            if name.endswith("return") or name.endswith("capture") or name == "Rk"
+        ),
+        font_size=4.8 if len(policies) > 1 else 5.8,
+    ))
+
+
+def _movers(story: list[Any], model: dict[str, Any], styles: dict[str, ParagraphStyle]) -> None:
+    _page(story, SECTIONS[3], styles)
     rows = [["Rk", "Ticker", "Max move", "Selected", "Scorable", "Sim return", "Exit reason", "Miss classification"]]
     for item in model["mover_rows"]:
         rows.append([
@@ -488,7 +710,7 @@ def _movers(story: list[Any], model: dict[str, Any], styles: dict[str, Paragraph
 
 
 def _scorability(story: list[Any], model: dict[str, Any], styles: dict[str, ParagraphStyle]) -> None:
-    _page(story, SECTIONS[3], styles)
+    _page(story, SECTIONS[4], styles)
     story.append(Paragraph(f"Minimum real bars in the final 60 minutes: {model['minimum_real_bars_60m']}", styles["body"]))
     story.append(Spacer(1, 5))
     histogram_rows = [["Real bars (60m)", "Ticker count"]] + [[label, str(count)] for label, count in model["histogram"]]
@@ -533,7 +755,7 @@ def _candidate_block(candidate: dict[str, Any], styles: dict[str, ParagraphStyle
 
 
 def _candidates(story: list[Any], model: dict[str, Any], styles: dict[str, ParagraphStyle]) -> None:
-    _page(story, SECTIONS[4], styles)
+    _page(story, SECTIONS[5], styles)
     if not model["scored_candidates"]:
         story.append(Paragraph("No candidates were scorable.", styles["body"]))
         return
@@ -542,7 +764,7 @@ def _candidates(story: list[Any], model: dict[str, Any], styles: dict[str, Parag
 
 
 def _postmortem(story: list[Any], model: dict[str, Any], styles: dict[str, ParagraphStyle]) -> None:
-    _page(story, SECTIONS[5], styles)
+    _page(story, SECTIONS[6], styles)
     postmortem = model["postmortem"]
     if postmortem is None:
         story.append(Paragraph("Postmortem was not produced for this day (smoke or non-research evidence mode).", styles["body"]))
@@ -593,6 +815,7 @@ def generate_daily_replay_report(
     story: list[Any] = []
     _day_summary(story, model, styles)
     _scout_trades(story, model, styles)
+    _execution_policy_comparison(story, model, styles)
     _movers(story, model, styles)
     _scorability(story, model, styles)
     _candidates(story, model, styles)

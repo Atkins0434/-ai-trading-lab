@@ -196,6 +196,18 @@
 
             "average_daily_range_pct": {
               "$ref": "#/$defs/marketObservation"
+            },
+
+            "atr_14_usd": {
+              "$ref": "#/$defs/marketObservation"
+            },
+
+            "atr_lookback_sessions": {
+              "$ref": "#/$defs/marketObservation"
+            },
+
+            "atr_sessions_used": {
+              "$ref": "#/$defs/marketObservation"
             }
           }
         },
@@ -292,6 +304,10 @@
             "string",
             "null"
           ]
+        },
+        "missing_reason": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },

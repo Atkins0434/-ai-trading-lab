@@ -354,7 +354,12 @@ def run_massive_alpha_batch(
         _write_json(outcome_path, outcome)
         _write_json(benchmark_path, benchmark)
         _write_json(postmortem_path, postmortem)
-        generate_postmortem_pdf(benchmark, postmortem, postmortem_pdf_path)
+        generate_postmortem_pdf(
+            benchmark,
+            postmortem,
+            postmortem_pdf_path,
+            outcome_result=outcome,
+        )
 
     scored = sorted(candidate["ticker"] for candidate in result["candidates"])
     if not scored:

@@ -299,6 +299,7 @@ def _run_flatfile_day_impl(
     exploration_top_k: int,
     reference_cache_root: Path = Path("data/reference_cache"),
     morning_freeze_time: str = "09:15:00",
+    comparison_policy_paths: list[Path | str] | None = None,
     max_tickers: int | None = None,
     progress_callback: ProgressCallback | None = None,
     progress: dict[str, Any],
@@ -412,6 +413,7 @@ def _run_flatfile_day_impl(
             scout,
             snapshot_result.outcome_bars,
             strategy_capital,
+            comparison_policy_paths=comparison_policy_paths,
         )
         _write_json(outcome_path, outcome)
         artifacts["end_of_day_outcome"] = relative(outcome_path)
@@ -451,7 +453,10 @@ def _run_flatfile_day_impl(
             )
             _write_json(postmortem_path, postmortem)
             generate_postmortem_pdf(
-                benchmark, postmortem, postmortem_pdf_path
+                benchmark,
+                postmortem,
+                postmortem_pdf_path,
+                outcome_result=outcome,
             )
             artifacts.update({
                 "postmortem": relative(postmortem_path),
@@ -498,6 +503,7 @@ def run_flatfile_day(
     exploration_top_k: int,
     reference_cache_root: Path = Path("data/reference_cache"),
     morning_freeze_time: str = "09:15:00",
+    comparison_policy_paths: list[Path | str] | None = None,
     max_tickers: int | None = None,
     progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
@@ -519,6 +525,7 @@ def run_flatfile_day(
             exploration_top_k=exploration_top_k,
             reference_cache_root=reference_cache_root,
             morning_freeze_time=morning_freeze_time,
+            comparison_policy_paths=comparison_policy_paths,
             max_tickers=max_tickers,
             progress_callback=progress_callback,
             progress=progress,
@@ -543,6 +550,7 @@ def run_flatfile_replay(
     exploration_top_k: int = 0,
     max_tickers: int | None = None,
     morning_freeze_time: str = "09:15:00",
+    comparison_policy_paths: list[Path | str] | None = None,
     reference_cache_root: Path = Path("data/reference_cache"),
     resume: bool = True,
     day_runner: DayRunner = run_flatfile_day,
@@ -574,6 +582,9 @@ def run_flatfile_replay(
         "threshold_pct": threshold_pct,
         "exploration_top_k": exploration_top_k,
     }
+    normalized_comparison_paths = [
+        str(value) for value in (comparison_policy_paths or [])
+    ]
     active_plan = load_massive_plan()
     universe_config = load_universe_config()
     universe_policy = {
@@ -599,6 +610,8 @@ def run_flatfile_replay(
             and prior.get("strategy_capital_usd") == strategy_capital
             and prior.get("morning_freeze_time") == morning_freeze_time
             and prior.get("selection_policy") == selection_policy
+            and prior.get("comparison_policy_paths", [])
+            == normalized_comparison_paths
             and prior.get("universe_policy") == universe_policy
             and prior.get("smoke_mode", False) is smoke_mode
             and prior.get("max_tickers") == max_tickers
@@ -657,6 +670,7 @@ def run_flatfile_replay(
             "baseline_lookback_sessions": lookback_sessions,
             "strategy_capital_usd": strategy_capital,
             "morning_freeze_time": morning_freeze_time,
+            "comparison_policy_paths": normalized_comparison_paths,
             "selection_policy": selection_policy,
             "universe_policy": universe_policy,
             "requested_dates": dates,
@@ -718,6 +732,7 @@ def run_flatfile_replay(
                 lookback_sessions=lookback_sessions,
                 strategy_capital=strategy_capital,
                 morning_freeze_time=morning_freeze_time,
+                comparison_policy_paths=normalized_comparison_paths,
                 threshold_pct=threshold_pct,
                 exploration_top_k=exploration_top_k,
                 max_tickers=max_tickers,
@@ -811,9 +826,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    config = load_flatfile_replay_config()
     dates = generate_trading_dates(args.start, args.end)
     output_root = args.output_root or (
-        Path(load_flatfile_replay_config()["output_root"])
+        Path(config["output_root"])
         / f"{args.start}-to-{args.end}"
     )
     reference_client = MassiveClient.from_environment(
@@ -830,8 +846,9 @@ def main() -> None:
         lookback_sessions=args.lookback_sessions,
         strategy_capital=args.strategy_capital,
         morning_freeze_time=str(
-            load_flatfile_replay_config()["morning_freeze_time"]
+            config["morning_freeze_time"]
         ),
+        comparison_policy_paths=config["comparison_policy_paths"],
         threshold_pct=args.threshold_pct,
         exploration_top_k=args.exploration_top_k,
         max_tickers=args.max_tickers,

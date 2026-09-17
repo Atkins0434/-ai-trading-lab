@@ -4,6 +4,9 @@
   "baseline_lookback_sessions": 20,
   "morning_freeze_time": "09:15:00",
   "strategy_capital_usd": 2500.0,
+  "comparison_policy_paths": [
+    "config/execution_policy_atr.json"
+  ],
   "cache_root": "data/flatfiles",
   "reference_cache_root": "data/reference_cache",
   "output_root": "reports/flatfile_replay"
