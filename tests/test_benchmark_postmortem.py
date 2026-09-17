@@ -617,3 +617,105 @@ def test_no_path_ticker_remains_in_same_universe_return_baseline():
     assert baselines["eligible_ticker_count"] == 1
     assert baselines["eligible_ticker_mean_realized_pnl_usd"] == 0.0
     assert baselines["random_draw_mean_realized_return_pct"] == 0.0
+
+
+def test_postmortem_surfaces_policy_review_and_universe_scorability():
+    candidate = _candidate(selected=True, total_score=35)
+    scout = {
+        "scout_version": "research_scout_alpha_v1.0",
+        **EVIDENCE,
+        "candidates": [candidate],
+    }
+    champion_execution = {
+        "trade_executed": True,
+        "policy_id": "execution_policy_v1.0",
+        "exit_mode": "PERCENT",
+        "sizing_mode": "FIXED_FRACTION",
+        "realized_return_pct": 5.0,
+        "realized_pnl_usd": 25.0,
+        "capture_ratio": 0.5,
+        "maximum_position_drawdown_pct": -0.9,
+        "exit_reason": "TRAILING_STOP",
+    }
+    challenger_execution = {
+        **champion_execution,
+        "policy_id": "execution_policy_atr_v1.0",
+        "exit_mode": "ATR",
+        "sizing_mode": "RISK_PER_TRADE",
+        "realized_return_pct": 4.2,
+        "realized_pnl_usd": 21.0,
+        "capture_ratio": 0.42,
+        "maximum_position_drawdown_pct": -0.4,
+        "exit_reason": "PROFIT_TARGET",
+    }
+    outcome = {
+        "outcomes": [{
+            "ticker": "MOVE",
+            "selected": True,
+            "execution_result": champion_execution,
+        }],
+        "policy_comparisons": [{
+            "policy_id": "execution_policy_atr_v1.0",
+            "exit_mode": "ATR",
+            "sizing_mode": "RISK_PER_TRADE",
+            "executions": [
+                {
+                    "ticker": "MOVE", "cohort": cohort,
+                    "benchmark_rank": None if cohort == "SCOUT_SELECTION" else 1,
+                    "execution_result": challenger_execution,
+                }
+                for cohort in ("SCOUT_SELECTION", "TOP_10_MOVER")
+            ],
+        }],
+    }
+    benchmark = _benchmark(selected=True)
+    benchmark["benchmark_candidates"][0][
+        "maximum_position_drawdown_pct"
+    ] = -0.9
+
+    result = build_postmortem(
+        _snapshot(),
+        scout,
+        benchmark,
+        outcome_result=outcome,
+        bar_statistics={
+            "by_ticker": {
+                "MOVE": {
+                    "real_premarket": 0,
+                    "real_premarket_60m": 0,
+                    "real_regular": 1,
+                },
+                "OTHER": {
+                    "real_premarket": 5,
+                    "real_premarket_60m": 0,
+                    "real_regular": 1,
+                },
+            }
+        },
+        scorability_statistics={
+            "universe_ticker_count": 2,
+            "scorable_ticker_count": 1,
+            "not_scorable_share": 0.5,
+        },
+        strategy_capital_usd=2500.0,
+    )
+
+    assert [item["policy_id"] for item in result["execution_policy_review"]] == [
+        "execution_policy_v1.0", "execution_policy_atr_v1.0"
+    ]
+    challenger = result["execution_policy_review"][1]
+    selection = challenger["cohort_summaries"]["SCOUT_SELECTION"]
+    assert selection["trades_executed"] == 1
+    assert selection["realized_return_pct"] == pytest.approx(4.2)
+    assert selection["delta_vs_champion"]["return_pct"] == pytest.approx(-0.8)
+    assert result["execution_policy_verdict"]["best_challenger_policy_id"] == (
+        "execution_policy_atr_v1.0"
+    )
+    assert result["universe_scorability"] == {
+        "eligible_count": 2,
+        "scorable_count": 1,
+        "not_scorable_share": 0.5,
+        "zero_premarket_bar_count": 1,
+        "zero_premarket_60m_bar_count": 2,
+        "top_10_invisible_count": 0,
+    }

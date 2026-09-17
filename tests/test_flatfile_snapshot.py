@@ -61,6 +61,12 @@ def _write_cached_csv(path: Path, rows: list[str]) -> None:
     path.write_bytes(gzip.compress(("\n".join([HEADER, *rows]) + "\n").encode()))
 
 
+def _write_identity_csv(path: Path, rows: list[str]) -> None:
+    header = HEADER + ",stable_security_id"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(gzip.compress(("\n".join([header, *rows]) + "\n").encode()))
+
+
 def _manifest(trading_date: str) -> dict:
     cutoff = datetime.combine(
         date.fromisoformat(trading_date), time(0), tzinfo=ET
@@ -297,3 +303,73 @@ def test_atr_is_missing_with_reason_when_history_is_short(tmp_path: Path):
     atr = result.snapshot["securities"][0]["market_data"]["atr_14_usd"]
     assert atr["value"] is None
     assert atr["missing_reason"] == "INSUFFICIENT_ATR_HISTORY"
+
+
+def test_security_id_join_separates_shared_ticker_and_quarantines_discontinuity(
+    tmp_path: Path,
+):
+    trading_date = "2024-03-15"
+    previous_date = previous_trading_sessions(trading_date, 1)[0]
+    store = MassiveFlatFileStore(object(), cache_root=tmp_path)
+    midnight = datetime.combine(
+        date.fromisoformat(previous_date), time(0), tzinfo=timezone.utc
+    )
+    regular = datetime(2024, 3, 15, 10, 0, tzinfo=ET)
+    manifest = _manifest(trading_date)
+    template = manifest["securities"][0]
+    manifest["securities"] = [
+        {**template, "stable_security_id": "SEC-A", "prior_close": 10.0},
+        {**template, "stable_security_id": "SEC-B", "prior_close": 100.0},
+    ]
+    _write_identity_csv(
+        store.cache_path(DAY_AGGS_DATASET, previous_date),
+        [
+            _row("AAL", midnight, close=10.0, volume=1000) + ",SEC-A",
+            _row("AAL", midnight, close=100.0, volume=1000) + ",SEC-B",
+        ],
+    )
+    _write_identity_csv(
+        store.cache_path(MINUTE_AGGS_DATASET, previous_date), []
+    )
+    _write_identity_csv(
+        store.cache_path(MINUTE_AGGS_DATASET, trading_date),
+        [
+            _row("AAL", regular, close=10.0, volume=100) + ",SEC-A",
+            _row("AAL", regular, close=100.0, volume=100) + ",SEC-B",
+        ],
+    )
+
+    result = build_flatfile_snapshot(
+        trading_date, manifest, store, lookback_sessions=1
+    )
+
+    assert result.outcome_bars["SEC-A"][0]["close"] == 10.0
+    assert result.outcome_bars["SEC-B"][0]["close"] == 100.0
+    assert set(result.bar_statistics["by_stable_security_id"]) == {
+        "SEC-A", "SEC-B"
+    }
+
+    # A provider identity that is not in the point-in-time universe is dropped.
+    _write_identity_csv(
+        store.cache_path(MINUTE_AGGS_DATASET, trading_date),
+        [
+            _row("AAL", regular, close=10.0, volume=100) + ",SEC-A",
+            _row(
+                "AAL", regular.replace(minute=1), close=20.0, volume=100
+            ) + ",SEC-A",
+            _row("AAL", regular, close=50.0, volume=100) + ",UNKNOWN",
+        ],
+    )
+    result = build_flatfile_snapshot(
+        trading_date, manifest, store, lookback_sessions=1
+    )
+    assert result.bar_statistics["unresolved_bar_row_count"] == 1
+    assert result.excluded_tickers == [{
+        "ticker": "AAL",
+        "reason": "BAR_DISCONTINUITY",
+        "previous_timestamp": "2024-03-15T10:00:00-04:00",
+        "current_timestamp": "2024-03-15T10:01:00-04:00",
+        "previous_close": 10.0,
+        "current_close": 20.0,
+        "close_change_pct": 100.0,
+    }]

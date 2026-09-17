@@ -121,6 +121,11 @@
           "minLength": 1
         },
 
+        "stable_security_id": {
+          "type": "string",
+          "minLength": 1
+        },
+
         "exchange": {
           "type": "string"
         },

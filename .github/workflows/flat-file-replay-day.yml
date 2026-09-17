@@ -277,6 +277,11 @@ jobs:
                       "Tickers with no regular-session path: "
                       + (", ".join(no_path_tickers) or "none")
                   )
+                  excluded = replay["days"][0].get("excluded_tickers", [])
+                  print(
+                      "Tickers excluded for bar discontinuity: "
+                      + (", ".join(sorted(item["ticker"] for item in excluded)) or "none")
+                  )
               else:
                   print("  unavailable")
               scorability = (

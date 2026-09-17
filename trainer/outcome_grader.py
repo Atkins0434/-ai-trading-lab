@@ -26,6 +26,29 @@ EXPLORATION_TOP_K = "EXPLORATION_TOP_K"
 NOT_SELECTED = "NOT_SELECTED"
 
 
+def _log_grading_progress(
+    policy_id: str,
+    completed: int,
+    total: int,
+    started: float,
+    *,
+    log_every: int = 250,
+) -> None:
+    elapsed = time.perf_counter() - started
+    rate = completed / elapsed if elapsed > 0 else 0.0
+    eta = (total - completed) / rate if rate > 0 else 0.0
+    message = (
+        f"phase=grading policy_id={policy_id} tickers={completed}/{total} "
+        f"elapsed_seconds={elapsed:.1f} eta_seconds={eta:.1f}"
+    )
+    if sys.stderr.isatty():
+        print(f"\r[outcome_grader] {message}", end="", file=sys.stderr, flush=True)
+        if completed == total:
+            print(file=sys.stderr, flush=True)
+    if completed == total or completed % log_every == 0:
+        print(f"[outcome_grader] {message}", file=sys.stderr, flush=True)
+
+
 def _parse_timestamp(raw: str, ticker: str) -> datetime:
     try:
         parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
@@ -96,8 +119,8 @@ def path_statistics(
             f"ticker={ticker}: reference price must be positive."
         )
 
-    mfe_pct = (max(bar["high"] for bar in bars) / reference_price - 1) * 100
-    mae_pct = (min(bar["low"] for bar in bars) / reference_price - 1) * 100
+    day_mfe_pct = (max(bar["high"] for bar in bars) / reference_price - 1) * 100
+    day_mae_pct = (min(bar["low"] for bar in bars) / reference_price - 1) * 100
 
     running_low = float(bars[0]["low"])
     maximum_move_pct = 0.0
@@ -107,9 +130,35 @@ def path_statistics(
         maximum_move_pct = max(maximum_move_pct, move_pct)
 
     return {
-        "mfe_pct": mfe_pct,
-        "mae_pct": mae_pct,
+        "day_mfe_pct": day_mfe_pct,
+        "day_mae_pct": day_mae_pct,
         "maximum_capturable_move_pct": maximum_move_pct,
+    }
+
+
+def _held_statistics(
+    bars: list[dict[str, Any]],
+    reference_price: float,
+    exit_timestamp: str | None,
+) -> dict[str, float | None]:
+    if exit_timestamp is None:
+        return {"mfe_pct": None, "mae_pct": None}
+    exit_at = datetime.fromisoformat(exit_timestamp.replace("Z", "+00:00"))
+    held = [
+        bar
+        for bar in bars
+        if datetime.fromisoformat(bar["timestamp"].replace("Z", "+00:00"))
+        <= exit_at
+    ]
+    if not held:
+        return {"mfe_pct": None, "mae_pct": None}
+    return {
+        "mfe_pct": (
+            max(float(bar["high"]) for bar in held) / reference_price - 1
+        ) * 100,
+        "mae_pct": (
+            min(float(bar["low"]) for bar in held) / reference_price - 1
+        ) * 100,
     }
 
 
@@ -117,13 +166,18 @@ def _execution_contract(
     execution: dict[str, Any],
     entry_timestamp: str,
     maximum_move_pct: float,
-    mae_pct: float,
+    bars: list[dict[str, Any]],
 ) -> dict[str, Any]:
     realized_return = float(execution["realized_return_pct"])
     capture_ratio = (
         realized_return / maximum_move_pct
         if maximum_move_pct > 0
         else None
+    )
+    held = _held_statistics(
+        bars,
+        float(execution["entry_price"]),
+        execution.get("exit_timestamp"),
     )
     return {
         "trade_executed": execution["trade_executed"],
@@ -139,7 +193,9 @@ def _execution_contract(
         "realized_pnl_usd": execution.get("realized_pnl_usd"),
         "realized_return_pct": realized_return,
         "capture_ratio": capture_ratio,
-        "maximum_position_drawdown_pct": mae_pct,
+        "mfe_pct": held["mfe_pct"],
+        "mae_pct": held["mae_pct"],
+        "maximum_position_drawdown_pct": held["mae_pct"],
         "policy_id": execution["policy_id"],
         "exit_mode": execution["exit_mode"],
         "sizing_mode": execution["sizing_mode"],
@@ -170,6 +226,8 @@ def _no_trade_contract(
         "realized_pnl_usd": 0.0,
         "realized_return_pct": 0.0,
         "capture_ratio": None,
+        "mfe_pct": None,
+        "mae_pct": None,
         "maximum_position_drawdown_pct": None,
         "policy_id": policy.policy_id,
         "exit_mode": policy.exit_mode,
@@ -200,7 +258,6 @@ def _simulate_contract(
     atr_14_usd: float | None,
     strategy_capital: float,
     maximum_move_pct: float,
-    mae_pct: float,
 ) -> dict[str, Any]:
     try:
         raw_execution = simulate_trade(
@@ -219,7 +276,7 @@ def _simulate_contract(
         raw_execution,
         bars[0]["timestamp"],
         maximum_move_pct,
-        mae_pct,
+        bars,
     )
 
 
@@ -281,10 +338,14 @@ def grade_replay_outcomes(
     bars_by_ticker: dict[str, list[dict[str, Any]]],
     strategy_capital: float,
     comparison_policy_paths: list[Path | str] | None = None,
+    excluded_tickers: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Grade every Scout candidate and execute only selected candidates."""
     policy = load_execution_policy()
     atr_values = _atr_by_ticker(snapshot)
+    execution_exclusions = {
+        item["ticker"]: item["reason"] for item in (excluded_tickers or [])
+    }
     primary_started = time.perf_counter()
     def is_selected(candidate: dict[str, Any]) -> bool:
         return bool(candidate.get("selected", candidate.get("research_selected", False)))
@@ -332,12 +393,15 @@ def grade_replay_outcomes(
     }
 
     outcomes = []
-    for candidate in scout_result["candidates"]:
+    candidates = scout_result["candidates"]
+    primary_progress_started = time.perf_counter()
+    for completed, candidate in enumerate(candidates, start=1):
         ticker = candidate["ticker"]
         bars = bars_by_ticker.get(ticker) or []
         selected = is_selected(candidate)
         basis = selection_basis(candidate)
-        if not bars:
+        exclusion_reason = execution_exclusions.get(ticker)
+        if not bars or exclusion_reason is not None:
             outcomes.append(
                 {
                     "ticker": ticker,
@@ -348,12 +412,18 @@ def grade_replay_outcomes(
                     "intraday_path": [],
                     "mfe_pct": 0.0,
                     "mae_pct": 0.0,
+                    "day_mfe_pct": 0.0,
+                    "day_mae_pct": 0.0,
                     "maximum_capturable_move_pct": None,
+                    "execution_exclusion_reason": exclusion_reason,
                     "execution_result": _no_trade_contract(
                         policy,
-                        "NO_REGULAR_SESSION_PATH"
+                        exclusion_reason or "NO_REGULAR_SESSION_PATH"
                     ),
                 }
+            )
+            _log_grading_progress(
+                policy.policy_id, completed, len(candidates), primary_progress_started
             )
             continue
         validate_outcome_bars(bars, ticker=ticker)
@@ -368,7 +438,6 @@ def grade_replay_outcomes(
                 atr_14_usd=atr_values.get(ticker),
                 strategy_capital=strategy_capital,
                 maximum_move_pct=stats["maximum_capturable_move_pct"],
-                mae_pct=stats["mae_pct"],
             )
         elif selected:
             execution = _no_trade_contract(
@@ -379,6 +448,10 @@ def grade_replay_outcomes(
         else:
             execution = _no_trade_contract(policy)
 
+        held = {
+            "mfe_pct": execution.get("mfe_pct"),
+            "mae_pct": execution.get("mae_pct"),
+        }
         outcomes.append(
             {
                 "ticker": ticker,
@@ -388,8 +461,22 @@ def grade_replay_outcomes(
                 "scout_score_pct": candidate["score_pct"],
                 "intraday_path": bars,
                 **stats,
+                "mfe_pct": (
+                    held["mfe_pct"]
+                    if held["mfe_pct"] is not None
+                    else stats["day_mfe_pct"]
+                ),
+                "mae_pct": (
+                    held["mae_pct"]
+                    if held["mae_pct"] is not None
+                    else stats["day_mae_pct"]
+                ),
+                "execution_exclusion_reason": None,
                 "execution_result": execution,
             }
+        )
+        _log_grading_progress(
+            policy.policy_id, completed, len(candidates), primary_progress_started
         )
 
     print(
@@ -402,8 +489,11 @@ def grade_replay_outcomes(
 
     outcome_by_ticker = {item["ticker"]: item for item in outcomes}
     top_outcomes = sorted(
-        (item for item in outcomes if item["intraday_path"]),
-        key=lambda item: (-item["mfe_pct"], item["ticker"]),
+        (
+            item for item in outcomes
+            if item["intraday_path"] and not item["execution_exclusion_reason"]
+        ),
+        key=lambda item: (-item["day_mfe_pct"], item["ticker"]),
     )[:10]
     policy_comparisons = []
     seen_policy_ids = {policy.policy_id}
@@ -448,7 +538,6 @@ def grade_replay_outcomes(
                     maximum_move_pct=observed[
                         "maximum_capturable_move_pct"
                     ],
-                    mae_pct=observed["mae_pct"],
                 )
             selected_results.append(execution)
             comparison_executions.append({
@@ -476,7 +565,6 @@ def grade_replay_outcomes(
                     maximum_move_pct=observed[
                         "maximum_capturable_move_pct"
                     ],
-                    mae_pct=observed["mae_pct"],
                 )
             comparison_executions.append({
                 "ticker": ticker,

@@ -175,6 +175,13 @@ def parse_flatfile_row(
     try:
         result = {
             "ticker": ticker.upper(),
+            "stable_security_id": _row_value(
+                row,
+                "stable_security_id",
+                "security_id",
+                "share_class_figi",
+                "figi",
+            ),
             "timestamp": timestamp.isoformat(),
             "trading_date": file_trading_date,
             "open": float(_row_value(row, "open", "o") or "nan"),

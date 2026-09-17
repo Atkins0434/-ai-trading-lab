@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import random
+from datetime import datetime
 from statistics import mean
+import sys
+import time
 from typing import Any
 
 from trainer.evidence_eligibility import EvidenceEligibilityError, assert_matching_universe
@@ -81,10 +84,13 @@ def _simulate_outcome(
     outcome: dict[str, Any], strategy_capital: float
 ) -> dict[str, Any]:
     bars = outcome["intraday_path"]
-    if not bars:
+    if not bars or outcome.get("execution_exclusion_reason"):
         return {
             **outcome["execution_result"],
-            "exit_reason": "NO_REGULAR_SESSION_PATH",
+            "exit_reason": (
+                outcome.get("execution_exclusion_reason")
+                or "NO_REGULAR_SESSION_PATH"
+            ),
             "capture_ratio": None,
             "maximum_position_drawdown_pct": None,
         }
@@ -92,6 +98,19 @@ def _simulate_outcome(
         outcome["ticker"], float(bars[0]["open"]), bars, strategy_capital
     )
     maximum_move = float(outcome["maximum_capturable_move_pct"])
+    exit_at = datetime.fromisoformat(
+        raw["exit_timestamp"].replace("Z", "+00:00")
+    )
+    held = [
+        bar for bar in bars
+        if datetime.fromisoformat(
+            bar["timestamp"].replace("Z", "+00:00")
+        ) <= exit_at
+    ]
+    held_mae = (
+        min(float(bar["low"]) for bar in held) / float(bars[0]["open"])
+        - 1
+    ) * 100
     return {
         **raw,
         "entry_timestamp": bars[0]["timestamp"],
@@ -100,7 +119,7 @@ def _simulate_outcome(
             if maximum_move > 0
             else None
         ),
-        "maximum_position_drawdown_pct": outcome["mae_pct"],
+        "maximum_position_drawdown_pct": held_mae,
     }
 
 
@@ -112,7 +131,22 @@ def _return_baselines(
     """Build deterministic same-policy baselines from the eligible universe."""
     policy = load_execution_policy()
     ordered = sorted(eligible_outcomes, key=lambda item: item["ticker"])
-    executions = [_simulate_outcome(item, strategy_capital) for item in ordered]
+    executions = []
+    started = time.perf_counter()
+    total = len(ordered)
+    for completed, item in enumerate(ordered, start=1):
+        executions.append(_simulate_outcome(item, strategy_capital))
+        if completed == total or completed % 250 == 0:
+            elapsed = time.perf_counter() - started
+            rate = completed / elapsed if elapsed > 0 else 0.0
+            eta = (total - completed) / rate if rate > 0 else 0.0
+            print(
+                "[benchmark] phase=random_baseline_inputs "
+                f"tickers={completed}/{total} elapsed_seconds={elapsed:.1f} "
+                f"eta_seconds={eta:.1f}",
+                file=sys.stderr,
+                flush=True,
+            )
     if selected_count > len(executions):
         raise BenchmarkError(
             "Scout selected count exceeds the same-day eligible universe."
@@ -212,8 +246,11 @@ def build_same_universe_benchmark(
             item
             for item in outcome_result["outcomes"]
             if item["intraday_path"]
+            and not item.get("execution_exclusion_reason")
         ),
-        key=lambda item: (-item["mfe_pct"], item["ticker"]),
+        key=lambda item: (
+            -item.get("day_mfe_pct", item["mfe_pct"]), item["ticker"]
+        ),
     )[:10]
     benchmark_candidates: list[dict[str, Any]] = []
     benchmark_executions: list[dict[str, Any]] = []
@@ -236,7 +273,9 @@ def build_same_universe_benchmark(
             {
                 "ticker": outcome["ticker"],
                 "benchmark_rank": rank,
-                "raw_move_pct": outcome["mfe_pct"],
+                "raw_move_pct": outcome.get(
+                    "day_mfe_pct", outcome["mfe_pct"]
+                ),
                 "maximum_capturable_move_pct": outcome[
                     "maximum_capturable_move_pct"
                 ],
@@ -277,6 +316,10 @@ def build_same_universe_benchmark(
                 ),
                 "capture_ratio": (
                     execution["capture_ratio"] if execution else None
+                ),
+                "maximum_position_drawdown_pct": (
+                    execution.get("maximum_position_drawdown_pct")
+                    if execution else None
                 ),
                 "exit_reason": execution["exit_reason"] if execution else None,
             }

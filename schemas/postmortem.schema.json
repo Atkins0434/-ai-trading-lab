@@ -10,7 +10,8 @@
     "execution_policy_version", "massive_plan", "universe_mode", "universe_manifest_hash",
     "universe_coverage", "research_evidence", "promotion_eligible", "result",
     "scout_performance", "benchmark_performance", "unreachable_mover_count",
-    "unreachable_pct", "missed_opportunities", "execution_policy_review",
+    "unreachable_pct", "universe_scorability", "missed_opportunities", "execution_policy_review",
+    "execution_policy_verdict",
     "feature_failures", "feature_proposals"
   ],
   "properties": {
@@ -30,12 +31,14 @@
     "benchmark_performance": {"$ref": "#/$defs/performance"},
     "unreachable_mover_count": {"type": "integer", "minimum": 0, "maximum": 10},
     "unreachable_pct": {"type": "number", "minimum": 0, "maximum": 100},
+    "universe_scorability": {"$ref": "#/$defs/universeScorability"},
     "missed_opportunities": {
       "type": "array", "items": {"$ref": "#/$defs/missedOpportunity"}
     },
     "execution_policy_review": {
       "type": "array", "items": {"$ref": "#/$defs/executionReview"}
     },
+    "execution_policy_verdict": {"$ref": "#/$defs/executionPolicyVerdict"},
     "feature_failures": {
       "type": "array", "items": {"$ref": "#/$defs/featureFailure"}
     },
@@ -115,18 +118,109 @@
       }
     },
     "executionReview": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["policy_id", "exit_mode", "sizing_mode", "cohort_summaries"],
+          "properties": {
+            "policy_id": {"type": "string", "minLength": 1},
+            "exit_mode": {"enum": ["PERCENT", "ATR"]},
+            "sizing_mode": {"enum": ["FIXED_FRACTION", "RISK_PER_TRADE"]},
+            "cohort_summaries": {
+              "type": "object", "additionalProperties": false,
+              "required": ["SCOUT_SELECTION", "TOP_10_MOVER"],
+              "properties": {
+                "SCOUT_SELECTION": {"$ref": "#/$defs/cohortSummary"},
+                "TOP_10_MOVER": {"$ref": "#/$defs/cohortSummary"}
+              }
+            }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["ticker", "benchmark_rank", "realized_return_pct", "maximum_capturable_move_pct", "exit_reason", "reason_codes"],
+          "properties": {
+            "ticker": {"type": "string"},
+            "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10},
+            "realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
+            "maximum_capturable_move_pct": {"type": "number"},
+            "exit_reason": {"$ref": "#/$defs/nullableString"},
+            "reason_codes": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      ]
+    },
+    "cohortSummary": {
       "type": "object", "additionalProperties": false,
       "required": [
-        "ticker", "benchmark_rank", "realized_return_pct",
-        "maximum_capturable_move_pct", "exit_reason", "reason_codes"
+        "trades_executed", "realized_return_pct", "net_realized_pnl_usd",
+        "average_capture_ratio", "win_rate_pct", "max_drawdown_pct",
+        "exit_reason_counts", "delta_vs_champion"
       ],
       "properties": {
-        "ticker": {"type": "string"},
-        "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10},
-        "realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
-        "maximum_capturable_move_pct": {"type": "number"},
-        "exit_reason": {"$ref": "#/$defs/nullableString"},
-        "reason_codes": {"type": "array", "items": {"type": "string"}}
+        "trades_executed": {"type": "integer", "minimum": 0},
+        "realized_return_pct": {"type": "number"},
+        "net_realized_pnl_usd": {"type": "number"},
+        "average_capture_ratio": {"$ref": "#/$defs/nullableNumber"},
+        "win_rate_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "max_drawdown_pct": {"$ref": "#/$defs/nullableNumber"},
+        "exit_reason_counts": {
+          "type": "object", "additionalProperties": false,
+          "required": ["TRAILING_STOP", "PROFIT_TARGET", "SESSION_END", "ENTRY_REJECTED"],
+          "properties": {
+            "TRAILING_STOP": {"type": "integer", "minimum": 0},
+            "PROFIT_TARGET": {"type": "integer", "minimum": 0},
+            "SESSION_END": {"type": "integer", "minimum": 0},
+            "ENTRY_REJECTED": {
+              "type": "object", "additionalProperties": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        "delta_vs_champion": {
+          "type": "object", "additionalProperties": false,
+          "required": ["return_pct", "capture_ratio"],
+          "properties": {
+            "return_pct": {"$ref": "#/$defs/nullableNumber"},
+            "capture_ratio": {"$ref": "#/$defs/nullableNumber"}
+          }
+        }
+      }
+    },
+    "executionPolicyVerdict": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "champion_policy_id", "best_challenger_policy_id",
+        "challenger_won_on_selection", "challenger_won_on_movers", "sample_size"
+      ],
+      "properties": {
+        "champion_policy_id": {"type": "string", "minLength": 1},
+        "best_challenger_policy_id": {"type": ["string", "null"]},
+        "challenger_won_on_selection": {"type": "boolean"},
+        "challenger_won_on_movers": {"type": "boolean"},
+        "sample_size": {
+          "type": "object", "additionalProperties": false,
+          "required": ["SCOUT_SELECTION", "TOP_10_MOVER"],
+          "properties": {
+            "SCOUT_SELECTION": {"type": "integer", "minimum": 0},
+            "TOP_10_MOVER": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "universeScorability": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "eligible_count", "scorable_count", "not_scorable_share",
+        "zero_premarket_bar_count", "zero_premarket_60m_bar_count",
+        "top_10_invisible_count"
+      ],
+      "properties": {
+        "eligible_count": {"type": "integer", "minimum": 0},
+        "scorable_count": {"type": "integer", "minimum": 0},
+        "not_scorable_share": {"type": "number", "minimum": 0, "maximum": 1},
+        "zero_premarket_bar_count": {"type": "integer", "minimum": 0},
+        "zero_premarket_60m_bar_count": {"type": "integer", "minimum": 0},
+        "top_10_invisible_count": {"type": "integer", "minimum": 0, "maximum": 10}
       }
     },
     "featureFailure": {
