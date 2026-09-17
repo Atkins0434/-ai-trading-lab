@@ -16,6 +16,7 @@ from trainer.providers.base import ProviderError
 from trainer.replay_queue import ReplayQueue
 from trainer.universe_manifest import (
     REQUIRED_CAPABILITIES,
+    UniverseManifestError,
     build_fixture_manifest,
     build_research_manifest,
     load_or_resolve_manifest,
@@ -184,6 +185,43 @@ def test_09_information_after_cutoff_is_never_admitted():
     assert "MARKET_CAP_POINT_IN_TIME_UNPROVEN" in by_id(
         result, "FIGI-ONE"
     )["reason_codes"]
+
+
+def test_definitive_security_type_overrides_listing_date_gap():
+    result = manifest([security(type="PFD", list_date=None)])
+    item = by_id(result, "FIGI-ONE")
+
+    assert item["reason_codes"] == [
+        "LISTING_DATE_MISSING",
+        "SECURITY_TYPE_PREFERRED_SHARE",
+    ]
+    assert item["deciding_definitive_reason"] == (
+        "SECURITY_TYPE_PREFERRED_SHARE"
+    )
+    assert result["coverage_status"] == "complete"
+    assert result["coverage_reasons"] == []
+
+
+def test_standalone_listing_date_gap_marks_coverage_incomplete():
+    result = manifest([security(list_date=None)])
+    item = by_id(result, "FIGI-ONE")
+
+    assert item["reason_codes"] == ["LISTING_DATE_MISSING"]
+    assert item["deciding_definitive_reason"] is None
+    assert result["coverage_status"] == "incomplete"
+    assert result["coverage_reasons"] == [
+        "SECURITY_METADATA_INCOMPLETE:FIGI-ONE"
+    ]
+
+
+def test_unknown_exclusion_reason_is_an_error():
+    with pytest.raises(
+        UniverseManifestError,
+        match="Unknown universe exclusion reason code: UNKNOWN_REASON",
+    ):
+        manifest([
+            security(eligibility_exclusion_reasons=["UNKNOWN_REASON"])
+        ])
 
 
 class SyntheticProvider:

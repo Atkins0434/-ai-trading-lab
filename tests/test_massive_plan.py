@@ -107,9 +107,11 @@ def test_flatfile_workflow_persists_versioned_provider_caches():
     assert "Current state:" in workflow
     assert "Last phase:" in workflow
     assert "Error:" in workflow
-    assert "Exclusion reasons by category:" in workflow
-    assert "overview unavailable" in workflow
-    assert "overview failed" in workflow
+    assert "Eligible count:" in workflow
+    assert "Definitive-exclusion count:" in workflow
+    assert "Definitive exclusions by reason:" in workflow
+    assert "Coverage-gap count:" in workflow
+    assert "Coverage gaps by reason:" in workflow
     assert "definitive_misses=" in workflow
     assert "transient_retries=" in workflow
     assert "unresolved_failures=" in workflow

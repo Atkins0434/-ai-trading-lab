@@ -17,7 +17,7 @@
   "eligible_symbol_count": 2,
   "excluded_symbol_count": 0,
   "information_cutoff": "2024-06-10T07:00:00-04:00",
-  "manifest_hash": "sha256:bb4c0fcaefebf0b7b1187ac0b34aa5358883c1cf38864dfcd95807ef1a839b5f",
+  "manifest_hash": "sha256:e37fa465867e5d703e4ae722edd2f76763b28c234f6a072b0eb82b25000aed86",
   "massive_plan": {
     "flat_files": true,
     "history_years": 10,
@@ -34,6 +34,7 @@
   "securities": [
     {
       "delisting_date": null,
+      "deciding_definitive_reason": null,
       "inclusion": true,
       "listing_date": null,
       "listing_venue": "UNKNOWN",
@@ -46,6 +47,7 @@
     },
     {
       "delisting_date": null,
+      "deciding_definitive_reason": null,
       "inclusion": true,
       "listing_date": null,
       "listing_venue": "UNKNOWN",
