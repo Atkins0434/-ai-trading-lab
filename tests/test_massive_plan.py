@@ -118,6 +118,9 @@ def test_flatfile_workflow_persists_versioned_provider_caches():
     assert "listed_after_lagged_date=" in workflow
     assert "python -m trainer.flatfile_inspect" in workflow
     assert "--ticker AAL" in workflow
+    assert "python -m trainer.replay_report --output-root" in workflow
+    assert '"$day_root/replay_report.pdf"' in workflow
+    assert '"$OUTPUT_ROOT/replay_summary.pdf"' in workflow
     assert (
         "${{ steps.replay.outputs.output_root }}/\n" in workflow
     )

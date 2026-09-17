@@ -26,6 +26,7 @@ from trainer.providers.massive_flatfiles import (
 )
 from trainer.rate_control import AdaptiveRateLimiter, load_massive_plan
 from trainer.report_generator import generate_scout_pdf_report
+from trainer.replay_report import generate_daily_replay_report
 from trainer.research_scout_alpha import run_research_scout_alpha
 from trainer.trading_calendar import generate_trading_dates
 from trainer.universe_builder import (
@@ -46,6 +47,7 @@ REPLAY_PHASES = (
     "grading",
     "benchmark",
     "postmortem",
+    "report",
 )
 
 
@@ -80,6 +82,7 @@ def _new_day_record(
         "status": "IN_PROGRESS",
         "current_phase": None,
         "phase_status": {phase: "PENDING" for phase in REPLAY_PHASES},
+        "phase_wall_time_seconds": {phase: None for phase in REPLAY_PHASES},
         "smoke_mode": smoke_mode,
         "max_tickers": max_tickers,
         "research_evidence": False,
@@ -123,6 +126,14 @@ def _normalize_day_record(
             for phase in REPLAY_PHASES
         },
     )
+    for phase in REPLAY_PHASES:
+        normalized["phase_status"].setdefault(
+            phase,
+            "COMPLETE" if normalized.get("status") == "COMPLETE" else "PENDING",
+        )
+    phase_times = normalized.setdefault("phase_wall_time_seconds", {})
+    for phase in REPLAY_PHASES:
+        phase_times.setdefault(phase, None)
     normalized.setdefault("smoke_mode", smoke_mode)
     normalized.setdefault("max_tickers", max_tickers)
     normalized.setdefault("bar_statistics", None)
@@ -152,6 +163,7 @@ def _tracked_phase(
     phase: str,
     callback: ProgressCallback | None,
 ):
+    started = time.perf_counter()
     progress["current_phase"] = phase
     progress["phase_status"][phase] = "IN_PROGRESS"
     if callback is not None:
@@ -160,11 +172,17 @@ def _tracked_phase(
         with _timed_phase(progress["trading_date"], phase):
             yield
     except BaseException:
+        progress["phase_wall_time_seconds"][phase] = round(
+            time.perf_counter() - started, 3
+        )
         progress["phase_status"][phase] = "FAILED"
         if callback is not None:
             callback(deepcopy(progress))
         raise
     else:
+        progress["phase_wall_time_seconds"][phase] = round(
+            time.perf_counter() - started, 3
+        )
         progress["phase_status"][phase] = "COMPLETE"
         if callback is not None:
             callback(deepcopy(progress))
@@ -302,6 +320,7 @@ def _run_flatfile_day_impl(
     benchmark_path = day_dir / "benchmark_result.json"
     postmortem_path = day_dir / "postmortem.json"
     postmortem_pdf_path = day_dir / "postmortem_report.pdf"
+    replay_report_path = day_dir / "replay_report.pdf"
 
     with _tracked_phase(progress, "universe", progress_callback):
         freeze_config = {"morning_freeze_time": morning_freeze_time}
@@ -406,6 +425,7 @@ def _run_flatfile_day_impl(
         _write_json(benchmark_path, benchmark)
         artifacts["benchmark_result"] = relative(benchmark_path)
     if smoke_mode:
+        postmortem_started = time.perf_counter()
         progress["current_phase"] = "postmortem"
         progress["phase_status"]["postmortem"] = "IN_PROGRESS"
         if progress_callback is not None:
@@ -416,6 +436,10 @@ def _run_flatfile_day_impl(
             # rather than weakening that boundary.
             pass
         progress["phase_status"]["postmortem"] = "SKIPPED"
+        progress["phase_wall_time_seconds"]["postmortem"] = round(
+            time.perf_counter() - postmortem_started,
+            6,
+        )
         if progress_callback is not None:
             progress_callback(deepcopy(progress))
     else:
@@ -433,6 +457,26 @@ def _run_flatfile_day_impl(
                 "postmortem": relative(postmortem_path),
                 "postmortem_report": relative(postmortem_pdf_path),
             })
+    report_started = time.perf_counter()
+    with _tracked_phase(progress, "report", progress_callback):
+        generate_daily_replay_report(
+            day_dir,
+            replay_report_path,
+            day_record=progress,
+        )
+        artifacts["replay_report"] = relative(replay_report_path)
+        # A final phase cannot know its own completed duration before rendering.
+        # Use the first pass to measure it, then render the persisted copy with
+        # that wall-time value while still inside the tracked report phase.
+        progress["phase_wall_time_seconds"]["report"] = round(
+            time.perf_counter() - report_started,
+            3,
+        )
+        generate_daily_replay_report(
+            day_dir,
+            replay_report_path,
+            day_record=progress,
+        )
     progress.update({
         "status": "COMPLETE",
         "current_phase": None,
