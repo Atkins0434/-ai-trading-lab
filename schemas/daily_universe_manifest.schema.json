@@ -82,7 +82,26 @@
         "shares_outstanding_provider_period_date": {"type": ["string", "null"], "format": "date"},
         "prior_close": {"type": ["number", "null"], "minimum": 0},
         "prior_close_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
+        "prior_session_dollar_volume": {"type": ["number", "null"], "minimum": 0},
         "market_cap_usd": {"type": ["number", "null"], "minimum": 0},
+        "cik": {"type": ["string", "number", "null"]},
+        "composite_figi": {"type": ["string", "null"]},
+        "duplicate_share_class_kept_ticker": {"type": ["string", "null"]},
+        "overview_failure": {
+          "oneOf": [
+            {"type": "null"},
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["classification", "http_status", "exception_type"],
+              "properties": {
+                "classification": {"enum": ["DEFINITIVE", "TRANSIENT"]},
+                "http_status": {"type": ["integer", "null"], "minimum": 100, "maximum": 599},
+                "exception_type": {"type": "string", "minLength": 1}
+              }
+            }
+          ]
+        },
         "inclusion": {"type": "boolean"},
         "reason_codes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}
       }

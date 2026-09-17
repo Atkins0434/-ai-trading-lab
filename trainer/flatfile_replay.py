@@ -93,6 +93,10 @@ def _new_day_record(
             "fetches": 0,
             "quarter_reuse_hits": 0,
             "errors": 0,
+            "definitive_misses": 0,
+            "transient_retries": 0,
+            "unresolved_failures": 0,
+            "listed_after_lagged_date": 0,
         },
         "artifacts": {},
         "error": None,
@@ -124,6 +128,18 @@ def _normalize_day_record(
         "research_evidence",
         normalized.get("status") == "COMPLETE" and not smoke_mode,
     )
+    reference_cache = normalized.setdefault("reference_cache", {})
+    for metric in (
+        "hits",
+        "fetches",
+        "quarter_reuse_hits",
+        "errors",
+        "definitive_misses",
+        "transient_retries",
+        "unresolved_failures",
+        "listed_after_lagged_date",
+    ):
+        reference_cache.setdefault(metric, 0)
     return normalized
 
 
@@ -177,6 +193,12 @@ def _reference_cache_metrics(universe: dict[str, Any]) -> dict[str, int]:
         "fetches": int(raw.get("fetches", 0)),
         "quarter_reuse_hits": int(raw.get("quarter_reuse_hits", 0)),
         "errors": int(raw.get("errors", 0)),
+        "definitive_misses": int(raw.get("definitive_misses", 0)),
+        "transient_retries": int(raw.get("transient_retries", 0)),
+        "unresolved_failures": int(raw.get("unresolved_failures", 0)),
+        "listed_after_lagged_date": int(
+            raw.get("listed_after_lagged_date", 0)
+        ),
     }
 
 
@@ -196,6 +218,10 @@ def _persisted_reference_cache_metrics(
             "fetches": 0,
             "quarter_reuse_hits": 0,
             "errors": 0,
+            "definitive_misses": 0,
+            "transient_retries": 0,
+            "unresolved_failures": 0,
+            "listed_after_lagged_date": 0,
         }
     try:
         universe = json.loads(path.read_text(encoding="utf-8"))
@@ -206,6 +232,10 @@ def _persisted_reference_cache_metrics(
             "fetches": 0,
             "quarter_reuse_hits": 0,
             "errors": 0,
+            "definitive_misses": 0,
+            "transient_retries": 0,
+            "unresolved_failures": 0,
+            "listed_after_lagged_date": 0,
         }
 
 
@@ -236,7 +266,7 @@ def _ensure_day_files(
     ]
 
 
-def run_flatfile_day(
+def _run_flatfile_day_impl(
     reference_client: Any,
     flatfiles: MassiveFlatFileStore,
     trading_date: str,
@@ -249,14 +279,10 @@ def run_flatfile_day(
     reference_cache_root: Path = Path("data/reference_cache"),
     max_tickers: int | None = None,
     progress_callback: ProgressCallback | None = None,
+    progress: dict[str, Any],
 ) -> dict[str, Any]:
     """Download, build, and grade one research day from flat files."""
     smoke_mode = max_tickers is not None
-    progress = _new_day_record(
-        trading_date,
-        smoke_mode=smoke_mode,
-        max_tickers=max_tickers,
-    )
     day_dir = output_root / "days" / trading_date
     day_dir.mkdir(parents=True, exist_ok=True)
     with _tracked_phase(progress, "download", progress_callback):
@@ -388,6 +414,49 @@ def run_flatfile_day(
         "error": None,
     })
     return progress
+
+
+def run_flatfile_day(
+    reference_client: Any,
+    flatfiles: MassiveFlatFileStore,
+    trading_date: str,
+    *,
+    output_root: Path,
+    lookback_sessions: int,
+    strategy_capital: float,
+    threshold_pct: float | None,
+    exploration_top_k: int,
+    reference_cache_root: Path = Path("data/reference_cache"),
+    max_tickers: int | None = None,
+    progress_callback: ProgressCallback | None = None,
+) -> dict[str, Any]:
+    """Run one day while preserving the last entered phase on any failure."""
+    progress = _new_day_record(
+        trading_date,
+        smoke_mode=max_tickers is not None,
+        max_tickers=max_tickers,
+    )
+    try:
+        return _run_flatfile_day_impl(
+            reference_client,
+            flatfiles,
+            trading_date,
+            output_root=output_root,
+            lookback_sessions=lookback_sessions,
+            strategy_capital=strategy_capital,
+            threshold_pct=threshold_pct,
+            exploration_top_k=exploration_top_k,
+            reference_cache_root=reference_cache_root,
+            max_tickers=max_tickers,
+            progress_callback=progress_callback,
+            progress=progress,
+        )
+    except BaseException as exc:
+        progress["status"] = "FAILED"
+        progress["error"] = f"{type(exc).__name__}: {exc}"
+        if progress_callback is not None:
+            progress_callback(deepcopy(progress))
+        raise
 
 
 def run_flatfile_replay(
@@ -524,6 +593,10 @@ def run_flatfile_replay(
                     "fetches",
                     "quarter_reuse_hits",
                     "errors",
+                    "definitive_misses",
+                    "transient_retries",
+                    "unresolved_failures",
+                    "listed_after_lagged_date",
                 )
             },
             "days": ordered,
@@ -598,7 +671,22 @@ def run_flatfile_replay(
             current_trading_date=trading_date,
             current_phase=days[trading_date].get("current_phase"),
         )
-    return checkpoint()
+    last_failed_date = next(
+        (
+            value
+            for value in reversed(dates)
+            if days.get(value, {}).get("status") == "FAILED"
+        ),
+        None,
+    )
+    return checkpoint(
+        current_trading_date=last_failed_date,
+        current_phase=(
+            days[last_failed_date].get("current_phase")
+            if last_failed_date is not None
+            else None
+        ),
+    )
 
 
 def parse_args() -> argparse.Namespace:

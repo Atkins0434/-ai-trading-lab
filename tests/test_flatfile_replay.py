@@ -45,6 +45,10 @@ def test_flatfile_replay_resumes_completed_dates_without_reprocessing(tmp_path: 
                 "fetches": 1,
                 "quarter_reuse_hits": 1,
                 "errors": 0,
+                "definitive_misses": 0,
+                "transient_retries": 0,
+                "unresolved_failures": 0,
+                "listed_after_lagged_date": 0,
             },
             "artifacts": {
                 "marker": str(marker.relative_to(output_root)),
@@ -78,8 +82,76 @@ def test_flatfile_replay_resumes_completed_dates_without_reprocessing(tmp_path: 
         "fetches": 2,
         "quarter_reuse_hits": 2,
         "errors": 0,
+        "definitive_misses": 0,
+        "transient_retries": 0,
+        "unresolved_failures": 0,
+        "listed_after_lagged_date": 0,
     }
     assert calls == dates
+
+
+def test_resume_upgrades_pre_failure_classification_cache_metrics(
+    tmp_path: Path,
+):
+    artifact = tmp_path / "days" / "2018-01-03" / "complete.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text("{}\n")
+    day = _new_day_record(
+        "2018-01-03",
+        smoke_mode=False,
+        max_tickers=None,
+    )
+    day.update({
+        "status": "COMPLETE",
+        "current_phase": None,
+        "research_evidence": True,
+        "artifacts": {"marker": str(artifact.relative_to(tmp_path))},
+    })
+    day["phase_status"] = {phase: "COMPLETE" for phase in REPLAY_PHASES}
+    day["reference_cache"] = {
+        "hits": 1,
+        "fetches": 2,
+        "quarter_reuse_hits": 0,
+        "errors": 0,
+    }
+    initial = run_flatfile_replay(
+        object(),
+        object(),
+        ["2018-01-03"],
+        output_root=tmp_path / "seed",
+        lookback_sessions=1,
+        day_runner=lambda *args, **kwargs: day,
+    )
+    # Repoint the artifact into the seed output so the completed day resumes.
+    seed_artifact = tmp_path / "seed" / "complete.json"
+    seed_artifact.write_text("{}\n")
+    initial["days"][0]["artifacts"] = {"marker": "complete.json"}
+    initial["days"][0]["reference_cache"] = day["reference_cache"]
+    (tmp_path / "seed" / "flatfile_replay_manifest.json").write_text(
+        json.dumps(initial) + "\n"
+    )
+
+    resumed = run_flatfile_replay(
+        object(),
+        object(),
+        ["2018-01-03"],
+        output_root=tmp_path / "seed",
+        lookback_sessions=1,
+        day_runner=lambda *args, **kwargs: pytest.fail(
+            "completed date should resume"
+        ),
+    )
+
+    assert resumed["days"][0]["reference_cache"] == {
+        "hits": 1,
+        "fetches": 2,
+        "quarter_reuse_hits": 0,
+        "errors": 0,
+        "definitive_misses": 0,
+        "transient_retries": 0,
+        "unresolved_failures": 0,
+        "listed_after_lagged_date": 0,
+    }
 
 
 def test_phase_timing_logs_only_to_stderr(capsys):
@@ -295,3 +367,49 @@ def test_smoke_day_grades_benchmark_but_skips_trainer_postmortem(
     assert result["phase_status"]["postmortem"] == "SKIPPED"
     assert "benchmark_result" in result["artifacts"]
     assert "postmortem" not in result["artifacts"]
+
+
+def test_failure_between_phases_preserves_last_phase_and_error(
+    tmp_path: Path,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        flatfile_replay,
+        "_ensure_day_files",
+        lambda *args, **kwargs: ([], []),
+    )
+    monkeypatch.setattr(
+        flatfile_replay,
+        "build_point_in_time_universe",
+        lambda *args, **kwargs: {
+            # Deliberately omit coverage_status. The universe phase completes,
+            # then the between-phase eligibility check raises KeyError.
+            "coverage_reasons": [],
+            "eligible_symbol_count": 1,
+            "manifest_hash": "sha256:" + "a" * 64,
+            "research_evidence": True,
+            "source": {
+                "query_parameters": {"ticker_overview_cache": {}}
+            },
+        },
+    )
+
+    result = run_flatfile_replay(
+        object(),
+        object(),
+        ["2018-01-03"],
+        output_root=tmp_path,
+        lookback_sessions=1,
+    )
+    persisted = json.loads(
+        (tmp_path / "flatfile_replay_manifest.json").read_text()
+    )
+
+    for manifest in (result, persisted):
+        assert manifest["status"] == "FAILED"
+        assert manifest["current_trading_date"] == "2018-01-03"
+        assert manifest["current_phase"] == "universe"
+        assert manifest["days"][0]["status"] == "FAILED"
+        assert manifest["days"][0]["current_phase"] == "universe"
+        assert manifest["days"][0]["phase_status"]["universe"] == "COMPLETE"
+        assert "KeyError" in manifest["days"][0]["error"]

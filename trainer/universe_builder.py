@@ -51,6 +51,8 @@ def load_universe_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
     required = {
         "version",
         "shares_outstanding_lag_days",
+        "max_share_price_usd",
+        "one_class_per_issuer",
         "allowed_exchanges",
         "included_security_types",
         "market_cap_usd",
@@ -67,6 +69,18 @@ def load_universe_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
     ):
         raise UniverseBuilderError(
             "shares_outstanding_lag_days must be a positive integer."
+        )
+    if (
+        not isinstance(payload["max_share_price_usd"], (int, float))
+        or isinstance(payload["max_share_price_usd"], bool)
+        or payload["max_share_price_usd"] <= 0
+    ):
+        raise UniverseBuilderError(
+            "max_share_price_usd must be a positive number."
+        )
+    if not isinstance(payload["one_class_per_issuer"], bool):
+        raise UniverseBuilderError(
+            "one_class_per_issuer must be a boolean."
         )
     return payload
 
@@ -269,6 +283,10 @@ def build_point_in_time_universe(
     cache_fetches = 0
     quarter_reuse_hits = 0
     cache_errors = 0
+    definitive_misses = 0
+    transient_retries = 0
+    unresolved_failures = 0
+    listed_after_lagged_date = 0
     tickers_processed = 0
     progress_started = time_module.perf_counter()
 
@@ -277,12 +295,22 @@ def build_point_in_time_universe(
         nonlocal cache_fetches
         nonlocal quarter_reuse_hits
         nonlocal cache_errors
+        nonlocal definitive_misses
+        nonlocal transient_retries
+        nonlocal unresolved_failures
         nonlocal tickers_processed
         tickers_processed += 1
         if item.error is not None:
             cache_errors += 1
+            unresolved_failures += 1
+            transient_retries += int(
+                getattr(item.error, "retry_count", 0)
+            )
         else:
             assert item.result is not None
+            transient_retries += item.result.transient_retries
+            if item.result.definitive_miss:
+                definitive_misses += 1
             if item.result.cache_hit:
                 cache_hits += 1
             else:
@@ -298,31 +326,84 @@ def build_point_in_time_universe(
                 "[universe] "
                 f"tickers_processed={tickers_processed}/{len(ticker_rows)} "
                 f"cache_hits={cache_hits} fetches={cache_fetches} "
+                f"definitive_misses={definitive_misses} "
+                f"transient_retries={transient_retries} "
+                f"unresolved_failures={unresolved_failures} "
                 f"errors={cache_errors} elapsed_seconds={elapsed:.2f}",
                 file=sys.stderr,
                 flush=True,
             )
 
-    overview_results = overview_cache.get_many(
+    overview_rows: list[dict[str, Any]] = []
+    skipped_overview_tickers: set[str] = set()
+    lagged_day = date.fromisoformat(lagged_date)
+    for raw in ticker_rows:
+        ticker = str(raw.get("ticker") or "").upper()
+        raw_list_date = raw.get("list_date")
+        try:
+            listed_day = (
+                date.fromisoformat(str(raw_list_date)[:10])
+                if raw_list_date
+                else None
+            )
+        except ValueError:
+            listed_day = None
+        if listed_day is not None and listed_day > lagged_day:
+            skipped_overview_tickers.add(ticker)
+            listed_after_lagged_date += 1
+        else:
+            overview_rows.append(raw)
+
+    tickers_processed = listed_after_lagged_date
+
+    fetched_overviews = overview_cache.get_many(
         reference_client,
-        [str(raw.get("ticker") or "").upper() for raw in ticker_rows],
+        [str(raw.get("ticker") or "").upper() for raw in overview_rows],
         lagged_date,
         max_workers=effective_workers,
         on_progress=record_progress,
     )
+    overview_results = {
+        item.ticker: item for item in fetched_overviews
+    }
     prior_close_as_of = datetime.combine(
         date.fromisoformat(previous_session), time(16), tzinfo=ET
     ).isoformat()
-    for raw, overview_item in zip(ticker_rows, overview_results, strict=True):
+    for raw in ticker_rows:
         ticker = str(raw.get("ticker") or "").upper()
-        if overview_item.error is not None:
+        overview_failure = None
+        listed_after_lag = ticker in skipped_overview_tickers
+        overview_item = overview_results.get(ticker)
+        if listed_after_lag:
+            overview = {}
+            provider_query_date = lagged_date
+        elif overview_item is not None and overview_item.error is not None:
             overview = {}
             provider_complete = False
             provider_query_date = lagged_date
+            overview_failure = {
+                "classification": "TRANSIENT",
+                "http_status": getattr(
+                    overview_item.error, "http_status", None
+                ),
+                "exception_type": getattr(
+                    overview_item.error,
+                    "exception_type",
+                    type(overview_item.error).__name__,
+                ),
+            }
         else:
+            assert overview_item is not None
             assert overview_item.result is not None
-            overview = overview_item.result.overview
+            overview = overview_item.result.overview or {}
             provider_query_date = overview_item.result.provider_query_date
+            if overview_item.result.definitive_miss:
+                overview_failure = {
+                    "classification": "DEFINITIVE",
+                    "http_status": overview_item.result.http_status,
+                    "exception_type": overview_item.result.exception_type
+                    or "UNKNOWN",
+                }
         combined = {**overview, **raw}
         prior = prior_close_bars.get(ticker)
         prior_close = float(prior["close"]) if prior is not None else None
@@ -339,6 +420,14 @@ def build_point_in_time_universe(
         reasons, is_shell, is_spac, is_spac_suffix = _exclusion_reasons(
             raw, overview, config
         )
+        if overview_failure is not None:
+            reasons.append(
+                "OVERVIEW_UNAVAILABLE_AT_LAGGED_DATE"
+                if overview_failure["classification"] == "DEFINITIVE"
+                else "OVERVIEW_FETCH_FAILED"
+            )
+        if listed_after_lag:
+            reasons.append("LISTED_AFTER_LAGGED_DATE")
         provider_period_date = _provider_period_date(overview)
         if (
             provider_period_date is not None
@@ -350,6 +439,17 @@ def build_point_in_time_universe(
             limits = config["market_cap_usd"]
             if not float(limits["minimum"]) <= market_cap <= float(limits["maximum"]):
                 reasons.append("MARKET_CAP_OUT_OF_RANGE")
+        if (
+            prior_close is not None
+            and prior_close > float(config["max_share_price_usd"])
+        ):
+            reasons.append("SHARE_PRICE_ABOVE_CAP")
+
+        prior_session_dollar_volume = (
+            prior_close * float(prior.get("volume", 0))
+            if prior is not None and prior_close is not None
+            else None
+        )
 
         # `active=true&date=D` is the historical trading-status assertion.
         # A present-day active flag is deliberately not consulted.
@@ -358,6 +458,7 @@ def build_point_in_time_universe(
             "stable_security_id": _stable_id(combined),
             "share_class_figi": combined.get("share_class_figi"),
             "composite_figi": combined.get("composite_figi"),
+            "cik": combined.get("cik"),
             "primary_exchange": combined.get("primary_exchange"),
             "type": combined.get("type"),
             "locale": combined.get("locale", "us"),
@@ -380,7 +481,9 @@ def build_point_in_time_universe(
             "shares_outstanding_provider_period_date": provider_period_date,
             "prior_close": prior_close,
             "prior_close_as_of_timestamp": prior_close_as_of,
+            "prior_session_dollar_volume": prior_session_dollar_volume,
             "market_cap_usd": market_cap,
+            "overview_failure": overview_failure,
             "market_cap_available_at": (
                 reference_as_of
                 if shares is not None and prior_close is not None
@@ -421,12 +524,19 @@ def build_point_in_time_universe(
                 "fetches": cache_fetches,
                 "quarter_reuse_hits": quarter_reuse_hits,
                 "errors": cache_errors,
+                "definitive_misses": definitive_misses,
+                "transient_retries": transient_retries,
+                "unresolved_failures": unresolved_failures,
+                "listed_after_lagged_date": listed_after_lagged_date,
             },
             "prior_close_dataset": DAY_AGGS_DATASET,
             "prior_close_trading_date": previous_session,
             "universe_config_version": config["version"],
+            "max_share_price_usd": config["max_share_price_usd"],
+            "one_class_per_issuer": config["one_class_per_issuer"],
         },
         capabilities=capabilities,
+        one_class_per_issuer=config["one_class_per_issuer"],
         retrieved_at=retrieved_at or datetime.now(timezone.utc).isoformat(),
     )
     if not provider_complete:
