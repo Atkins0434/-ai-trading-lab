@@ -431,6 +431,8 @@ def build_point_in_time_universe(
                 if overview_failure["classification"] == "DEFINITIVE"
                 else "OVERVIEW_FETCH_FAILED"
             )
+        elif not listed_after_lag and shares is None:
+            reasons.append("OVERVIEW_NO_SHARE_COUNT")
         if listed_after_lag:
             reasons.append("LISTED_AFTER_LAGGED_DATE")
         provider_period_date = _provider_period_date(overview)

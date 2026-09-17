@@ -743,10 +743,10 @@ def test_missing_prior_session_trade_is_definitive_exclusion(tmp_path: Path):
     assert manifest["coverage_reasons"] == []
 
 
-def test_successful_overview_with_only_missing_listing_date_is_gap(
+def test_wfg_missing_listing_date_with_lagged_shares_is_eligible(
     tmp_path: Path,
 ):
-    ticker = "NOLISTDATE"
+    ticker = "WFG"
 
     class MissingListingDateClient:
         provider_name = "MASSIVE"
@@ -754,15 +754,63 @@ def test_successful_overview_with_only_missing_listing_date_is_gap(
         def get_tickers(self, *args, **kwargs):
             row = _ticker_row(ticker)
             row.pop("list_date")
+            row["primary_exchange"] = "XNYS"
             return [row]
 
         def get_ticker_overview(self, ticker, as_of_date):
             overview = _overview(ticker)
             overview.pop("list_date")
+            overview["weighted_shares_outstanding"] = 83_600_000
+            return overview
+
+    flatfiles = _failure_fixture_flatfiles((ticker,))
+    flatfiles.records[(DAY_AGGS_DATASET, "2018-01-02")][0] = bar(
+        ticker,
+        datetime(2018, 1, 2, 0, 0, tzinfo=ET),
+        trading_date="2018-01-02",
+        session="DAILY",
+        close=80.76,
+    )
+    manifest = build_point_in_time_universe(
+        MissingListingDateClient(),
+        flatfiles,
+        "2018-01-03",
+        tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference-cache",
+        reference_fetch_workers=1,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+    security = manifest["securities"][0]
+
+    assert security["listing_date"] is None
+    assert security["shares_outstanding"] == 83_600_000
+    assert security["prior_close"] == 80.76
+    assert security["market_cap_usd"] == pytest.approx(6_751_536_000)
+    assert security["inclusion"] is True
+    assert security["reason_codes"] == ["ELIGIBLE"]
+    assert security["deciding_definitive_reason"] is None
+    assert manifest["coverage_status"] == "complete"
+    assert manifest["coverage_reasons"] == []
+
+
+def test_rilyz_successful_overview_without_shares_is_definitive(
+    tmp_path: Path,
+):
+    ticker = "RILYZ"
+
+    class NoShareCountClient:
+        provider_name = "MASSIVE"
+
+        def get_tickers(self, *args, **kwargs):
+            return [_ticker_row(ticker)]
+
+        def get_ticker_overview(self, ticker, as_of_date):
+            overview = _overview(ticker)
+            overview["weighted_shares_outstanding"] = None
             return overview
 
     manifest = build_point_in_time_universe(
-        MissingListingDateClient(),
+        NoShareCountClient(),
         _failure_fixture_flatfiles((ticker,)),
         "2018-01-03",
         tmp_path / "daily_universe_manifest.json",
@@ -772,12 +820,58 @@ def test_successful_overview_with_only_missing_listing_date_is_gap(
     )
     security = manifest["securities"][0]
 
-    assert security["reason_codes"] == ["LISTING_DATE_MISSING"]
-    assert security["deciding_definitive_reason"] is None
-    assert manifest["coverage_status"] == "incomplete"
-    assert manifest["coverage_reasons"] == [
-        f"SECURITY_METADATA_INCOMPLETE:{security['stable_security_id']}"
-    ]
+    assert security["inclusion"] is False
+    assert security["shares_outstanding"] is None
+    assert security["reason_codes"] == ["OVERVIEW_NO_SHARE_COUNT"]
+    assert security["deciding_definitive_reason"] == (
+        "OVERVIEW_NO_SHARE_COUNT"
+    )
+    assert "MARKET_CAP_POINT_IN_TIME_UNPROVEN" not in security["reason_codes"]
+    assert manifest["coverage_status"] == "complete"
+    assert manifest["coverage_reasons"] == []
+
+
+def test_bpypm_missing_provider_identifier_is_definitive_limitation(
+    tmp_path: Path,
+):
+    ticker = "BPYPM"
+
+    class MissingIdentifierClient:
+        provider_name = "MASSIVE"
+
+        def get_tickers(self, *args, **kwargs):
+            row = _ticker_row(ticker)
+            row.pop("share_class_figi")
+            return [row]
+
+        def get_ticker_overview(self, ticker, as_of_date):
+            overview = _overview(ticker)
+            overview.update({"cik": None, "composite_figi": None})
+            return overview
+
+    manifest = build_point_in_time_universe(
+        MissingIdentifierClient(),
+        _failure_fixture_flatfiles((ticker,)),
+        "2018-01-03",
+        tmp_path / "daily_universe_manifest.json",
+        reference_cache_root=tmp_path / "reference-cache",
+        reference_fetch_workers=1,
+        retrieved_at="2018-01-03T12:00:00+00:00",
+    )
+    security = manifest["securities"][0]
+
+    assert security["stable_security_id"] == "MISSING:BPYPM"
+    assert security["provider_identifier_gap"] is True
+    assert security["inclusion"] is False
+    assert security["reason_codes"] == ["STABLE_SECURITY_ID_MISSING"]
+    assert security["deciding_definitive_reason"] == (
+        "STABLE_SECURITY_ID_MISSING"
+    )
+    assert manifest["provider_limitation_metrics"] == {
+        "provider_identifier_gap_count": 1,
+    }
+    assert manifest["coverage_status"] == "complete"
+    assert manifest["coverage_reasons"] == []
 
 
 def test_listing_after_lagged_date_skips_overview_fetch(tmp_path: Path):

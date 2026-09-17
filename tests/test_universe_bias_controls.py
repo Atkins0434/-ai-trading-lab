@@ -177,7 +177,7 @@ def test_08_excluded_security_types_have_deterministic_reason_codes():
         assert by_id(result, f"ID-{kind}")["reason_codes"] == [reason]
 
 
-def test_09_information_after_cutoff_is_never_admitted():
+def test_09_information_after_cutoff_is_never_admitted(caplog):
     result = manifest([security(
         market_cap_available_at="2024-06-10T09:15:01-04:00"
     )])
@@ -185,6 +185,7 @@ def test_09_information_after_cutoff_is_never_admitted():
     assert "MARKET_CAP_POINT_IN_TIME_UNPROVEN" in by_id(
         result, "FIGI-ONE"
     )["reason_codes"]
+    assert "MARKET_CAP_POINT_IN_TIME_UNPROVEN ticker=OLD" in caplog.text
 
 
 def test_definitive_security_type_overrides_listing_date_gap():
@@ -210,7 +211,21 @@ def test_standalone_listing_date_gap_marks_coverage_incomplete():
     assert item["deciding_definitive_reason"] is None
     assert result["coverage_status"] == "incomplete"
     assert result["coverage_reasons"] == [
-        "SECURITY_METADATA_INCOMPLETE:FIGI-ONE"
+        "SECURITY_METADATA_INCOMPLETE:FIGI-ONE:OLD"
+    ]
+
+
+def test_coverage_reason_distinguishes_tickers_sharing_stable_id():
+    first = security(ticker="BABY1", stable_security_id="CIK-SHARED")
+    second = security(ticker="BABY2", stable_security_id="CIK-SHARED")
+    first["market_cap_available_at"] = None
+    second["market_cap_available_at"] = None
+
+    result = manifest([first, second])
+
+    assert result["coverage_reasons"] == [
+        "SECURITY_METADATA_INCOMPLETE:CIK-SHARED:BABY1",
+        "SECURITY_METADATA_INCOMPLETE:CIK-SHARED:BABY2",
     ]
 
 

@@ -4,7 +4,7 @@
   "title": "Immutable Daily Point-in-Time Universe Manifest",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "replay_id", "trading_date", "information_cutoff", "timezone", "universe_mode", "massive_plan", "ruleset", "capabilities", "source", "coverage_status", "coverage_reasons", "securities", "eligible_symbol_count", "excluded_symbol_count", "manifest_hash", "research_evidence", "promotion_eligible"],
+  "required": ["version", "replay_id", "trading_date", "information_cutoff", "timezone", "universe_mode", "massive_plan", "ruleset", "capabilities", "source", "coverage_status", "coverage_reasons", "provider_limitation_metrics", "securities", "eligible_symbol_count", "excluded_symbol_count", "manifest_hash", "research_evidence", "promotion_eligible"],
   "properties": {
     "version": {"const": "daily_universe_manifest_v1.0"},
     "replay_id": {"type": "string", "minLength": 1},
@@ -18,6 +18,14 @@
     "source": {"type": "object", "additionalProperties": false, "required": ["provider", "feed_version", "query_parameters", "retrieved_at"], "properties": {"provider": {"type": "string"}, "feed_version": {"type": "string"}, "query_parameters": {"type": "object"}, "retrieved_at": {"type": "string", "format": "date-time"}}},
     "coverage_status": {"enum": ["complete", "incomplete", "fixture"]},
     "coverage_reasons": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "provider_limitation_metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider_identifier_gap_count"],
+      "properties": {
+        "provider_identifier_gap_count": {"type": "integer", "minimum": 0}
+      }
+    },
     "securities": {"type": "array", "items": {"$ref": "#/$defs/security"}},
     "eligible_symbol_count": {"type": "integer", "minimum": 0},
     "excluded_symbol_count": {"type": "integer", "minimum": 0},
@@ -65,7 +73,7 @@
     },
     "security": {
       "type": "object", "additionalProperties": false,
-      "required": ["stable_security_id", "ticker", "listing_venue", "security_type", "listing_date", "delisting_date", "deciding_definitive_reason", "inclusion", "reason_codes"],
+      "required": ["stable_security_id", "ticker", "listing_venue", "security_type", "listing_date", "delisting_date", "deciding_definitive_reason", "provider_identifier_gap", "inclusion", "reason_codes"],
       "properties": {
         "stable_security_id": {"type": "string", "minLength": 1},
         "ticker": {"type": "string"},
@@ -74,6 +82,7 @@
         "listing_date": {"type": ["string", "null"], "format": "date"},
         "delisting_date": {"type": ["string", "null"], "format": "date"},
         "deciding_definitive_reason": {"type": ["string", "null"]},
+        "provider_identifier_gap": {"type": "boolean"},
         "reference_data_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
         "market_cap_as_of_timestamp": {"type": ["string", "null"], "format": "date-time"},
         "shares_outstanding": {"type": ["number", "null"], "minimum": 0},
