@@ -46,6 +46,8 @@ def outcome_bars() -> list[dict]:
                 "low": price - 0.04,
                 "close": price + 0.02,
                 "volume": 5000,
+                "session": "REGULAR",
+                "source": "TEST_FIXTURE",
             }
         )
     return result
@@ -95,6 +97,8 @@ def test_single_day_replay_runs_scout_trade_and_outcome_contract():
     )
     assert outcome["mfe_pct"] > 0
     assert outcome["maximum_capturable_move_pct"] > 0
+    assert outcome["intraday_path"][0]["session"] == "REGULAR"
+    assert outcome["intraday_path"][0]["source"] == "TEST_FIXTURE"
 
 
 def test_single_day_replay_rejects_future_premarket_bar():

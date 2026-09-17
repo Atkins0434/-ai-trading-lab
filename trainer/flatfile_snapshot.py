@@ -50,6 +50,7 @@ def load_flatfile_replay_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         "version",
         "cache_version",
         "baseline_lookback_sessions",
+        "max_premarket_padding_share",
         "strategy_capital_usd",
         "cache_root",
         "reference_cache_root",
@@ -62,6 +63,15 @@ def load_flatfile_replay_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
     if int(payload["baseline_lookback_sessions"]) < 1:
         raise FlatFileSnapshotError(
             "baseline_lookback_sessions must be at least one."
+        )
+    max_padding_share = payload["max_premarket_padding_share"]
+    if (
+        not isinstance(max_padding_share, (int, float))
+        or isinstance(max_padding_share, bool)
+        or not 0 <= float(max_padding_share) <= 1
+    ):
+        raise FlatFileSnapshotError(
+            "max_premarket_padding_share must be between zero and one."
         )
     if (
         not isinstance(payload["cache_version"], str)
@@ -392,6 +402,13 @@ def build_flatfile_snapshot(
         ),
         "tickers_with_regular_padding": sum(
             item["regular"] > 0 for item in per_ticker_padding.values()
+        ),
+        "premarket_bar_count": len(per_ticker_padding) * 60,
+        "premarket_padding_share": (
+            sum(item["premarket"] for item in per_ticker_padding.values())
+            / (len(per_ticker_padding) * 60)
+            if per_ticker_padding
+            else 0.0
         ),
         "by_ticker": per_ticker_padding,
     }

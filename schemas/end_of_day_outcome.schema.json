@@ -185,6 +185,14 @@
         "volume": {
           "type": "number",
           "minimum": 0
+        },
+
+        "session": {
+          "type": "string"
+        },
+
+        "source": {
+          "type": "string"
         }
       }
     },

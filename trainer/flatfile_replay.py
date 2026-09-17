@@ -277,6 +277,7 @@ def _run_flatfile_day_impl(
     threshold_pct: float | None,
     exploration_top_k: int,
     reference_cache_root: Path = Path("data/reference_cache"),
+    max_premarket_padding_share: float = 0.90,
     max_tickers: int | None = None,
     progress_callback: ProgressCallback | None = None,
     progress: dict[str, Any],
@@ -343,6 +344,22 @@ def _run_flatfile_day_impl(
         progress["padded_bar_statistics"] = (
             snapshot_result.padded_bar_statistics
         )
+        if (
+            snapshot_result.padded_bar_statistics.get(
+                "premarket_padding_share", 0.0
+            )
+            > max_premarket_padding_share
+        ):
+            progress.update({
+                "status": "FAILED",
+                "error": "PREMARKET_DATA_ABSENT",
+                "artifacts": artifacts,
+            })
+            for phase in REPLAY_PHASES[REPLAY_PHASES.index("scoring"):]:
+                progress["phase_status"][phase] = "SKIPPED"
+            if progress_callback is not None:
+                progress_callback(deepcopy(progress))
+            return progress
     with _tracked_phase(progress, "scoring", progress_callback):
         scout = run_research_scout_alpha(
             snapshot_result.snapshot,
@@ -427,6 +444,7 @@ def run_flatfile_day(
     threshold_pct: float | None,
     exploration_top_k: int,
     reference_cache_root: Path = Path("data/reference_cache"),
+    max_premarket_padding_share: float = 0.90,
     max_tickers: int | None = None,
     progress_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
@@ -447,6 +465,7 @@ def run_flatfile_day(
             threshold_pct=threshold_pct,
             exploration_top_k=exploration_top_k,
             reference_cache_root=reference_cache_root,
+            max_premarket_padding_share=max_premarket_padding_share,
             max_tickers=max_tickers,
             progress_callback=progress_callback,
             progress=progress,
@@ -470,6 +489,7 @@ def run_flatfile_replay(
     threshold_pct: float | None = None,
     exploration_top_k: int = 0,
     max_tickers: int | None = None,
+    max_premarket_padding_share: float = 0.90,
     reference_cache_root: Path = Path("data/reference_cache"),
     resume: bool = True,
     day_runner: DayRunner = run_flatfile_day,
@@ -481,6 +501,14 @@ def run_flatfile_replay(
         raise FlatFileReplayError("lookback_sessions must be at least one.")
     if strategy_capital <= 0:
         raise FlatFileReplayError("strategy_capital must be positive.")
+    if (
+        not isinstance(max_premarket_padding_share, (int, float))
+        or isinstance(max_premarket_padding_share, bool)
+        or not 0 <= float(max_premarket_padding_share) <= 1
+    ):
+        raise FlatFileReplayError(
+            "max_premarket_padding_share must be between zero and one."
+        )
     if (
         max_tickers is not None
         and (
@@ -520,6 +548,8 @@ def run_flatfile_replay(
             and prior.get("massive_plan") == active_plan
             and prior.get("baseline_lookback_sessions") == lookback_sessions
             and prior.get("strategy_capital_usd") == strategy_capital
+            and prior.get("max_premarket_padding_share")
+            == max_premarket_padding_share
             and prior.get("selection_policy") == selection_policy
             and prior.get("universe_policy") == universe_policy
             and prior.get("smoke_mode", False) is smoke_mode
@@ -578,6 +608,7 @@ def run_flatfile_replay(
             "datasets": [MINUTE_AGGS_DATASET, DAY_AGGS_DATASET],
             "baseline_lookback_sessions": lookback_sessions,
             "strategy_capital_usd": strategy_capital,
+            "max_premarket_padding_share": max_premarket_padding_share,
             "selection_policy": selection_policy,
             "universe_policy": universe_policy,
             "requested_dates": dates,
@@ -638,6 +669,7 @@ def run_flatfile_replay(
                 output_root=output_root,
                 lookback_sessions=lookback_sessions,
                 strategy_capital=strategy_capital,
+                max_premarket_padding_share=max_premarket_padding_share,
                 threshold_pct=threshold_pct,
                 exploration_top_k=exploration_top_k,
                 max_tickers=max_tickers,
@@ -749,6 +781,9 @@ def main() -> None:
         output_root=output_root,
         lookback_sessions=args.lookback_sessions,
         strategy_capital=args.strategy_capital,
+        max_premarket_padding_share=float(
+            load_flatfile_replay_config()["max_premarket_padding_share"]
+        ),
         threshold_pct=args.threshold_pct,
         exploration_top_k=args.exploration_top_k,
         max_tickers=args.max_tickers,

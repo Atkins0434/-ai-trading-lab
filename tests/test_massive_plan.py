@@ -116,3 +116,11 @@ def test_flatfile_workflow_persists_versioned_provider_caches():
     assert "transient_retries=" in workflow
     assert "unresolved_failures=" in workflow
     assert "listed_after_lagged_date=" in workflow
+    assert "python -m trainer.flatfile_inspect" in workflow
+    assert "--ticker AAL" in workflow
+    assert (
+        "${{ steps.replay.outputs.output_root }}/\n" in workflow
+    )
+    assert "benchmark_result.json\n            " not in workflow.split(
+        "uses: actions/upload-artifact@v4"
+    )[-1]
