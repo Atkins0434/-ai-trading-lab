@@ -52,6 +52,7 @@ def load_flatfile_replay_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         "baseline_lookback_sessions",
         "morning_freeze_time",
         "strategy_capital_usd",
+        "comparison_policy_paths",
         "cache_root",
         "reference_cache_root",
         "output_root",
@@ -72,6 +73,18 @@ def load_flatfile_replay_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
         raise FlatFileSnapshotError(
             "cache_version must be a non-empty string."
         )
+    comparison_paths = payload["comparison_policy_paths"]
+    if (
+        not isinstance(comparison_paths, list)
+        or any(
+            not isinstance(value, str) or not value.strip()
+            for value in comparison_paths
+        )
+        or len(set(comparison_paths)) != len(comparison_paths)
+    ):
+        raise FlatFileSnapshotError(
+            "comparison_policy_paths must contain unique non-empty strings."
+        )
     return payload
 
 
@@ -79,13 +92,45 @@ def _observation(
     value: float | int | None,
     as_of: str,
     provider_field: str,
+    *,
+    missing_reason: str | None = None,
 ) -> dict[str, Any]:
-    return {
+    result = {
         "value": value,
         "as_of_timestamp": as_of,
         "source": SOURCE,
         "provider_field": provider_field,
     }
+    if missing_reason is not None:
+        result["missing_reason"] = missing_reason
+    return result
+
+
+def _average_true_range(
+    prior_rows: list[dict[str, Any]],
+    sessions: int = 14,
+) -> tuple[float | None, int]:
+    """Return simple ATR from completed sessions and the usable TR count."""
+    ordered = sorted(prior_rows, key=lambda item: item["trading_date"])
+    true_ranges: list[float] = []
+    start = max(1, len(ordered) - sessions)
+    for index in range(start, len(ordered)):
+        bar = ordered[index]
+        prior_close = float(ordered[index - 1]["close"])
+        high = float(bar["high"])
+        low = float(bar["low"])
+        true_ranges.append(
+            max(
+                high - low,
+                abs(high - prior_close),
+                abs(low - prior_close),
+            )
+        )
+    sessions_used = len(true_ranges)
+    return (
+        mean(true_ranges) if sessions_used == sessions else None,
+        sessions_used,
+    )
 
 
 def _snapshot_bar(bar: dict[str, Any]) -> dict[str, Any]:
@@ -308,6 +353,7 @@ def build_flatfile_snapshot(
             if prior_rows
             else None
         )
+        atr_14_usd, atr_sessions_used = _average_true_range(prior_rows)
         window_as_of = freeze.isoformat()
         prior_as_of = datetime.combine(
             date.fromisoformat(lookback_dates[-1]), time(16), tzinfo=ET
@@ -362,6 +408,26 @@ def build_flatfile_snapshot(
                 average_daily_range_pct,
                 prior_as_of,
                 f"mean((high-low)/close),{lookback_sessions}_sessions",
+            ),
+            "atr_14_usd": _observation(
+                atr_14_usd,
+                prior_as_of,
+                "mean(true_range),14_sessions",
+                missing_reason=(
+                    None
+                    if atr_14_usd is not None
+                    else "INSUFFICIENT_ATR_HISTORY"
+                ),
+            ),
+            "atr_lookback_sessions": _observation(
+                14,
+                prior_as_of,
+                "configured_atr_lookback_sessions",
+            ),
+            "atr_sessions_used": _observation(
+                atr_sessions_used,
+                prior_as_of,
+                "count(usable_true_range_sessions)",
             ),
         }
         security = {

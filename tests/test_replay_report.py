@@ -87,6 +87,68 @@ def test_zero_selection_report_uses_one_sentence_form(tmp_path: Path):
     )
 
 
+def test_daily_report_renders_execution_policy_comparison(tmp_path: Path):
+    bundle = deepcopy(_bundle())
+    primary = bundle["outcome"]["outcomes"][0]
+    primary["selected"] = True
+    primary["execution_result"].update({
+        "policy_id": "execution_policy_v1.0",
+        "exit_mode": "PERCENT",
+        "sizing_mode": "FIXED_FRACTION",
+        "maximum_position_drawdown_pct": -1.25,
+        "trade_executed": True,
+    })
+    atr_execution = {
+        **primary["execution_result"],
+        "policy_id": "execution_policy_atr_v1.0",
+        "exit_mode": "ATR",
+        "sizing_mode": "RISK_PER_TRADE",
+        "exit_price": 6.12,
+        "exit_reason": "PROFIT_TARGET",
+        "realized_pnl_usd": 300.0,
+        "realized_return_pct": 20.0,
+        "capture_ratio": 1.0,
+    }
+    bundle["outcome"]["policy_comparisons"] = [{
+        "policy_id": "execution_policy_atr_v1.0",
+        "exit_mode": "ATR",
+        "sizing_mode": "RISK_PER_TRADE",
+        "executions": [{
+            "ticker": "ACHR",
+            "cohort": "SCOUT_SELECTION",
+            "benchmark_rank": None,
+            "execution_result": atr_execution,
+        }],
+        "summary": {
+            "net_realized_pnl_usd": 300.0,
+            "realized_return_pct": 12.0,
+            "win_rate_pct": 100.0,
+            "average_winner_pct": 20.0,
+            "average_loser_pct": None,
+            "average_capture_ratio": 1.0,
+            "max_drawdown_pct": -1.25,
+            "exit_reason_counts": {
+                "TRAILING_STOP": 0,
+                "PROFIT_TARGET": 1,
+                "SESSION_END": 0,
+                "ENTRY_REJECTED": {},
+            },
+        },
+    }]
+    day_dir = _materialize(tmp_path, bundle)
+
+    report = generate_daily_replay_report(
+        day_dir, day_record=bundle["day_record"]
+    )
+    text = _text(report)
+    model = build_daily_report_model(bundle, day_record=bundle["day_record"])
+
+    assert len(model["execution_policies"]) == 2
+    assert "Execution policy comparison" in text
+    assert "atr_v1.0" in text
+    assert "PROFIT_TARGET" in text
+
+
 def test_cumulative_report_covers_completed_days(tmp_path: Path):
     bundle = _bundle()
     _materialize(tmp_path, bundle)

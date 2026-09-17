@@ -155,6 +155,7 @@ jobs:
           import json
           import os
           from pathlib import Path
+          from statistics import mean
           import time
 
           trading_date = os.environ.get("TRADING_DATE", "unknown")
@@ -162,6 +163,8 @@ jobs:
           day_root = output_root / "days" / trading_date
           universe_path = day_root / "daily_universe_manifest.json"
           replay_path = output_root / "flatfile_replay_manifest.json"
+          outcome_path = day_root / "end_of_day_outcome.json"
+          benchmark_path = day_root / "benchmark_result.json"
           started_at = int(os.environ.get("REPLAY_STARTED_AT", str(int(time.time()))))
 
           print("Flat-File Replay Day summary")
@@ -297,6 +300,130 @@ jobs:
                   )
               else:
                   print("  unavailable")
+              if outcome_path.is_file():
+                  outcome = json.loads(outcome_path.read_text(encoding="utf-8"))
+                  benchmark = (
+                      json.loads(benchmark_path.read_text(encoding="utf-8"))
+                      if benchmark_path.is_file() else {}
+                  )
+                  selected = [
+                      item["execution_result"]
+                      for item in outcome.get("outcomes", [])
+                      if item.get("selected")
+                  ]
+                  completed = [
+                      item for item in selected if item.get("trade_executed")
+                  ]
+                  returns = [
+                      float(item["realized_return_pct"])
+                      for item in completed
+                  ]
+                  winners = [value for value in returns if value > 0]
+                  losers = [value for value in returns if value < 0]
+                  captures = [
+                      float(item["capture_ratio"])
+                      for item in completed
+                      if item.get("capture_ratio") is not None
+                  ]
+                  primary_exit_counts = Counter(
+                      item.get("exit_reason")
+                      for item in selected
+                      if item.get("exit_reason") in {
+                          "TRAILING_STOP", "PROFIT_TARGET", "SESSION_END"
+                      }
+                  )
+                  primary_rejections = Counter(
+                      item.get("entry_rejection_reason") or "UNSPECIFIED"
+                      for item in selected
+                      if item.get("exit_reason") == "ENTRY_REJECTED"
+                  )
+                  sample = next(iter(selected), {})
+                  primary_policy_config = json.loads(
+                      Path("config/execution_policy.json").read_text(
+                          encoding="utf-8"
+                      )
+                  )
+                  combined = benchmark.get(
+                      "combined_summary", benchmark.get("scout_summary", {})
+                  )
+                  primary = {
+                      "policy_id": sample.get(
+                          "policy_id",
+                          primary_policy_config["policy_id"],
+                      ),
+                      "summary": {
+                          "net_realized_pnl_usd": sum(
+                              float(item.get("realized_pnl_usd") or 0)
+                              for item in completed
+                          ),
+                          "realized_return_pct": float(
+                              combined.get("realized_return_pct", 0.0)
+                          ),
+                          "win_rate_pct": (
+                              sum(value > 0 for value in returns)
+                              / len(returns) * 100 if returns else None
+                          ),
+                          "average_winner_pct": (
+                              mean(winners) if winners else None
+                          ),
+                          "average_loser_pct": (
+                              mean(losers) if losers else None
+                          ),
+                          "average_capture_ratio": (
+                              mean(captures) if captures else None
+                          ),
+                          "max_drawdown_pct": min(
+                              (
+                                  float(item["maximum_position_drawdown_pct"])
+                                  for item in completed
+                                  if item.get("maximum_position_drawdown_pct")
+                                  is not None
+                              ),
+                              default=None,
+                          ),
+                          "exit_reason_counts": {
+                              "TRAILING_STOP": primary_exit_counts[
+                                  "TRAILING_STOP"
+                              ],
+                              "PROFIT_TARGET": primary_exit_counts[
+                                  "PROFIT_TARGET"
+                              ],
+                              "SESSION_END": primary_exit_counts[
+                                  "SESSION_END"
+                              ],
+                              "ENTRY_REJECTED": dict(primary_rejections),
+                          },
+                      },
+                  }
+                  print("Execution policy summaries:")
+                  for policy in [primary, *outcome.get("policy_comparisons", [])]:
+                      summary = policy["summary"]
+                      value = lambda item: (
+                          "n/a" if item is None else f"{float(item):.2f}"
+                      )
+                      exit_counts = summary["exit_reason_counts"]
+                      rejections = ",".join(
+                          f"{reason}:{count}"
+                          for reason, count in sorted(
+                              exit_counts["ENTRY_REJECTED"].items()
+                          )
+                      ) or "0"
+                      print(
+                          f"  {policy['policy_id']}: "
+                          f"pnl=${summary['net_realized_pnl_usd']:.2f}, "
+                          f"return={summary['realized_return_pct']:.2f}%, "
+                          f"win_rate={value(summary['win_rate_pct'])}%, "
+                          f"avg_win={value(summary['average_winner_pct'])}%, "
+                          f"avg_loss={value(summary['average_loser_pct'])}%, "
+                          f"avg_capture={value(summary['average_capture_ratio'])}, "
+                          f"max_drawdown={value(summary['max_drawdown_pct'])}%, "
+                          f"exits=STOP:{exit_counts['TRAILING_STOP']}|"
+                          f"TARGET:{exit_counts['PROFIT_TARGET']}|"
+                          f"EOD:{exit_counts['SESSION_END']}|"
+                          f"REJECT:{rejections}"
+                      )
+              else:
+                  print("Execution policy summaries: unavailable")
           else:
               print(f"Replay manifest unavailable: {replay_path}")
 

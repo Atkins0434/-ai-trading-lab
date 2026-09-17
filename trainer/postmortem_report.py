@@ -9,13 +9,19 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+from trainer.replay_report import _execution_matrix
+
 
 def _pct(value: Any) -> str:
     return "N/A" if value is None else f"{float(value):.2f}%"
 
 
 def generate_postmortem_pdf(
-    benchmark: dict[str, Any], postmortem: dict[str, Any], output_path: Path
+    benchmark: dict[str, Any],
+    postmortem: dict[str, Any],
+    output_path: Path,
+    *,
+    outcome_result: dict[str, Any] | None = None,
 ) -> None:
     """Render a bounded visual postmortem; JSON remains the full audit record."""
     navy = colors.HexColor("#111827")
@@ -103,6 +109,105 @@ def generate_postmortem_pdf(
         ("ROWBACKGROUNDS",(0,2),(-1,-1),[colors.white,colors.HexColor("#F9FAFB")]),
     ]))
     story.append(table)
+    if outcome_result is not None:
+        policies, comparison_executions = _execution_matrix(
+            outcome_result, benchmark
+        )
+        story.extend([
+            PageBreak(),
+            Paragraph("Execution policy comparison", title),
+            Paragraph(
+                "Comparison policies are diagnostic only; WIN/TIE/MISS and random baselines use the primary policy.",
+                small,
+            ),
+            Spacer(1, 8),
+        ])
+        policy_rows = [[
+            "Policy", "Exit", "Sizing", "Net P&L", "Return", "Win rate",
+            "Avg winner", "Avg loser", "Avg capture", "Max DD", "Exits",
+        ]]
+        for policy in policies:
+            summary = policy["summary"]
+            policy_rows.append([
+                policy["policy_id"], policy["exit_mode"], policy["sizing_mode"],
+                f"${summary['net_realized_pnl_usd']:.2f}",
+                _pct(summary["realized_return_pct"]),
+                _pct(summary["win_rate_pct"]),
+                _pct(summary["average_winner_pct"]),
+                _pct(summary["average_loser_pct"]),
+                (
+                    "N/A" if summary["average_capture_ratio"] is None
+                    else f"{float(summary['average_capture_ratio']):.2f}x"
+                ),
+                _pct(summary["max_drawdown_pct"]),
+                (
+                    f"S:{summary['exit_reason_counts']['TRAILING_STOP']} "
+                    f"T:{summary['exit_reason_counts']['PROFIT_TARGET']} "
+                    f"E:{summary['exit_reason_counts']['SESSION_END']} "
+                    f"R:{sum(summary['exit_reason_counts']['ENTRY_REJECTED'].values())}"
+                ),
+            ])
+        policy_table = Table(
+            policy_rows,
+            colWidths=[1.4*inch,0.45*inch,0.75*inch,0.7*inch,0.55*inch,
+                       0.55*inch,0.65*inch,0.65*inch,0.7*inch,0.55*inch,
+                       1.0*inch],
+            repeatRows=1,
+        )
+        policy_table.setStyle(TableStyle([
+            ("BACKGROUND",(0,0),(-1,0),navy),
+            ("TEXTCOLOR",(0,0),(-1,0),colors.white),
+            ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),
+            ("FONTSIZE",(0,0),(-1,-1),6),
+            ("GRID",(0,0),(-1,-1),0.35,colors.HexColor("#D1D5DB")),
+            ("ROWBACKGROUNDS",(0,1),(-1,-1),[colors.white,colors.HexColor("#F9FAFB")]),
+        ]))
+        story.extend([policy_table, Paragraph(
+            "Scout selections and top-10 movers by policy", section
+        )])
+        execution_header = ["Cohort", "Rk", "Ticker"]
+        execution_widths = [0.75*inch,0.3*inch,0.55*inch]
+        for policy in policies:
+            short = policy["policy_id"].replace("execution_policy_", "")
+            execution_header.extend([
+                f"{short} entry", f"{short} exit", f"{short} reason",
+                f"{short} ret", f"{short} cap",
+            ])
+            execution_widths.extend([
+                0.85*inch,0.85*inch,0.95*inch,0.55*inch,0.55*inch
+            ])
+        execution_rows = [execution_header]
+        for item in comparison_executions:
+            row = [
+                "SCOUT" if item["cohort"] == "SCOUT_SELECTION" else "TOP-10",
+                item["rank"] or "-",
+                item["ticker"],
+            ]
+            for policy in policies:
+                execution = item["executions"].get(policy["policy_id"], {})
+                row.extend([
+                    f"{execution.get('entry_timestamp') or '-'} @ {execution.get('entry_price') if execution.get('entry_price') is not None else '-'}",
+                    f"{execution.get('exit_timestamp') or '-'} @ {execution.get('exit_price') if execution.get('exit_price') is not None else '-'}",
+                    execution.get("entry_rejection_reason") or execution.get("exit_reason") or "-",
+                    _pct(execution.get("realized_return_pct")),
+                    (
+                        "N/A" if execution.get("capture_ratio") is None
+                        else f"{float(execution['capture_ratio']):.2f}x"
+                    ),
+                ])
+            execution_rows.append(row)
+        execution_table = Table(
+            execution_rows, colWidths=execution_widths, repeatRows=1
+        )
+        execution_table.setStyle(TableStyle([
+            ("BACKGROUND",(0,0),(-1,0),blue),
+            ("TEXTCOLOR",(0,0),(-1,0),colors.white),
+            ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),
+            ("FONTSIZE",(0,0),(-1,-1),4.7),
+            ("GRID",(0,0),(-1,-1),0.3,colors.HexColor("#D1D5DB")),
+            ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+        ]))
+        story.append(execution_table)
     if len(postmortem["missed_opportunities"]) > 5:
         story.extend([
             PageBreak(),

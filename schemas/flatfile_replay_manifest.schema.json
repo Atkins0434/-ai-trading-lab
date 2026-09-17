@@ -9,6 +9,7 @@
     "current_trading_date", "current_phase", "smoke_mode", "max_tickers", "massive_plan",
     "datasets", "baseline_lookback_sessions", "strategy_capital_usd",
     "morning_freeze_time",
+    "comparison_policy_paths",
     "selection_policy", "universe_policy", "requested_dates",
     "completed_dates", "failed_dates", "reference_cache_summary", "days"
   ],
@@ -35,6 +36,11 @@
     "baseline_lookback_sessions": {"type": "integer", "minimum": 1},
     "strategy_capital_usd": {"type": "number", "exclusiveMinimum": 0},
     "morning_freeze_time": {"type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]:[0-5][0-9]$"},
+    "comparison_policy_paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
     "selection_policy": {
       "type": "object",
       "additionalProperties": false,

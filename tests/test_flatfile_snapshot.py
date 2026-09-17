@@ -40,6 +40,22 @@ def _row(
     )
 
 
+def _ohlcv_row(
+    ticker: str,
+    value: datetime,
+    *,
+    open_price: float,
+    high: float,
+    low: float,
+    close: float,
+    volume: int = 1_000_000,
+) -> str:
+    return (
+        f"{ticker},{volume},{open_price},{close},{high},{low},"
+        f"{_nanos(value)},1"
+    )
+
+
 def _write_cached_csv(path: Path, rows: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(gzip.compress(("\n".join([HEADER, *rows]) + "\n").encode()))
@@ -204,3 +220,80 @@ def test_regular_bars_are_sorted_and_duplicate_minutes_are_audited(
             },
         }
     ]
+
+
+def test_atr_14_uses_true_range_and_prior_close_gap(tmp_path: Path):
+    trading_date = "2024-03-15"
+    store = MassiveFlatFileStore(object(), cache_root=tmp_path)
+    lookback_dates = previous_trading_sessions(trading_date, 20)
+    active_dates = lookback_dates[-15:]
+
+    for session_date in lookback_dates:
+        session_midnight = datetime.combine(
+            date.fromisoformat(session_date), time(0), tzinfo=timezone.utc
+        )
+        if session_date == active_dates[0]:
+            rows = [_ohlcv_row(
+                "AAL", session_midnight, open_price=100, high=101,
+                low=99, close=100,
+            )]
+        elif session_date == active_dates[-1]:
+            # The $10 prior-close gap dominates the $2 high-low range.
+            rows = [_ohlcv_row(
+                "AAL", session_midnight, open_price=109, high=110,
+                low=108, close=109,
+            )]
+        elif session_date in active_dates:
+            rows = [_ohlcv_row(
+                "AAL", session_midnight, open_price=100, high=101,
+                low=99, close=100,
+            )]
+        else:
+            rows = []
+        _write_cached_csv(
+            store.cache_path(DAY_AGGS_DATASET, session_date), rows
+        )
+        _write_cached_csv(
+            store.cache_path(MINUTE_AGGS_DATASET, session_date), []
+        )
+    _write_cached_csv(
+        store.cache_path(MINUTE_AGGS_DATASET, trading_date), []
+    )
+
+    result = build_flatfile_snapshot(
+        trading_date,
+        _manifest(trading_date),
+        store,
+        lookback_sessions=20,
+    )
+
+    market_data = result.snapshot["securities"][0]["market_data"]
+    assert market_data["atr_14_usd"]["value"] == pytest.approx(
+        (13 * 2 + 10) / 14
+    )
+    assert market_data["atr_lookback_sessions"]["value"] == 14
+    assert market_data["atr_sessions_used"]["value"] == 14
+    assert "missing_reason" not in market_data["atr_14_usd"]
+
+
+def test_atr_is_missing_with_reason_when_history_is_short(tmp_path: Path):
+    trading_date = "2024-03-15"
+    store = MassiveFlatFileStore(object(), cache_root=tmp_path)
+    previous_date = previous_trading_sessions(trading_date, 1)[0]
+    midnight = datetime.combine(
+        date.fromisoformat(previous_date), time(0), tzinfo=timezone.utc
+    )
+    _write_cached_csv(
+        store.cache_path(DAY_AGGS_DATASET, previous_date),
+        [_row("AAL", midnight, close=10.0, volume=1_000_000)],
+    )
+    _write_cached_csv(store.cache_path(MINUTE_AGGS_DATASET, previous_date), [])
+    _write_cached_csv(store.cache_path(MINUTE_AGGS_DATASET, trading_date), [])
+
+    result = build_flatfile_snapshot(
+        trading_date, _manifest(trading_date), store, lookback_sessions=1
+    )
+
+    atr = result.snapshot["securities"][0]["market_data"]["atr_14_usd"]
+    assert atr["value"] is None
+    assert atr["missing_reason"] == "INSUFFICIENT_ATR_HISTORY"

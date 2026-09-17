@@ -94,6 +94,7 @@ def _simulate_outcome(
     maximum_move = float(outcome["maximum_capturable_move_pct"])
     return {
         **raw,
+        "entry_timestamp": bars[0]["timestamp"],
         "capture_ratio": (
             raw["realized_return_pct"] / maximum_move
             if maximum_move > 0
@@ -255,6 +256,18 @@ def build_same_universe_benchmark(
                 "simulation_exclusion_reason": exclusion,
                 "trade_executed": (
                     execution["trade_executed"] if execution else None
+                ),
+                "entry_timestamp": (
+                    execution.get("entry_timestamp") if execution else None
+                ),
+                "entry_price": (
+                    execution.get("entry_price") if execution else None
+                ),
+                "exit_timestamp": (
+                    execution.get("exit_timestamp") if execution else None
+                ),
+                "exit_price": (
+                    execution.get("exit_price") if execution else None
                 ),
                 "realized_return_pct": (
                     execution["realized_return_pct"] if execution else None
