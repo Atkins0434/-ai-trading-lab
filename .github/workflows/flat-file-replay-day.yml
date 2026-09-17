@@ -253,6 +253,27 @@ jobs:
               if bar_statistics:
                   for name, value in sorted(bar_statistics.items()):
                       print(f"  {name}: {value}")
+                  duplicate_tickers = sorted({
+                      item["ticker"]
+                      for item in bar_statistics.get(
+                          "duplicate_minute_rows", []
+                      )
+                  })
+                  no_path_tickers = sorted(
+                      ticker
+                      for ticker, counts in bar_statistics.get(
+                          "by_ticker", {}
+                      ).items()
+                      if counts.get("real_regular", 0) == 0
+                  )
+                  print(
+                      "Tickers with duplicate minute rows: "
+                      + (", ".join(duplicate_tickers) or "none")
+                  )
+                  print(
+                      "Tickers with no regular-session path: "
+                      + (", ".join(no_path_tickers) or "none")
+                  )
               else:
                   print("  unavailable")
               scorability = (

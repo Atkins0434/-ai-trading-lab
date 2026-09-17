@@ -10,7 +10,7 @@ from trainer.benchmark import (
     _return_baselines,
     build_same_universe_benchmark,
 )
-from trainer.outcome_grader import grade_replay_outcomes
+from trainer.outcome_grader import OutcomeError, grade_replay_outcomes
 from trainer.postmortem import build_postmortem
 from trainer.postmortem_report import generate_postmortem_pdf
 
@@ -532,3 +532,88 @@ def test_qualifying_candidates_consume_execution_slots_before_exploration():
     assert by_ticker["QUAL"]["execution_result"]["trade_executed"] is True
     assert by_ticker["EXP5"]["execution_result"]["trade_executed"] is False
     assert by_ticker["EXP5"]["execution_result"]["exit_reason"] == "ENTRY_REJECTED"
+
+
+def test_missing_regular_session_path_is_an_explicit_no_trade():
+    snapshot = {
+        "replay_id": "missing-path",
+        "trading_date": "2026-09-14",
+        "scout_version": "research_scout_alpha_v1.0",
+        "execution_policy_version": "execution_policy_v1.0_hypothetical",
+        **EVIDENCE,
+    }
+    scout = {
+        "candidates": [{
+            "ticker": "EMPTY",
+            "research_selected": False,
+            "selection_basis": "NOT_SELECTED",
+            "rank": None,
+            "score_pct": 42.0,
+        }]
+    }
+
+    result = grade_replay_outcomes(snapshot, scout, {}, 2500.0)
+
+    outcome = result["outcomes"][0]
+    assert outcome["ticker"] == "EMPTY"
+    assert outcome["intraday_path"] == []
+    assert outcome["execution_result"]["trade_executed"] is False
+    assert outcome["execution_result"]["exit_reason"] == (
+        "NO_REGULAR_SESSION_PATH"
+    )
+
+
+def test_out_of_order_path_error_names_ticker_and_timestamps():
+    snapshot = {
+        "replay_id": "bad-path",
+        "trading_date": "2026-09-14",
+        "scout_version": "research_scout_alpha_v1.0",
+        "execution_policy_version": "execution_policy_v1.0_hypothetical",
+        **EVIDENCE,
+    }
+    scout = {
+        "candidates": [{
+            "ticker": "ORDER",
+            "research_selected": False,
+            "selection_basis": "NOT_SELECTED",
+            "rank": None,
+            "score_pct": 42.0,
+        }]
+    }
+    later = _bars()[0]
+    later["timestamp"] = "2026-09-14T10:01:00-04:00"
+    earlier = _bars()[0]
+    earlier["timestamp"] = "2026-09-14T10:00:00-04:00"
+
+    with pytest.raises(OutcomeError) as caught:
+        grade_replay_outcomes(
+            snapshot, scout, {"ORDER": [later, earlier]}, 2500.0
+        )
+
+    message = str(caught.value)
+    assert "ticker=ORDER" in message
+    assert "2026-09-14T10:01:00-04:00" in message
+    assert "2026-09-14T10:00:00-04:00" in message
+
+
+def test_no_path_ticker_remains_in_same_universe_return_baseline():
+    baselines = _return_baselines(
+        [{
+            "ticker": "EMPTY",
+            "intraday_path": [],
+            "mae_pct": 0.0,
+            "maximum_capturable_move_pct": None,
+            "execution_result": {
+                "trade_executed": False,
+                "realized_pnl_usd": 0.0,
+                "realized_return_pct": 0.0,
+                "exit_reason": "NO_REGULAR_SESSION_PATH",
+            },
+        }],
+        selected_count=1,
+        strategy_capital=2500.0,
+    )
+
+    assert baselines["eligible_ticker_count"] == 1
+    assert baselines["eligible_ticker_mean_realized_pnl_usd"] == 0.0
+    assert baselines["random_draw_mean_realized_return_pct"] == 0.0

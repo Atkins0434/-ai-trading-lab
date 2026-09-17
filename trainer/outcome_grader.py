@@ -21,46 +21,75 @@ EXPLORATION_TOP_K = "EXPLORATION_TOP_K"
 NOT_SELECTED = "NOT_SELECTED"
 
 
-def _parse_timestamp(raw: str) -> datetime:
+def _parse_timestamp(raw: str, ticker: str) -> datetime:
     try:
         parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
-    except (TypeError, ValueError) as exc:
-        raise OutcomeError(f"Invalid outcome timestamp: {raw}") from exc
+    except (AttributeError, TypeError, ValueError) as exc:
+        raise OutcomeError(
+            f"ticker={ticker}: invalid outcome timestamp: {raw}"
+        ) from exc
     if parsed.tzinfo is None:
-        raise OutcomeError("Outcome timestamps require a timezone.")
+        raise OutcomeError(
+            f"ticker={ticker}: outcome timestamps require a timezone."
+        )
     return parsed
 
 
-def validate_outcome_bars(bars: list[dict[str, Any]]) -> None:
+def validate_outcome_bars(
+    bars: list[dict[str, Any]],
+    *,
+    ticker: str = "UNKNOWN",
+) -> None:
     if not bars:
-        raise OutcomeError("At least one regular-session bar is required.")
+        raise OutcomeError(
+            f"ticker={ticker}: at least one regular-session bar is required."
+        )
     previous: datetime | None = None
+    previous_raw: str | None = None
     for index, bar in enumerate(bars):
         required = {"timestamp", "open", "high", "low", "close", "volume"}
         missing = required - set(bar)
         if missing:
-            raise OutcomeError(f"Outcome bar {index} is missing {sorted(missing)}.")
-        timestamp = _parse_timestamp(bar["timestamp"])
+            raise OutcomeError(
+                f"ticker={ticker}: outcome bar {index} is missing "
+                f"{sorted(missing)}."
+            )
+        timestamp = _parse_timestamp(bar["timestamp"], ticker)
         if previous is not None and timestamp <= previous:
-            raise OutcomeError("Outcome bars must be strictly chronological.")
+            raise OutcomeError(
+                f"ticker={ticker}: outcome bars must be strictly chronological; "
+                f"previous_timestamp={previous_raw}, "
+                f"current_timestamp={bar['timestamp']}."
+            )
         previous = timestamp
+        previous_raw = bar["timestamp"]
         prices = [bar["open"], bar["high"], bar["low"], bar["close"]]
         if any(not isinstance(value, (int, float)) or value <= 0 for value in prices):
-            raise OutcomeError(f"Outcome bar {index} has an invalid price.")
+            raise OutcomeError(
+                f"ticker={ticker}: outcome bar {index} has an invalid price."
+            )
         if bar["high"] < max(prices) or bar["low"] > min(prices):
-            raise OutcomeError(f"Outcome bar {index} has inconsistent OHLC.")
+            raise OutcomeError(
+                f"ticker={ticker}: outcome bar {index} has inconsistent OHLC."
+            )
         if not isinstance(bar["volume"], (int, float)) or bar["volume"] < 0:
-            raise OutcomeError(f"Outcome bar {index} has invalid volume.")
+            raise OutcomeError(
+                f"ticker={ticker}: outcome bar {index} has invalid volume."
+            )
 
 
 def path_statistics(
     bars: list[dict[str, Any]],
     reference_price: float,
+    *,
+    ticker: str = "UNKNOWN",
 ) -> dict[str, float]:
     """Calculate MFE, MAE, and the best chronological low-to-high move."""
-    validate_outcome_bars(bars)
+    validate_outcome_bars(bars, ticker=ticker)
     if reference_price <= 0:
-        raise OutcomeError("Reference price must be positive.")
+        raise OutcomeError(
+            f"ticker={ticker}: reference price must be positive."
+        )
 
     mfe_pct = (max(bar["high"] for bar in bars) / reference_price - 1) * 100
     mae_pct = (min(bar["low"] for bar in bars) / reference_price - 1) * 100
@@ -146,12 +175,12 @@ def grade_replay_outcomes(
         allowed = {QUALIFYING_THRESHOLD, EXPLORATION_TOP_K, NOT_SELECTED}
         if basis not in allowed:
             raise OutcomeError(
-                f"Unknown selection basis for {candidate['ticker']}: {basis}"
+                f"ticker={candidate['ticker']}: unknown selection basis: {basis}"
             )
         if selected != (basis != NOT_SELECTED):
             raise OutcomeError(
-                f"Selection basis disagrees with selected state for "
-                f"{candidate['ticker']}."
+                f"ticker={candidate['ticker']}: selection basis disagrees "
+                "with selected state."
             )
         return basis
 
@@ -182,15 +211,31 @@ def grade_replay_outcomes(
     outcomes = []
     for candidate in scout_result["candidates"]:
         ticker = candidate["ticker"]
-        bars = bars_by_ticker.get(ticker)
-        if not bars:
-            raise OutcomeError(f"Missing regular-session path for {ticker}.")
-        validate_outcome_bars(bars)
-        entry_price = float(bars[0]["open"])
-        stats = path_statistics(bars, entry_price)
-
+        bars = bars_by_ticker.get(ticker) or []
         selected = is_selected(candidate)
         basis = selection_basis(candidate)
+        if not bars:
+            outcomes.append(
+                {
+                    "ticker": ticker,
+                    "selected": selected,
+                    "selection_basis": basis,
+                    "scout_rank": candidate["rank"],
+                    "scout_score_pct": candidate["score_pct"],
+                    "intraday_path": [],
+                    "mfe_pct": 0.0,
+                    "mae_pct": 0.0,
+                    "maximum_capturable_move_pct": None,
+                    "execution_result": _no_trade_contract(
+                        "NO_REGULAR_SESSION_PATH"
+                    ),
+                }
+            )
+            continue
+        validate_outcome_bars(bars, ticker=ticker)
+        entry_price = float(bars[0]["open"])
+        stats = path_statistics(bars, entry_price, ticker=ticker)
+
         if selected and ticker in executable_tickers:
             try:
                 raw_execution = simulate_trade(
@@ -200,7 +245,9 @@ def grade_replay_outcomes(
                     strategy_capital=strategy_capital,
                 )
             except ExecutionError as exc:
-                raise OutcomeError(f"Execution failed for {ticker}: {exc}") from exc
+                raise OutcomeError(
+                    f"ticker={ticker}: execution failed: {exc}"
+                ) from exc
             execution = _execution_contract(
                 raw_execution,
                 bars[0]["timestamp"],
@@ -241,5 +288,7 @@ def grade_replay_outcomes(
     try:
         validate_contract("end_of_day_outcome", result)
     except ContractError as exc:
-        raise OutcomeError(f"Outcome contract validation failed: {exc}") from exc
+        raise OutcomeError(
+            f"ticker=ALL: outcome contract validation failed: {exc}"
+        ) from exc
     return result

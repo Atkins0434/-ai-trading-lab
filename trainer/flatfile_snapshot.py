@@ -101,6 +101,65 @@ def _snapshot_bar(bar: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _collision_row(bar: dict[str, Any]) -> dict[str, Any]:
+    """Retain the provider values needed to audit a duplicate-minute choice."""
+    return {
+        "open": bar["open"],
+        "high": bar["high"],
+        "low": bar["low"],
+        "close": bar["close"],
+        "volume": bar["volume"],
+        "transactions": bar["transactions"],
+    }
+
+
+def _deduplicate_regular_bars(
+    ticker: str,
+    bars: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Sort regular bars and select one provider row per ticker-minute."""
+    selected_by_minute: dict[datetime, dict[str, Any]] = {}
+    collisions: list[dict[str, Any]] = []
+    for bar in sorted(
+        bars,
+        key=lambda item: datetime.fromisoformat(item["timestamp"]),
+    ):
+        observed = datetime.fromisoformat(bar["timestamp"])
+        minute = observed.replace(second=0, microsecond=0)
+        existing = selected_by_minute.get(minute)
+        if existing is None:
+            selected_by_minute[minute] = bar
+            continue
+
+        existing_priority = (
+            int(existing["transactions"]),
+            float(existing["volume"]),
+        )
+        incoming_priority = (
+            int(bar["transactions"]),
+            float(bar["volume"]),
+        )
+        if incoming_priority > existing_priority:
+            kept, discarded = bar, existing
+            selected_by_minute[minute] = bar
+        else:
+            kept, discarded = existing, bar
+        collisions.append(
+            {
+                "ticker": ticker,
+                "timestamp": minute.isoformat(),
+                "kept_row": _collision_row(kept),
+                "discarded_row": _collision_row(discarded),
+            }
+        )
+
+    selected = sorted(
+        selected_by_minute.values(),
+        key=lambda item: datetime.fromisoformat(item["timestamp"]),
+    )
+    return [_snapshot_bar(bar) for bar in selected], collisions
+
+
 def build_flatfile_snapshot(
     trading_date: str,
     universe_manifest: dict[str, Any],
@@ -186,6 +245,7 @@ def build_flatfile_snapshot(
     }
     outcome_bars: dict[str, list[dict[str, Any]]] = {}
     per_ticker_counts: dict[str, dict[str, int]] = {}
+    duplicate_minute_rows: list[dict[str, Any]] = []
 
     manifest_by_ticker = {item["ticker"]: item for item in securities}
     for ticker in sorted(tickers):
@@ -327,10 +387,11 @@ def build_flatfile_snapshot(
             )
         snapshot["securities"].append(security)
 
-        regular = sorted(
-            (_snapshot_bar(bar) for bar in target_regular.get(ticker, [])),
-            key=lambda item: item["timestamp"],
+        regular, collisions = _deduplicate_regular_bars(
+            ticker,
+            target_regular.get(ticker, []),
         )
+        duplicate_minute_rows.extend(collisions)
         outcome_bars[ticker] = regular
         per_ticker_counts[ticker] = {
             "real_premarket": len(premarket_bars),
@@ -349,6 +410,7 @@ def build_flatfile_snapshot(
         "real_regular_bar_count": sum(
             item["real_regular"] for item in per_ticker_counts.values()
         ),
+        "duplicate_minute_rows": duplicate_minute_rows,
         "by_ticker": per_ticker_counts,
     }
     return FlatFileSnapshotResult(
