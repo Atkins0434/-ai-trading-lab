@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.output_paths import daily_path
 
 from copy import deepcopy
 import json
@@ -39,7 +40,7 @@ def _materialize(tmp_path: Path, bundle: dict) -> Path:
     }
     for key, name in names.items():
         if bundle.get(key) is not None:
-            (day_dir / name).write_text(json.dumps(bundle[key]) + "\n")
+            (daily_path(day_dir, day_dir.name, Path(name).stem)).write_text(json.dumps(bundle[key]) + "\n")
     return day_dir
 
 

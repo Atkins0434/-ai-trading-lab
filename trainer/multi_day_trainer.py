@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from trainer.output_paths import daily_path
+
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
@@ -142,8 +144,8 @@ def _aggregate(
     for record in sorted(day_records, key=lambda item: item["trading_date"]):
         day_dir = root / record["artifact_directory"]
         partition = record.get("partition", "DEVELOPMENT")
-        benchmark = _read_json(day_dir / "benchmark_result.json")
-        postmortem = _read_json(day_dir / "postmortem.json")
+        benchmark = _read_json(daily_path(day_dir, day_dir.name, "benchmark_result"))
+        postmortem = _read_json(daily_path(day_dir, day_dir.name, "postmortem"))
         try:
             assert_matching_universe(benchmark, postmortem)
             require_research_evidence(postmortem, consumer="Trainer")
@@ -230,7 +232,7 @@ def _aggregate(
             if occurrence_key not in known:
                 item["evidence"].append(occurrence)
 
-        catalyst_path = day_dir / "catalyst_shadow_metrics.json"
+        catalyst_path = daily_path(day_dir, day_dir.name, "catalyst_shadow_metrics")
         if catalyst_path.exists():
             catalyst_payload = _read_json(catalyst_path)
             for ticker_result in catalyst_payload.get("ticker_metrics", []):
@@ -572,9 +574,9 @@ def run_multi_day_trainer(
         previous = prior_days.get(trading_date)
         day_dir = output_root / "days" / trading_date
         reusable_artifact_exists = (
-            (day_dir / "postmortem.json").exists()
+            (daily_path(day_dir, day_dir.name, "postmortem")).exists()
             if previous and previous.get("research_evidence") is True
-            else (day_dir / "research_alpha_batch_manifest.json").exists()
+            else (daily_path(day_dir, day_dir.name, "research_alpha_batch_manifest")).exists()
         )
         if (
             previous
@@ -615,7 +617,7 @@ def run_multi_day_trainer(
                 dataset_partition=dataset_split[trading_date],
                 universe_mode=universe_mode,
             )
-            postmortem_path = day_dir / "postmortem.json"
+            postmortem_path = daily_path(day_dir, day_dir.name, "postmortem")
             postmortem = (
                 _read_json(postmortem_path)
                 if manifest.get("research_evidence") is True

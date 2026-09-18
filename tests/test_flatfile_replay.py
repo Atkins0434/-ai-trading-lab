@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.output_paths import daily_path
 
 import json
 from pathlib import Path
@@ -520,8 +521,8 @@ def test_zero_scorable_tickers_fails_after_scoring(
     assert result["phase_status"]["grading"] == "SKIPPED"
     assert result["scored_ticker_count"] == 0
     assert result["scorability_statistics"]["not_scorable_share"] == 1.0
-    assert (tmp_path / "days" / "2018-01-03" / "historical_snapshot.json").is_file()
-    assert (tmp_path / "days" / "2018-01-03" / "research_alpha_output.json").is_file()
+    assert (tmp_path / "days" / "2018-01-03" / "historical_snapshot_2018-01-03.json").is_file()
+    assert (tmp_path / "days" / "2018-01-03" / "research_alpha_output_2018-01-03.json").is_file()
 
 
 def test_failure_between_phases_preserves_last_phase_and_error(

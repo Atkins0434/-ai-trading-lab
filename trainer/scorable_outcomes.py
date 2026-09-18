@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from trainer.output_paths import daily_path, day_file, legacy_name
+
 import csv
 import json
 from datetime import datetime, time
@@ -213,12 +215,12 @@ def export_daily_outcomes(
     eligible_rows.sort(key=key)
     return (
         _write_csv(
-            day_dir / "scorable_outcomes.csv",
+            daily_path(day_dir, trading_date, "scorable_outcomes"),
             scorable_outcomes_columns(policy_ids),
             scorable_rows,
         ),
         _write_csv(
-            day_dir / "eligible_outcomes.csv",
+            daily_path(day_dir, trading_date, "eligible_outcomes"),
             ELIGIBLE_OUTCOMES_COLUMNS,
             eligible_rows,
         ),
@@ -227,24 +229,25 @@ def export_daily_outcomes(
 
 def concatenate_completed_outcomes(output_root: Path, completed_dates: list[str]) -> tuple[Path, Path]:
     outputs = []
-    for filename in ("scorable_outcomes.csv", "eligible_outcomes.csv"):
+    for kind in ("scorable_outcomes", "eligible_outcomes"):
+        filename = legacy_name(kind)
         header: list[str] | None = None
         rows: list[dict[str, str]] = []
         for trading_date in sorted(completed_dates):
-            path = output_root / "days" / trading_date / filename
+            path = day_file(output_root, trading_date, kind)
             if not path.is_file():
                 day_dir = path.parent
                 required = (
-                    "historical_snapshot.json", "research_alpha_output.json",
-                    "end_of_day_outcome.json", "benchmark_result.json",
+                    "historical_snapshot", "research_alpha_output",
+                    "end_of_day_outcome", "benchmark_result",
                 )
-                if not all((day_dir / name).is_file() for name in required):
+                if not all((daily_path(day_dir, trading_date, name)).is_file() for name in required):
                     raise FileNotFoundError(
                         f"Required daily outcome export is missing: {path}"
                     )
                 artifacts = []
                 for name in required:
-                    with (day_dir / name).open(encoding="utf-8") as handle:
+                    with (daily_path(day_dir, trading_date, name)).open(encoding="utf-8") as handle:
                         artifacts.append(json.load(handle))
                 export_daily_outcomes(day_dir, *artifacts)
             with path.open(encoding="utf-8", newline="") as handle:

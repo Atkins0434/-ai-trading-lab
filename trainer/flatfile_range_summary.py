@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from trainer.output_paths import daily_path
+
 import argparse
 from collections import Counter
 import json
@@ -52,10 +54,10 @@ def _day_evidence(
     trading_date: str,
 ) -> dict[str, Any]:
     day_root = output_root / "days" / trading_date
-    scout = _load_json(day_root / "research_alpha_output.json") or {}
-    outcome = _load_json(day_root / "end_of_day_outcome.json") or {}
-    benchmark = _load_json(day_root / "benchmark_result.json") or {}
-    postmortem = _load_json(day_root / "postmortem.json") or {}
+    scout = _load_json(daily_path(day_root, day_root.name, "research_alpha_output")) or {}
+    outcome = _load_json(daily_path(day_root, day_root.name, "end_of_day_outcome")) or {}
+    benchmark = _load_json(daily_path(day_root, day_root.name, "benchmark_result")) or {}
+    postmortem = _load_json(daily_path(day_root, day_root.name, "postmortem")) or {}
     selected_tickers = {
         item["ticker"]
         for item in scout.get("candidates", [])
