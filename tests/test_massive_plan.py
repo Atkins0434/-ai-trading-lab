@@ -129,3 +129,26 @@ def test_flatfile_workflow_persists_versioned_provider_caches():
     assert "benchmark_result.json\n            " not in workflow.split(
         "uses: actions/upload-artifact@v4"
     )[-1]
+
+
+def test_flatfile_range_workflow_resumes_and_verifies_multi_day_output():
+    workflow = (
+        ROOT / ".github" / "workflows" / "flat-file-replay-range.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "name: Flat-File Replay Range" in workflow
+    assert "group: multi-day-trainer-${{ github.repository }}" in workflow
+    assert "timeout-minutes: 360" in workflow
+    assert "actions/cache/restore@v4" in workflow
+    assert "actions/cache/save@v4" in workflow
+    assert "replay-output-${{ github.repository }}" in workflow
+    assert "--max-wall-seconds 18000" in workflow
+    assert "python -m trainer.flatfile_coverage" in workflow
+    assert "store.ensure_day(DAY_AGGS_DATASET, trading_date)" in workflow
+    assert "store.ensure_day(MINUTE_AGGS_DATASET, trading_date)" in workflow
+    assert "python -m trainer.flatfile_range_summary" in workflow
+    assert 'if day.get("status") != "COMPLETE"' in workflow
+    assert '"PAUSED_WALL_BUDGET"' in workflow
+    assert "Each run saves a new flat-file cache entry." in workflow
+    assert 'data/reference_cache "$OUTPUT_ROOT"' in workflow
+    assert "flat-file-replay-range-${{ steps.replay.outputs.start_date }}" in workflow
