@@ -1,0 +1,295 @@
+name: Flat-File Replay Range
+
+concurrency:
+  group: multi-day-trainer-${{ github.repository }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: First US trading session to replay (YYYY-MM-DD)
+        required: true
+        default: "2024-03-01"
+      end_date:
+        description: Last US trading session to replay (YYYY-MM-DD)
+        required: true
+        default: "2024-03-28"
+      max_tickers:
+        description: Optional positive ticker cap for non-research smoke mode
+        required: false
+        default: ""
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve replay cache version
+        id: cache_config
+        shell: bash
+        run: |
+          cache_version="$(jq -er .cache_version config/flatfile_replay.json)"
+          echo "version=$cache_version" >> "$GITHUB_OUTPUT"
+
+      - name: Validate replay range and resolve paths
+        id: replay
+        shell: bash
+        env:
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+          MAX_TICKERS: ${{ inputs.max_tickers }}
+        run: |
+          python - <<'PY'
+          import os
+          from datetime import date
+
+          from trainer.trading_calendar import generate_trading_dates
+
+          start = os.environ["START_DATE"]
+          end = os.environ["END_DATE"]
+          for name, value in (("start_date", start), ("end_date", end)):
+              normalized = date.fromisoformat(value).isoformat()
+              if value != normalized:
+                  raise SystemExit(
+                      f"{name} must use YYYY-MM-DD format: {value!r}"
+                  )
+          if start > end:
+              raise SystemExit("start_date must be on or before end_date")
+          sessions = generate_trading_dates(start, end)
+          if start not in sessions:
+              raise SystemExit(f"Not a supported US trading session: {start}")
+          if end not in sessions:
+              raise SystemExit(f"Not a supported US trading session: {end}")
+
+          raw_cap = os.environ.get("MAX_TICKERS", "").strip()
+          if raw_cap:
+              try:
+                  cap = int(raw_cap)
+              except ValueError as exc:
+                  raise SystemExit(
+                      "max_tickers must be a positive integer"
+                  ) from exc
+              if cap < 1 or str(cap) != raw_cap:
+                  raise SystemExit(
+                      "max_tickers must be a positive integer"
+                  )
+          PY
+          output_root="reports/flatfile_replay/${START_DATE}-to-${END_DATE}"
+          echo "start_date=${START_DATE}" >> "$GITHUB_OUTPUT"
+          echo "end_date=${END_DATE}" >> "$GITHUB_OUTPUT"
+          echo "output_root=${output_root}" >> "$GITHUB_OUTPUT"
+          echo "max_tickers=${MAX_TICKERS}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore Massive flat-file cache
+        uses: actions/cache@v4
+        with:
+          path: data/flatfiles/
+          key: massive-flatfiles-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}
+          restore-keys: |
+            massive-flatfiles-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
+
+      - name: Restore Massive reference cache
+        uses: actions/cache@v4
+        with:
+          path: data/reference_cache/
+          key: massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}
+          restore-keys: |
+            massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
+
+      - name: Restore replay output
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ steps.replay.outputs.output_root }}/
+          key: replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-${{ github.run_id }}
+          restore-keys: |
+            replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-
+
+      - run: pip install -r requirements.txt
+
+      - name: Report cached flat-file coverage
+        shell: bash
+        env:
+          START_DATE: ${{ steps.replay.outputs.start_date }}
+          END_DATE: ${{ steps.replay.outputs.end_date }}
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          mkdir -p "$OUTPUT_ROOT"
+          python -m trainer.flatfile_coverage \
+            --start "$START_DATE" \
+            --end "$END_DATE" \
+            | tee "$OUTPUT_ROOT/coverage_before.json"
+
+      - name: Download range flat files before compute
+        shell: bash
+        env:
+          MASSIVE_S3_ACCESS_KEY_ID: ${{ secrets.MASSIVE_S3_ACCESS_KEY_ID }}
+          MASSIVE_S3_SECRET_ACCESS_KEY: ${{ secrets.MASSIVE_S3_SECRET_ACCESS_KEY }}
+          START_DATE: ${{ steps.replay.outputs.start_date }}
+          END_DATE: ${{ steps.replay.outputs.end_date }}
+        run: |
+          python - <<'PY'
+          import os
+
+          from trainer.providers.massive_flatfiles import (
+              DAY_AGGS_DATASET,
+              MINUTE_AGGS_DATASET,
+              MassiveFlatFileStore,
+          )
+          from trainer.trading_calendar import generate_trading_dates
+
+          dates = generate_trading_dates(
+              os.environ["START_DATE"], os.environ["END_DATE"]
+          )
+          store = MassiveFlatFileStore.from_environment()
+          for trading_date in dates:
+              store.ensure_day(DAY_AGGS_DATASET, trading_date)
+              store.ensure_day(MINUTE_AGGS_DATASET, trading_date)
+              print(
+                  "[flatfile_range_download] "
+                  f"trading_date={trading_date} datasets=day,minute complete",
+                  flush=True,
+              )
+          PY
+
+      - name: Run multi-day flat-file replay
+        shell: bash
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+          MASSIVE_S3_ACCESS_KEY_ID: ${{ secrets.MASSIVE_S3_ACCESS_KEY_ID }}
+          MASSIVE_S3_SECRET_ACCESS_KEY: ${{ secrets.MASSIVE_S3_SECRET_ACCESS_KEY }}
+          START_DATE: ${{ steps.replay.outputs.start_date }}
+          END_DATE: ${{ steps.replay.outputs.end_date }}
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+          MAX_TICKERS: ${{ steps.replay.outputs.max_tickers }}
+        run: |
+          set -o pipefail
+          replay_command=(
+            python -m trainer.flatfile_replay
+            --start "$START_DATE"
+            --end "$END_DATE"
+            --output-root "$OUTPUT_ROOT"
+            --max-wall-seconds 18000
+          )
+          if [ -n "$MAX_TICKERS" ]; then
+            replay_command+=(--max-tickers "$MAX_TICKERS")
+          fi
+          "${replay_command[@]}" | tee "$OUTPUT_ROOT/replay_stdout.json"
+
+      - name: Generate cumulative replay report
+        if: always()
+        shell: bash
+        env:
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: python -m trainer.replay_report --output-root "$OUTPUT_ROOT"
+
+      - name: Print replay range summary
+        if: always()
+        shell: bash
+        env:
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          python -m trainer.flatfile_range_summary \
+            --output-root "$OUTPUT_ROOT" \
+            | tee "$RUNNER_TEMP/flat-file-replay-range-summary.txt"
+          {
+            echo "### Flat-File Replay Range"
+            echo '```text'
+            cat "$RUNNER_TEMP/flat-file-replay-range-summary.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify required replay artifacts
+        if: always()
+        shell: bash
+        env:
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output_root = Path(os.environ["OUTPUT_ROOT"])
+          manifest_path = output_root / "flatfile_replay_manifest.json"
+          summary_path = output_root / "replay_summary.pdf"
+          missing = []
+          if not manifest_path.is_file():
+              missing.append(str(manifest_path))
+              manifest = {}
+          else:
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          if not summary_path.is_file():
+              missing.append(str(summary_path))
+
+          smoke_mode = bool(manifest.get("smoke_mode"))
+          for day in manifest.get("days", []):
+              if day.get("status") != "COMPLETE":
+                  continue
+              day_root = output_root / "days" / day["trading_date"]
+              required = [
+                  day_root / "daily_universe_manifest.json",
+                  day_root / "benchmark_result.json",
+                  day_root / "replay_report.pdf",
+              ]
+              if not smoke_mode:
+                  required.append(day_root / "postmortem.json")
+              for path in required:
+                  if path.is_file():
+                      print(f"Artifact ready: {path}")
+                  else:
+                      missing.append(str(path))
+
+          status = manifest.get("status")
+          if status not in {"COMPLETE", "PAUSED_WALL_BUDGET"}:
+              raise SystemExit(
+                  f"Replay status is not successful or cleanly paused: {status}"
+              )
+          if missing:
+              raise SystemExit(
+                  "Missing required replay artifacts:\n" + "\n".join(missing)
+              )
+          print(f"Replay artifact verification passed with status={status}")
+          PY
+
+      - name: Report local cache sizes
+        if: always()
+        shell: bash
+        env:
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          echo "GitHub Actions cache storage is limited to 10 GB per repository."
+          echo "Each run saves a new flat-file cache entry."
+          for directory in data/flatfiles data/reference_cache "$OUTPUT_ROOT"; do
+            if [ -d "$directory" ]; then
+              human_size="$(du -sh "$directory" | cut -f1)"
+              byte_size="$(du -sb "$directory" | cut -f1)"
+            else
+              human_size="0"
+              byte_size="0"
+            fi
+            echo "$directory: $human_size ($byte_size bytes)"
+          done
+
+      - name: Save replay output
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ steps.replay.outputs.output_root }}/
+          key: replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-${{ github.run_id }}
+
+      - name: Upload replay range artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flat-file-replay-range-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-${{ github.run_id }}
+          if-no-files-found: error
+          path: |
+            ${{ steps.replay.outputs.output_root }}/

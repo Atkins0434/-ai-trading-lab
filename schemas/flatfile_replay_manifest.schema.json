@@ -11,14 +11,14 @@
     "morning_freeze_time",
     "comparison_policy_paths",
     "selection_policy", "universe_policy", "requested_dates",
-    "completed_dates", "failed_dates", "reference_cache_summary", "days"
+    "completed_dates", "remaining_dates", "failed_dates", "reference_cache_summary", "days"
   ],
   "properties": {
     "version": {"const": "flatfile_replay_manifest_v1.0"},
     "run_id": {"type": "string", "minLength": 1},
     "start_date": {"type": "string", "format": "date"},
     "end_date": {"type": "string", "format": "date"},
-    "status": {"enum": ["IN_PROGRESS", "COMPLETE", "PARTIAL", "FAILED"]},
+    "status": {"enum": ["IN_PROGRESS", "COMPLETE", "PARTIAL", "FAILED", "PAUSED_WALL_BUDGET"]},
     "current_trading_date": {"type": ["string", "null"], "format": "date"},
     "current_phase": {
       "type": ["string", "null"],
@@ -70,6 +70,10 @@
       "items": {"type": "string", "format": "date"}
     },
     "completed_dates": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "format": "date"}
+    },
+    "remaining_dates": {
       "type": "array", "uniqueItems": true,
       "items": {"type": "string", "format": "date"}
     },

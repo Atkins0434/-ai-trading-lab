@@ -563,8 +563,10 @@ def run_flatfile_replay(
     comparison_policy_paths: list[Path | str] | None = None,
     reference_cache_root: Path = Path("data/reference_cache"),
     resume: bool = True,
+    max_wall_seconds: float | None = None,
     day_runner: DayRunner = run_flatfile_day,
 ) -> dict[str, Any]:
+    run_started = time.monotonic()
     dates = sorted({date.fromisoformat(value).isoformat() for value in trading_dates})
     if not dates:
         raise FlatFileReplayError("At least one trading date is required.")
@@ -572,6 +574,8 @@ def run_flatfile_replay(
         raise FlatFileReplayError("lookback_sessions must be at least one.")
     if strategy_capital <= 0:
         raise FlatFileReplayError("strategy_capital must be positive.")
+    if max_wall_seconds is not None and max_wall_seconds < 0:
+        raise FlatFileReplayError("max_wall_seconds must be non-negative.")
     from trainer.replay_engine import configured_freeze_datetime
     configured_freeze_datetime(
         dates[0], {"morning_freeze_time": morning_freeze_time}
@@ -657,6 +661,7 @@ def run_flatfile_replay(
             for item in ordered
             if item["status"] == "COMPLETE"
         ]
+        remaining = [value for value in dates if value not in completed]
         if status_override is not None:
             status = status_override
         elif len(completed) == len(dates):
@@ -685,6 +690,7 @@ def run_flatfile_replay(
             "universe_policy": universe_policy,
             "requested_dates": dates,
             "completed_dates": completed,
+            "remaining_dates": remaining,
             "failed_dates": failures,
             "reference_cache_summary": {
                 key: sum(
@@ -719,6 +725,23 @@ def run_flatfile_replay(
         ):
             failures.pop(trading_date, None)
             continue
+        if (
+            max_wall_seconds is not None
+            and time.monotonic() - run_started > max_wall_seconds
+        ):
+            remaining = [
+                value
+                for value in dates
+                if days.get(value, {}).get("status") != "COMPLETE"
+            ]
+            manifest = checkpoint(status_override="PAUSED_WALL_BUDGET")
+            print(
+                "[flatfile_replay] status=PAUSED_WALL_BUDGET "
+                f"remaining_dates={','.join(remaining)}",
+                file=sys.stderr,
+                flush=True,
+            )
+            return manifest
         days[trading_date] = _new_day_record(
             trading_date,
             smoke_mode=smoke_mode,
@@ -831,6 +854,15 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument("--no-resume", action="store_true")
+    parser.add_argument(
+        "--max-wall-seconds",
+        type=float,
+        default=None,
+        help=(
+            "Pause successfully between days after this wall-clock budget. "
+            "A day already in progress is never interrupted."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -864,6 +896,7 @@ def main() -> None:
         max_tickers=args.max_tickers,
         reference_cache_root=args.reference_cache_root,
         resume=not args.no_resume,
+        max_wall_seconds=args.max_wall_seconds,
     )
     print(json.dumps(result, indent=2, sort_keys=True))
 

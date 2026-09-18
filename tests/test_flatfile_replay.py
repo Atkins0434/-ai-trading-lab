@@ -93,6 +93,84 @@ def test_flatfile_replay_resumes_completed_dates_without_reprocessing(tmp_path: 
     assert calls == dates
 
 
+def test_wall_budget_pauses_between_days_and_resume_completes_range(
+    tmp_path: Path,
+    monkeypatch,
+    capsys,
+):
+    dates = ["2018-01-02", "2018-01-03", "2018-01-04"]
+    calls = []
+    now = [0.0]
+
+    monkeypatch.setattr(flatfile_replay.time, "monotonic", lambda: now[0])
+
+    def day_runner(
+        reference_client,
+        flatfiles,
+        trading_date,
+        *,
+        output_root,
+        max_tickers,
+        **kwargs,
+    ):
+        calls.append(trading_date)
+        marker = output_root / "days" / trading_date / "complete.json"
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text("{}\n", encoding="utf-8")
+        record = _new_day_record(
+            trading_date,
+            smoke_mode=False,
+            max_tickers=max_tickers,
+        )
+        record.update({
+            "status": "COMPLETE",
+            "current_phase": None,
+            "research_evidence": True,
+            "artifacts": {"marker": str(marker.relative_to(output_root))},
+        })
+        record["phase_status"] = {
+            phase: "COMPLETE" for phase in REPLAY_PHASES
+        }
+        now[0] += 2.0 if trading_date == dates[0] else 0.4
+        return record
+
+    paused = run_flatfile_replay(
+        object(),
+        object(),
+        dates,
+        output_root=tmp_path,
+        lookback_sessions=1,
+        max_wall_seconds=1.0,
+        day_runner=day_runner,
+    )
+
+    assert calls == [dates[0]]
+    assert paused["status"] == "PAUSED_WALL_BUDGET"
+    assert paused["completed_dates"] == [dates[0]]
+    assert paused["remaining_dates"] == dates[1:]
+    assert [item["trading_date"] for item in paused["days"]] == [dates[0]]
+    assert (
+        "status=PAUSED_WALL_BUDGET "
+        "remaining_dates=2018-01-03,2018-01-04"
+        in capsys.readouterr().err
+    )
+
+    completed = run_flatfile_replay(
+        object(),
+        object(),
+        dates,
+        output_root=tmp_path,
+        lookback_sessions=1,
+        max_wall_seconds=1.0,
+        day_runner=day_runner,
+    )
+
+    assert calls == dates
+    assert completed["status"] == "COMPLETE"
+    assert completed["completed_dates"] == dates
+    assert completed["remaining_dates"] == []
+
+
 def test_resume_upgrades_pre_failure_classification_cache_metrics(
     tmp_path: Path,
 ):
