@@ -463,7 +463,11 @@ jobs:
             "$OUTPUT_ROOT/flatfile_replay_manifest.json"
             "$day_root/benchmark_result.json"
             "$day_root/replay_report.pdf"
+            "$day_root/scorable_outcomes.csv"
+            "$day_root/eligible_outcomes.csv"
             "$OUTPUT_ROOT/replay_summary.pdf"
+            "$OUTPUT_ROOT/scorable_outcomes.csv"
+            "$OUTPUT_ROOT/eligible_outcomes.csv"
           )
           if [ -z "$MAX_TICKERS" ]; then
             required+=("$day_root/postmortem.json")

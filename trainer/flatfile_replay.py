@@ -27,6 +27,7 @@ from trainer.providers.massive_flatfiles import (
 from trainer.rate_control import AdaptiveRateLimiter, load_massive_plan
 from trainer.report_generator import generate_scout_pdf_report
 from trainer.replay_report import generate_daily_replay_report
+from trainer.scorable_outcomes import export_daily_outcomes
 from trainer.research_scout_alpha import run_research_scout_alpha
 from trainer.trading_calendar import generate_trading_dates
 from trainer.universe_builder import (
@@ -432,6 +433,11 @@ def _run_flatfile_day_impl(
         )
         _write_json(benchmark_path, benchmark)
         artifacts["benchmark_result"] = relative(benchmark_path)
+        scorable_path, eligible_path = export_daily_outcomes(
+            day_dir, outcome_snapshot, scout, outcome, benchmark
+        )
+        artifacts["scorable_outcomes"] = relative(scorable_path)
+        artifacts["eligible_outcomes"] = relative(eligible_path)
     if smoke_mode:
         postmortem_started = time.perf_counter()
         progress["current_phase"] = "postmortem"

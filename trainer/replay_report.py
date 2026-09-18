@@ -28,6 +28,7 @@ from trainer.universe_manifest import (
     EXCLUSION_REASON_CLASSIFICATION,
 )
 from trainer.validate_contracts import load_json
+from trainer.scorable_outcomes import concatenate_completed_outcomes
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -878,6 +879,9 @@ def generate_cumulative_replay_report(
     output_path: Path | None = None,
 ) -> Path:
     manifest = _required(output_root / "flatfile_replay_manifest.json")
+    concatenate_completed_outcomes(
+        output_root, list(manifest.get("completed_dates", []))
+    )
     models = _completed_day_models(output_root)
     output_path = output_path or output_root / "replay_summary.pdf"
     output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -228,6 +228,10 @@ jobs:
               manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
           if not summary_path.is_file():
               missing.append(str(summary_path))
+          for filename in ("scorable_outcomes.csv", "eligible_outcomes.csv"):
+              path = output_root / filename
+              if not path.is_file():
+                  missing.append(str(path))
 
           smoke_mode = bool(manifest.get("smoke_mode"))
           for day in manifest.get("days", []):
@@ -238,6 +242,8 @@ jobs:
                   day_root / "daily_universe_manifest.json",
                   day_root / "benchmark_result.json",
                   day_root / "replay_report.pdf",
+                  day_root / "scorable_outcomes.csv",
+                  day_root / "eligible_outcomes.csv",
               ]
               if not smoke_mode:
                   required.append(day_root / "postmortem.json")
