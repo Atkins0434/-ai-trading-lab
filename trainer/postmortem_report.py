@@ -87,8 +87,37 @@ def generate_postmortem_pdf(
             "WIN/TIE/MISS compares Scout gross return with 200 deterministic random same-universe baskets under the same execution policy. Top-10 capture is diagnostic only.",
             small,
         ),
-        PageBreak(),
     ])
+    scorability = postmortem.get("universe_scorability")
+    if scorability:
+        diagnostic_rows = [
+            ["Eligible", "Scorable", "Not scorable", "Zero premarket", "Zero final 60m", "Top-10 invisible"],
+            [
+                scorability["eligible_count"],
+                scorability["scorable_count"],
+                _pct(float(scorability["not_scorable_share"]) * 100),
+                scorability["zero_premarket_bar_count"],
+                scorability["zero_premarket_60m_bar_count"],
+                scorability["top_10_invisible_count"],
+            ],
+        ]
+        diagnostic = Table(
+            diagnostic_rows,
+            colWidths=[1.25*inch,1.25*inch,1.5*inch,1.55*inch,1.55*inch,1.55*inch],
+        )
+        diagnostic.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), navy),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("ALIGN", (0, 1), (-1, -1), "RIGHT"),
+            ("GRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#D1D5DB")),
+        ]))
+        story.extend([
+            Paragraph("Universe scorability", section),
+            diagnostic,
+        ])
+    story.append(PageBreak())
     rows = [
         ["Same-universe top movers", "", "", "", "", "", "", ""],
         ["Rank", "Ticker", "MFE", "Simulated", "Return", "P&L", "Capture", "Exit"],

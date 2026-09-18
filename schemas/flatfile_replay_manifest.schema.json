@@ -143,7 +143,7 @@
         "trading_date", "status", "current_phase", "phase_status",
         "smoke_mode", "max_tickers", "research_evidence",
         "universe_size", "universe_manifest_hash",
-        "scored_ticker_count", "bar_statistics", "scorability_statistics", "phase_wall_time_seconds", "files",
+        "scored_ticker_count", "bar_statistics", "scorability_statistics", "excluded_tickers", "phase_wall_time_seconds", "files",
         "reference_cache", "artifacts", "error"
       ],
       "properties": {
@@ -194,6 +194,23 @@
         "scored_ticker_count": {"type": "integer", "minimum": 0},
         "bar_statistics": {"$ref": "#/$defs/statistics"},
         "scorability_statistics": {"$ref": "#/$defs/statistics"},
+        "excluded_tickers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ticker", "reason", "previous_timestamp", "current_timestamp", "previous_close", "current_close", "close_change_pct"],
+            "properties": {
+              "ticker": {"type": "string", "minLength": 1},
+              "reason": {"const": "BAR_DISCONTINUITY"},
+              "previous_timestamp": {"type": "string", "format": "date-time"},
+              "current_timestamp": {"type": "string", "format": "date-time"},
+              "previous_close": {"type": "number", "exclusiveMinimum": 0},
+              "current_close": {"type": "number", "exclusiveMinimum": 0},
+              "close_change_pct": {"type": "number"}
+            }
+          }
+        },
         "files": {"type": "array", "items": {"$ref": "#/$defs/file"}},
         "reference_cache": {"$ref": "#/$defs/referenceCache"},
         "artifacts": {

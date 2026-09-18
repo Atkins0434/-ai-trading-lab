@@ -136,6 +136,15 @@
           "type": "number"
         },
 
+        "day_mfe_pct": {"type": "number"},
+
+        "day_mae_pct": {"type": "number"},
+
+        "execution_exclusion_reason": {
+          "type": ["string", "null"],
+          "enum": ["BAR_DISCONTINUITY", null]
+        },
+
         "maximum_capturable_move_pct": {
           "type": [
             "number",
@@ -287,6 +296,7 @@
             "SESSION_END",
             "ENTRY_REJECTED",
             "NO_REGULAR_SESSION_PATH",
+            "BAR_DISCONTINUITY",
             null
           ]
         },
@@ -308,6 +318,10 @@
             "null"
           ]
         },
+
+        "mfe_pct": {"type": ["number", "null"]},
+
+        "mae_pct": {"type": ["number", "null"]},
 
         "maximum_position_drawdown_pct": {
           "type": [

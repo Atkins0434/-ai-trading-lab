@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime
+from collections import Counter
 from pathlib import Path
+from statistics import mean
 from typing import Any
 
 from trainer.evidence_eligibility import (
@@ -162,6 +164,11 @@ def build_postmortem(
     snapshot: dict[str, Any],
     scout_result: dict[str, Any],
     benchmark_result: dict[str, Any],
+    *,
+    outcome_result: dict[str, Any] | None = None,
+    bar_statistics: dict[str, Any] | None = None,
+    scorability_statistics: dict[str, Any] | None = None,
+    strategy_capital_usd: float = 2500.0,
 ) -> dict[str, Any]:
     try:
         universe_metadata = assert_matching_universe(
@@ -255,20 +262,30 @@ def build_postmortem(
         for item in missed
         if item["miss_classification"] == "INVISIBLE_AT_FREEZE"
     ]
-    execution_review = [
-        {
-            "ticker": item["ticker"],
-            "benchmark_rank": item["benchmark_rank"],
-            "realized_return_pct": item["scout_realized_return_pct"],
-            "maximum_capturable_move_pct": item[
-                "maximum_capturable_move_pct"
-            ],
-            "exit_reason": item["scout_exit_reason"],
-            "reason_codes": item["failure_reason_codes"],
-        }
-        for item in missed
-        if item["miss_classification"] == "PICKED_EXECUTION_LOSS"
-    ]
+    if outcome_result is None:
+        execution_review = [
+            {
+                "ticker": item["ticker"],
+                "benchmark_rank": item["benchmark_rank"],
+                "realized_return_pct": item["scout_realized_return_pct"],
+                "maximum_capturable_move_pct": item[
+                    "maximum_capturable_move_pct"
+                ],
+                "exit_reason": item["scout_exit_reason"],
+                "reason_codes": item["failure_reason_codes"],
+            }
+            for item in missed
+            if item["miss_classification"] == "PICKED_EXECUTION_LOSS"
+        ]
+        _, execution_verdict = _execution_policy_review(
+            None, benchmark_result, strategy_capital_usd
+        )
+    else:
+        execution_review, execution_verdict = _execution_policy_review(
+            outcome_result,
+            benchmark_result,
+            strategy_capital_usd,
+        )
     top_10_count = len(benchmark_result["benchmark_candidates"])
     baselines = benchmark_result["return_baselines"]
     code = benchmark_result["comparison"]["result_code"]
@@ -310,14 +327,21 @@ def build_postmortem(
         "unreachable_pct": (
             len(unreachable) / top_10_count * 100 if top_10_count else 0.0
         ),
+        "universe_scorability": _universe_scorability(
+            bar_statistics,
+            scorability_statistics,
+            len(unreachable),
+        ),
         "missed_opportunities": missed,
         "execution_policy_review": execution_review,
+        "execution_policy_verdict": execution_verdict,
         "feature_failures": list(failures.values()),
         "feature_proposals": [],
         "notes": [
             "WIN/TIE/MISS uses the deterministic random-draw return baseline, not top-10 capture.",
             "Top-10 capture is diagnostic only.",
             "No feature proposal is eligible from one day; at least 30 independent occurrences are required.",
+            "Execution policy review is descriptive. Promotion requires the gates defined in the execution learner, not a single-day verdict.",
         ],
     }
     try:
@@ -327,3 +351,206 @@ def build_postmortem(
             f"Postmortem contract validation failed: {exc}"
         ) from exc
     return result
+
+
+def _execution_summary(
+    executions: list[dict[str, Any]],
+    strategy_capital_usd: float,
+) -> dict[str, Any]:
+    completed = [item for item in executions if item.get("trade_executed")]
+    returns = [float(item["realized_return_pct"]) for item in completed]
+    captures = [
+        float(item["capture_ratio"])
+        for item in completed
+        if item.get("capture_ratio") is not None
+    ]
+    drawdowns = [
+        float(item["maximum_position_drawdown_pct"])
+        for item in completed
+        if item.get("maximum_position_drawdown_pct") is not None
+    ]
+    reasons = Counter(
+        item.get("exit_reason") for item in executions
+        if item.get("exit_reason") in {
+            "TRAILING_STOP", "PROFIT_TARGET", "SESSION_END"
+        }
+    )
+    rejected = Counter(
+        item.get("entry_rejection_reason") or "UNSPECIFIED"
+        for item in executions
+        if item.get("exit_reason") == "ENTRY_REJECTED"
+    )
+    net_pnl = sum(float(item.get("realized_pnl_usd") or 0.0) for item in completed)
+    return {
+        "trades_executed": len(completed),
+        "realized_return_pct": mean(returns) if returns else 0.0,
+        "net_realized_pnl_usd": net_pnl,
+        "average_capture_ratio": mean(captures) if captures else None,
+        "win_rate_pct": (
+            sum(value > 0 for value in returns) / len(returns) * 100
+            if returns else None
+        ),
+        "max_drawdown_pct": min(drawdowns) if drawdowns else None,
+        "exit_reason_counts": {
+            "TRAILING_STOP": reasons["TRAILING_STOP"],
+            "PROFIT_TARGET": reasons["PROFIT_TARGET"],
+            "SESSION_END": reasons["SESSION_END"],
+            "ENTRY_REJECTED": dict(sorted(rejected.items())),
+        },
+    }
+
+
+def _execution_policy_review(
+    outcome_result: dict[str, Any] | None,
+    benchmark_result: dict[str, Any],
+    strategy_capital_usd: float,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    if outcome_result is None:
+        return [], {
+            "champion_policy_id": "execution_policy_v1.0",
+            "best_challenger_policy_id": None,
+            "challenger_won_on_selection": False,
+            "challenger_won_on_movers": False,
+            "sample_size": {"SCOUT_SELECTION": 0, "TOP_10_MOVER": 0},
+        }
+
+    outcomes = outcome_result.get("outcomes", [])
+    selected = [
+        item["execution_result"] for item in outcomes if item.get("selected")
+    ]
+    mover_candidates = benchmark_result.get("benchmark_candidates", [])
+    mover_tickers = [item["ticker"] for item in mover_candidates]
+    champion_movers = [
+        {
+            "trade_executed": bool(item.get("trade_executed")),
+            "realized_return_pct": item.get("realized_return_pct") or 0.0,
+            "realized_pnl_usd": item.get("realized_pnl_usd") or 0.0,
+            "capture_ratio": item.get("capture_ratio"),
+            "maximum_position_drawdown_pct": item.get(
+                "maximum_position_drawdown_pct"
+            ),
+            "exit_reason": item.get("exit_reason"),
+        }
+        for item in mover_candidates
+    ]
+    sample = {
+        "SCOUT_SELECTION": len(selected),
+        "TOP_10_MOVER": len(mover_tickers),
+    }
+    if selected:
+        champion_policy_id = selected[0]["policy_id"]
+        exit_mode = selected[0]["exit_mode"]
+        sizing_mode = selected[0]["sizing_mode"]
+    else:
+        from trainer.trade_engine import load_execution_policy
+        policy = load_execution_policy()
+        champion_policy_id = policy.policy_id
+        exit_mode = policy.exit_mode
+        sizing_mode = policy.sizing_mode
+    champion_summaries = {
+        "SCOUT_SELECTION": _execution_summary(selected, strategy_capital_usd),
+        "TOP_10_MOVER": _execution_summary(
+            champion_movers, strategy_capital_usd
+        ),
+    }
+    champion = {
+        "policy_id": champion_policy_id,
+        "exit_mode": exit_mode,
+        "sizing_mode": sizing_mode,
+        "cohort_summaries": champion_summaries,
+    }
+    for summary in champion_summaries.values():
+        summary["delta_vs_champion"] = {
+            "return_pct": None,
+            "capture_ratio": None,
+        }
+    reviews = [champion]
+
+    for comparison in outcome_result.get("policy_comparisons", []):
+        cohorts: dict[str, list[dict[str, Any]]] = {
+            "SCOUT_SELECTION": [],
+            "TOP_10_MOVER": [],
+        }
+        for item in comparison.get("executions", []):
+            cohorts[item["cohort"]].append(item["execution_result"])
+        summaries = {
+            name: _execution_summary(values, strategy_capital_usd)
+            for name, values in cohorts.items()
+        }
+        for name, summary in summaries.items():
+            champion_summary = champion_summaries[name]
+            champion_capture = champion_summary["average_capture_ratio"]
+            challenger_capture = summary["average_capture_ratio"]
+            summary["delta_vs_champion"] = {
+                "return_pct": (
+                    summary["realized_return_pct"]
+                    - champion_summary["realized_return_pct"]
+                ),
+                "capture_ratio": (
+                    challenger_capture - champion_capture
+                    if challenger_capture is not None
+                    and champion_capture is not None
+                    else None
+                ),
+            }
+        reviews.append({
+            "policy_id": comparison["policy_id"],
+            "exit_mode": comparison["exit_mode"],
+            "sizing_mode": comparison["sizing_mode"],
+            "cohort_summaries": summaries,
+        })
+
+    challengers = reviews[1:]
+    best = max(
+        challengers,
+        key=lambda item: item["cohort_summaries"]["SCOUT_SELECTION"][
+            "realized_return_pct"
+        ],
+        default=None,
+    )
+    return reviews, {
+        "champion_policy_id": champion_policy_id,
+        "best_challenger_policy_id": best["policy_id"] if best else None,
+        "challenger_won_on_selection": bool(
+            best
+            and best["cohort_summaries"]["SCOUT_SELECTION"]["realized_return_pct"]
+            > champion_summaries["SCOUT_SELECTION"]["realized_return_pct"]
+        ),
+        "challenger_won_on_movers": bool(
+            best
+            and best["cohort_summaries"]["TOP_10_MOVER"]["realized_return_pct"]
+            > champion_summaries["TOP_10_MOVER"]["realized_return_pct"]
+        ),
+        "sample_size": sample,
+    }
+
+
+def _universe_scorability(
+    bar_statistics: dict[str, Any] | None,
+    scorability_statistics: dict[str, Any] | None,
+    top_10_invisible_count: int,
+) -> dict[str, Any]:
+    bars = bar_statistics or {}
+    scorability = scorability_statistics or {}
+    by_ticker = bars.get("by_ticker", {})
+    eligible = int(scorability.get("universe_ticker_count", len(by_ticker)))
+    scorable = int(scorability.get("scorable_ticker_count", eligible))
+    return {
+        "eligible_count": eligible,
+        "scorable_count": scorable,
+        "not_scorable_share": float(
+            scorability.get(
+                "not_scorable_share",
+                (eligible - scorable) / eligible if eligible else 0.0,
+            )
+        ),
+        "zero_premarket_bar_count": sum(
+            int(value.get("real_premarket", 0)) == 0
+            for value in by_ticker.values()
+        ),
+        "zero_premarket_60m_bar_count": sum(
+            int(value.get("real_premarket_60m", 0)) == 0
+            for value in by_ticker.values()
+        ),
+        "top_10_invisible_count": top_10_invisible_count,
+    }

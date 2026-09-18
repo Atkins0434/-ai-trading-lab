@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 import json
 from pathlib import Path
 from statistics import mean
+import sys
+import time as wall_time
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -37,6 +39,7 @@ class FlatFileSnapshotResult:
     outcome_bars: dict[str, list[dict[str, Any]]]
     bar_statistics: dict[str, Any]
     lookback_dates: list[str]
+    excluded_tickers: list[dict[str, Any]]
 
 
 def load_flatfile_replay_config(path: Path = CONFIG_PATH) -> dict[str, Any]:
@@ -146,6 +149,84 @@ def _snapshot_bar(bar: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+class _TickerProgress:
+    """Low-overhead progress reporting suitable for CI and interactive runs."""
+
+    def __init__(self, phase: str, total: int, *, log_every: int = 250) -> None:
+        self.phase = phase
+        self.total = total
+        self.log_every = log_every
+        self.started = wall_time.perf_counter()
+
+    def update(self, completed: int) -> None:
+        elapsed = wall_time.perf_counter() - self.started
+        rate = completed / elapsed if elapsed > 0 else 0.0
+        eta = (self.total - completed) / rate if rate > 0 else 0.0
+        message = (
+            f"phase={self.phase} tickers={completed}/{self.total} "
+            f"elapsed_seconds={elapsed:.1f} eta_seconds={eta:.1f}"
+        )
+        if sys.stderr.isatty():
+            print(f"\r[{self.phase}] {message}", end="", file=sys.stderr, flush=True)
+            if completed == self.total:
+                print(file=sys.stderr, flush=True)
+        if completed == self.total or completed % self.log_every == 0:
+            print(f"[flatfile_snapshot] {message}", file=sys.stderr, flush=True)
+
+
+def _log_load_progress(completed: int, total: int, started: float) -> None:
+    elapsed = wall_time.perf_counter() - started
+    rate = completed / elapsed if elapsed > 0 else 0.0
+    eta = (total - completed) / rate if rate > 0 else 0.0
+    print(
+        "[flatfile_snapshot] phase=load_flatfiles "
+        f"files={completed}/{total} elapsed_seconds={elapsed:.1f} "
+        f"eta_seconds={eta:.1f}",
+        file=sys.stderr,
+        flush=True,
+    )
+
+
+def _identity_maps(
+    universe_manifest: dict[str, Any],
+) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+    """Return eligible identities and unambiguous point-in-time ticker aliases."""
+    eligible = {
+        item.get("stable_security_id", f"TICKER:{item['ticker']}"): item
+        for item in universe_manifest["securities"]
+        if item["inclusion"]
+    }
+    ids_by_ticker: dict[str, set[str]] = defaultdict(set)
+    for stable_id, item in eligible.items():
+        aliases = {str(item["ticker"]).upper()}
+        history = item.get("ticker_history") or []
+        for value in history:
+            if isinstance(value, str):
+                aliases.add(value.upper())
+            elif isinstance(value, dict) and value.get("ticker"):
+                aliases.add(str(value["ticker"]).upper())
+        for alias in aliases:
+            ids_by_ticker[alias].add(stable_id)
+    unique_ticker_ids = {
+        ticker: next(iter(stable_ids))
+        for ticker, stable_ids in ids_by_ticker.items()
+        if len(stable_ids) == 1
+    }
+    return eligible, unique_ticker_ids
+
+
+def _resolve_bar_identity(
+    bar: dict[str, Any],
+    eligible_by_id: dict[str, dict[str, Any]],
+    unique_ticker_ids: dict[str, str],
+) -> str | None:
+    provider_id = bar.get("stable_security_id")
+    if provider_id is not None:
+        normalized = str(provider_id).strip()
+        return normalized if normalized in eligible_by_id else None
+    return unique_ticker_ids.get(str(bar["ticker"]).upper())
+
+
 def _collision_row(bar: dict[str, Any]) -> dict[str, Any]:
     """Retain the provider values needed to audit a duplicate-minute choice."""
     return {
@@ -205,6 +286,42 @@ def _deduplicate_regular_bars(
     return [_snapshot_bar(bar) for bar in selected], collisions
 
 
+def _bar_discontinuity(
+    ticker: str,
+    bars: list[dict[str, Any]],
+    collisions: list[dict[str, Any]] | None = None,
+) -> dict[str, Any] | None:
+    """Identify an implausible adjacent-minute close discontinuity."""
+    for collision in collisions or []:
+        left = float(collision["kept_row"]["close"])
+        right = float(collision["discarded_row"]["close"])
+        smaller, larger = sorted((left, right))
+        if larger / smaller - 1.0 > 0.50:
+            return {
+                "ticker": ticker,
+                "reason": "BAR_DISCONTINUITY",
+                "previous_timestamp": collision["timestamp"],
+                "current_timestamp": collision["timestamp"],
+                "previous_close": left,
+                "current_close": right,
+                "close_change_pct": (right / left - 1.0) * 100,
+            }
+    for previous, current in zip(bars, bars[1:]):
+        previous_close = float(previous["close"])
+        change = float(current["close"]) / previous_close - 1.0
+        if abs(change) > 0.50:
+            return {
+                "ticker": ticker,
+                "reason": "BAR_DISCONTINUITY",
+                "previous_timestamp": previous["timestamp"],
+                "current_timestamp": current["timestamp"],
+                "previous_close": previous_close,
+                "current_close": float(current["close"]),
+                "close_change_pct": change * 100,
+            }
+    return None
+
+
 def build_flatfile_snapshot(
     trading_date: str,
     universe_manifest: dict[str, Any],
@@ -228,24 +345,44 @@ def build_flatfile_snapshot(
     securities = [
         item for item in universe_manifest["securities"] if item["inclusion"]
     ]
+    eligible_by_id, unique_ticker_ids = _identity_maps(universe_manifest)
     tickers = {item["ticker"] for item in securities}
     lookback_dates = previous_trading_sessions(trading_date, lookback_sessions)
 
     daily_history: dict[str, list[dict[str, Any]]] = defaultdict(list)
     premarket_history: dict[str, dict[str, float]] = {
-        ticker: {value: 0.0 for value in lookback_dates} for ticker in tickers
+        stable_id: {value: 0.0 for value in lookback_dates}
+        for stable_id in eligible_by_id
     }
     target_premarket: dict[str, list[dict[str, Any]]] = defaultdict(list)
     target_regular: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    unresolved_bar_rows: dict[str, int] = defaultdict(int)
 
+    load_started = wall_time.perf_counter()
+    total_load_files = len(lookback_dates) * 2 + 1
+    loaded_files = 0
     for session_date in lookback_dates:
         for bar in flatfiles.iter_bars(
             DAY_AGGS_DATASET, session_date, tickers=tickers
         ):
-            daily_history[bar["ticker"]].append(bar)
+            stable_id = _resolve_bar_identity(
+                bar, eligible_by_id, unique_ticker_ids
+            )
+            if stable_id is None:
+                unresolved_bar_rows[bar["ticker"]] += 1
+                continue
+            daily_history[stable_id].append(bar)
+        loaded_files += 1
+        _log_load_progress(loaded_files, total_load_files, load_started)
         for bar in flatfiles.iter_bars(
             MINUTE_AGGS_DATASET, session_date, tickers=tickers
         ):
+            stable_id = _resolve_bar_identity(
+                bar, eligible_by_id, unique_ticker_ids
+            )
+            if stable_id is None:
+                unresolved_bar_rows[bar["ticker"]] += 1
+                continue
             observed = datetime.fromisoformat(bar["timestamp"]).astimezone(ET)
             session_freeze = configured_freeze_datetime(
                 session_date, active_config
@@ -255,20 +392,30 @@ def build_flatfile_snapshot(
                 and observed < session_freeze
                 and observed.time() >= time(4)
             ):
-                premarket_history[bar["ticker"]][session_date] += float(
+                premarket_history[stable_id][session_date] += float(
                     bar["volume"]
                 )
+        loaded_files += 1
+        _log_load_progress(loaded_files, total_load_files, load_started)
 
     for bar in flatfiles.iter_bars(
         MINUTE_AGGS_DATASET, trading_date, tickers=tickers
     ):
+        stable_id = _resolve_bar_identity(
+            bar, eligible_by_id, unique_ticker_ids
+        )
+        if stable_id is None:
+            unresolved_bar_rows[bar["ticker"]] += 1
+            continue
         observed = datetime.fromisoformat(bar["timestamp"]).astimezone(ET)
         if observed.date() != target:
             continue
         if time(4) <= observed.time() and observed < freeze:
-            target_premarket[bar["ticker"]].append(bar)
+            target_premarket[stable_id].append(bar)
         elif time(9, 30) <= observed.time() < time(16):
-            target_regular[bar["ticker"]].append(bar)
+            target_regular[stable_id].append(bar)
+    loaded_files += 1
+    _log_load_progress(loaded_files, total_load_files, load_started)
 
     metadata = evidence_metadata(universe_manifest)
     snapshot = {
@@ -290,13 +437,28 @@ def build_flatfile_snapshot(
     }
     outcome_bars: dict[str, list[dict[str, Any]]] = {}
     per_ticker_counts: dict[str, dict[str, int]] = {}
+    per_security_counts: dict[str, dict[str, int]] = {}
     duplicate_minute_rows: list[dict[str, Any]] = []
+    excluded_tickers: list[dict[str, Any]] = []
 
-    manifest_by_ticker = {item["ticker"]: item for item in securities}
-    for ticker in sorted(tickers):
-        manifest_security = manifest_by_ticker[ticker]
+    ordered_securities = sorted(
+        securities,
+        key=lambda item: (
+            item["ticker"],
+            item.get("stable_security_id", f"TICKER:{item['ticker']}"),
+        ),
+    )
+    ticker_identity_counts = Counter(
+        item["ticker"] for item in ordered_securities
+    )
+    progress = _TickerProgress("snapshot", len(ordered_securities))
+    for completed, manifest_security in enumerate(ordered_securities, start=1):
+        ticker = manifest_security["ticker"]
+        stable_id = manifest_security.get(
+            "stable_security_id", f"TICKER:{ticker}"
+        )
         prior_rows = sorted(
-            daily_history.get(ticker, []),
+            daily_history.get(stable_id, []),
             key=lambda item: item["trading_date"],
         )
         previous_close = (
@@ -311,7 +473,7 @@ def build_flatfile_snapshot(
                 f"No prior close is available for eligible ticker {ticker}."
             )
         current = sorted(
-            (_snapshot_bar(bar) for bar in target_premarket.get(ticker, [])),
+            (_snapshot_bar(bar) for bar in target_premarket.get(stable_id, [])),
             key=lambda item: item["timestamp"],
         )
         premarket_bars = current
@@ -328,7 +490,7 @@ def build_flatfile_snapshot(
             for bar in current
         )
         average_premarket_volume = mean(
-            premarket_history[ticker][value] for value in lookback_dates
+            premarket_history[stable_id][value] for value in lookback_dates
         )
         relative_volume = (
             premarket_volume / average_premarket_volume
@@ -432,6 +594,7 @@ def build_flatfile_snapshot(
         }
         security = {
             "ticker": ticker,
+            "stable_security_id": stable_id,
             "exchange": manifest_security["listing_venue"],
             "eligible": True,
             "eligibility_as_of_timestamp": manifest_security[
@@ -455,15 +618,25 @@ def build_flatfile_snapshot(
 
         regular, collisions = _deduplicate_regular_bars(
             ticker,
-            target_regular.get(ticker, []),
+            target_regular.get(stable_id, []),
         )
         duplicate_minute_rows.extend(collisions)
-        outcome_bars[ticker] = regular
-        per_ticker_counts[ticker] = {
+        discontinuity = _bar_discontinuity(ticker, regular, collisions)
+        if discontinuity is not None:
+            excluded_tickers.append(discontinuity)
+        outcome_key = (
+            ticker if ticker_identity_counts[ticker] == 1 else stable_id
+        )
+        outcome_bars[outcome_key] = regular
+        counts = {
             "real_premarket": len(premarket_bars),
             "real_premarket_60m": real_bar_count_60m,
             "real_regular": len(regular),
         }
+        per_security_counts[stable_id] = counts
+        if ticker_identity_counts[ticker] == 1:
+            per_ticker_counts[ticker] = counts
+        progress.update(completed)
 
     validate_contract("historical_snapshot", snapshot)
     bar_stats = {
@@ -477,11 +650,15 @@ def build_flatfile_snapshot(
             item["real_regular"] for item in per_ticker_counts.values()
         ),
         "duplicate_minute_rows": duplicate_minute_rows,
+        "unresolved_bar_rows": dict(sorted(unresolved_bar_rows.items())),
+        "unresolved_bar_row_count": sum(unresolved_bar_rows.values()),
         "by_ticker": per_ticker_counts,
+        "by_stable_security_id": per_security_counts,
     }
     return FlatFileSnapshotResult(
         snapshot=snapshot,
         outcome_bars=outcome_bars,
         bar_statistics=bar_stats,
         lookback_dates=lookback_dates,
+        excluded_tickers=excluded_tickers,
     )

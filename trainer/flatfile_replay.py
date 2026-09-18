@@ -91,6 +91,7 @@ def _new_day_record(
         "scored_ticker_count": 0,
         "bar_statistics": None,
         "scorability_statistics": None,
+        "excluded_tickers": [],
         "files": [],
         "reference_cache": {
             "hits": 0,
@@ -138,6 +139,7 @@ def _normalize_day_record(
     normalized.setdefault("max_tickers", max_tickers)
     normalized.setdefault("bar_statistics", None)
     normalized.setdefault("scorability_statistics", None)
+    normalized.setdefault("excluded_tickers", [])
     normalized.setdefault(
         "research_evidence",
         normalized.get("status") == "COMPLETE" and not smoke_mode,
@@ -369,6 +371,9 @@ def _run_flatfile_day_impl(
         _write_json(snapshot_path, snapshot_result.snapshot)
         artifacts["historical_snapshot"] = relative(snapshot_path)
         progress["bar_statistics"] = snapshot_result.bar_statistics
+        progress["excluded_tickers"] = getattr(
+            snapshot_result, "excluded_tickers", []
+        )
     with _tracked_phase(progress, "scoring", progress_callback):
         scout = run_research_scout_alpha(
             snapshot_result.snapshot,
@@ -414,6 +419,7 @@ def _run_flatfile_day_impl(
             snapshot_result.outcome_bars,
             strategy_capital,
             comparison_policy_paths=comparison_policy_paths,
+            excluded_tickers=getattr(snapshot_result, "excluded_tickers", []),
         )
         _write_json(outcome_path, outcome)
         artifacts["end_of_day_outcome"] = relative(outcome_path)
@@ -450,6 +456,10 @@ def _run_flatfile_day_impl(
                 outcome_snapshot,
                 scout,
                 benchmark,
+                outcome_result=outcome,
+                bar_statistics=progress["bar_statistics"],
+                scorability_statistics=progress["scorability_statistics"],
+                strategy_capital_usd=strategy_capital,
             )
             _write_json(postmortem_path, postmortem)
             generate_postmortem_pdf(

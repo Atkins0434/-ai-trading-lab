@@ -183,3 +183,37 @@ def test_comparison_policy_does_not_change_primary_outcomes(capsys):
     captured = capsys.readouterr()
     assert "policy_id=execution_policy_v1.0" in captured.err
     assert "policy_id=execution_policy_atr_v1.0" in captured.err
+
+
+def test_excursions_are_limited_to_the_held_window():
+    bars = _bars() + [{
+        "timestamp": "2024-03-15T15:59:00-04:00",
+        "open": 95.0,
+        "high": 96.0,
+        "low": 80.0,
+        "close": 85.0,
+        "volume": 1_000,
+    }]
+    scout = {"candidates": [{
+        "ticker": "TEST",
+        "research_selected": True,
+        "selection_basis": "QUALIFYING_THRESHOLD",
+        "rank": 1,
+        "score_pct": 77.1,
+    }]}
+
+    result = grade_replay_outcomes(
+        _snapshot(), scout, {"TEST": bars}, 2500.0
+    )["outcomes"][0]
+
+    assert result["day_mae_pct"] == pytest.approx(-20.0)
+    assert result["mae_pct"] == pytest.approx(-0.5)
+    assert result["execution_result"]["maximum_position_drawdown_pct"] == (
+        pytest.approx(-0.5)
+    )
+    assert result["execution_result"]["mfe_pct"] == pytest.approx(2.0)
+    assert result["day_mfe_pct"] == pytest.approx(8.5)
+    assert result["execution_result"]["capture_ratio"] == pytest.approx(
+        result["execution_result"]["realized_return_pct"]
+        / result["maximum_capturable_move_pct"]
+    )

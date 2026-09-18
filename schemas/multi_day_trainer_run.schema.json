@@ -145,18 +145,20 @@
       }
     },
     "executionPolicyReview": {
-      "type": "object", "additionalProperties": false,
-      "required": ["trading_date", "partition", "ticker", "benchmark_rank", "realized_return_pct", "maximum_capturable_move_pct", "exit_reason", "reason_codes"],
+      "type": "object",
+      "required": ["trading_date", "partition"],
       "properties": {
         "trading_date": {"type": "string", "format": "date"},
-        "partition": {"$ref": "#/$defs/partition"},
-        "ticker": {"type": "string"},
-        "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10},
-        "realized_return_pct": {"type": ["number", "null"]},
-        "maximum_capturable_move_pct": {"type": "number"},
-        "exit_reason": {"type": ["string", "null"]},
-        "reason_codes": {"type": "array", "items": {"type": "string"}}
-      }
+        "partition": {"$ref": "#/$defs/partition"}
+      },
+      "oneOf": [
+        {
+          "required": ["ticker", "benchmark_rank", "realized_return_pct", "maximum_capturable_move_pct", "exit_reason", "reason_codes"]
+        },
+        {
+          "required": ["policy_id", "exit_mode", "sizing_mode", "cohort_summaries"]
+        }
+      ]
     },
     "featureEvidence": {
       "type": "object", "additionalProperties": false,

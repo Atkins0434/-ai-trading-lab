@@ -62,6 +62,7 @@
         "simulation_exclusion_reason", "trade_executed",
         "entry_timestamp", "entry_price", "exit_timestamp", "exit_price",
         "realized_return_pct", "realized_pnl_usd", "capture_ratio",
+        "maximum_position_drawdown_pct",
         "exit_reason"
       ],
       "properties": {
@@ -89,6 +90,7 @@
         "realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
         "realized_pnl_usd": {"$ref": "#/$defs/nullableNumber"},
         "capture_ratio": {"$ref": "#/$defs/nullableNumber"},
+        "maximum_position_drawdown_pct": {"$ref": "#/$defs/nullableNumber"},
         "exit_reason": {"$ref": "#/$defs/nullableString"}
       }
     },

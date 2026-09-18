@@ -786,12 +786,41 @@ def _postmortem(story: list[Any], model: dict[str, Any], styles: dict[str, Parag
         missed_rows.append(["—", "—", "None", "—", "—"])
     story.append(_table(missed_rows, [0.35*inch,0.65*inch,1.7*inch,0.8*inch,4.0*inch], right_columns=(0,3), font_size=5.6))
     story.append(Paragraph("Execution policy review", styles["subsection"]))
-    execution_rows = [["Rk", "Ticker", "Return", "Max move", "Exit", "Reasons"]]
+    execution_rows = [["Policy", "Cohort", "Trades", "Return", "Avg capture", "Max DD"]]
     for item in postmortem.get("execution_policy_review", []):
-        execution_rows.append([str(item["benchmark_rank"]), item["ticker"], _fmt_pct(item["realized_return_pct"]), _fmt_pct(item["maximum_capturable_move_pct"]), item["exit_reason"] or "—", ", ".join(item["reason_codes"]) or "—"])
+        if "cohort_summaries" not in item:
+            execution_rows.append([
+                item.get("ticker", "—"), "legacy", "1",
+                _fmt_pct(item.get("realized_return_pct")), "—", "—",
+            ])
+            continue
+        for cohort, summary in item["cohort_summaries"].items():
+            execution_rows.append([
+                item["policy_id"], cohort, str(summary["trades_executed"]),
+                _fmt_pct(summary["realized_return_pct"]),
+                (
+                    "—" if summary["average_capture_ratio"] is None
+                    else f"{float(summary['average_capture_ratio']):.3f}x"
+                ),
+                _fmt_pct(summary["max_drawdown_pct"]),
+            ])
     if len(execution_rows) == 1:
-        execution_rows.append(["—", "—", "—", "—", "None", "—"])
-    story.append(_table(execution_rows, [0.35*inch,0.65*inch,0.75*inch,0.75*inch,1.05*inch,3.9*inch], right_columns=(0,2,3), font_size=5.8))
+        execution_rows.append(["—", "—", "0", "—", "—", "—"])
+    story.append(_table(execution_rows, [1.8*inch,1.25*inch,0.6*inch,0.8*inch,0.9*inch,0.8*inch], right_columns=(2,3,4,5), font_size=5.8))
+    scorability = postmortem.get("universe_scorability")
+    if scorability:
+        story.append(Paragraph("Universe scorability diagnostic", styles["subsection"]))
+        story.append(_table([
+            ["Eligible", "Scorable", "Not scorable", "Zero premarket", "Zero final 60m", "Top-10 invisible"],
+            [
+                str(scorability["eligible_count"]),
+                str(scorability["scorable_count"]),
+                _fmt_pct(float(scorability["not_scorable_share"]) * 100),
+                str(scorability["zero_premarket_bar_count"]),
+                str(scorability["zero_premarket_60m_bar_count"]),
+                str(scorability["top_10_invisible_count"]),
+            ],
+        ], [0.8*inch,0.8*inch,1.0*inch,1.1*inch,1.1*inch,1.1*inch], right_columns=(0,1,2,3,4,5), font_size=6))
     story.append(Paragraph("Top three candidate threshold reviews", styles["subsection"]))
     threshold_rows = [["Rk", "Ticker", "Score", "Max move", "Failure reasons"]]
     for item in model["threshold_reviews"]:

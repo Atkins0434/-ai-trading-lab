@@ -145,9 +145,21 @@ def generate_trainer_summary_pdf(state: dict[str, Any], output_path: Path) -> Pa
     if len(threshold_rows) == 1:
         threshold_rows.append(["No visible low-score evidence", "0", "0", "-"])
     story += [_table(threshold_rows, [2.0 * inch, 1.2 * inch, 0.8 * inch, 3.3 * inch], font_size=7.2), Spacer(1, 0.18 * inch), Paragraph("Execution-policy review", h2)]
-    execution_rows = [["Date", "Ticker", "Rank", "Realized", "Capturable", "Exit"]]
+    execution_rows = [["Date", "Policy/Ticker", "Cohort/Rank", "Return", "Capture", "Exit/Max DD"]]
     for item in state["execution_policy_review"]:
-        execution_rows.append([item["trading_date"], item["ticker"], str(item["benchmark_rank"]), _pct(item["realized_return_pct"]), _pct(item["maximum_capturable_move_pct"]), item["exit_reason"] or "-"])
+        if "cohort_summaries" in item:
+            for cohort, summary in item["cohort_summaries"].items():
+                execution_rows.append([
+                    item["trading_date"], item["policy_id"], cohort,
+                    _pct(summary["realized_return_pct"]),
+                    (
+                        "N/A" if summary["average_capture_ratio"] is None
+                        else f"{float(summary['average_capture_ratio']):.3f}x"
+                    ),
+                    _pct(summary["max_drawdown_pct"]),
+                ])
+        else:
+            execution_rows.append([item["trading_date"], item["ticker"], str(item["benchmark_rank"]), _pct(item["realized_return_pct"]), _pct(item["maximum_capturable_move_pct"]), item["exit_reason"] or "-"])
     if len(execution_rows) == 1:
         execution_rows.append(["No execution-policy losses", "-", "-", "-", "-", "-"])
     story += [_table(execution_rows, [1.15 * inch, 0.85 * inch, 0.55 * inch, 1.1 * inch, 1.1 * inch, 2.55 * inch], font_size=7.2), Spacer(1, 0.22 * inch), Paragraph("Safety boundary", h2)]

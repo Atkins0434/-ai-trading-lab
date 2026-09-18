@@ -273,7 +273,10 @@ def _aggregate(
     candidate_threshold_reviews = candidate_threshold_reviews[:3]
     execution_policy_review.sort(
         key=lambda item: (
-            item["trading_date"], item["benchmark_rank"], item["ticker"]
+            item["trading_date"],
+            item.get("policy_id", ""),
+            item.get("benchmark_rank", 0),
+            item.get("ticker", ""),
         )
     )
 
