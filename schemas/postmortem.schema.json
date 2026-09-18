@@ -10,7 +10,7 @@
     "execution_policy_version", "massive_plan", "universe_mode", "universe_manifest_hash",
     "universe_coverage", "research_evidence", "promotion_eligible", "result",
     "scout_performance", "benchmark_performance", "unreachable_mover_count",
-    "unreachable_pct", "universe_scorability", "reachability", "shadow_scores",
+    "unreachable_pct", "universe_scorability", "reachability", "shadow_scores", "reversal_cohort",
     "missed_opportunities", "execution_policy_review",
     "execution_policy_verdict",
     "feature_failures", "feature_proposals"
@@ -37,6 +37,7 @@
     "shadow_scores": {
       "type": "array", "items": {"$ref": "#/$defs/shadowScore"}
     },
+    "reversal_cohort": {"$ref": "#/$defs/reversalCohort"},
     "missed_opportunities": {
       "type": "array", "items": {"$ref": "#/$defs/missedOpportunity"}
     },
@@ -92,7 +93,7 @@
       "type": "object", "additionalProperties": false,
       "required": [
         "ticker", "benchmark_rank", "was_in_scout_output", "scout_selected",
-        "scout_score_pct", "miss_classification", "failure_reason_codes",
+        "scout_score_pct", "reversal_score_pct", "miss_classification", "failure_reason_codes",
         "component_scores", "realized_benchmark_return_pct",
         "realized_benchmark_pnl_usd", "scout_realized_return_pct",
         "maximum_capturable_move_pct", "scout_exit_reason",
@@ -104,10 +105,12 @@
         "was_in_scout_output": {"type": "boolean"},
         "scout_selected": {"type": "boolean"},
         "scout_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "reversal_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
         "miss_classification": {
           "enum": [
             "NOT_IN_UNIVERSE", "INVISIBLE_AT_FREEZE", "VISIBLE_SCORED_LOW",
-            "VISIBLE_GUARDRAIL_REJECTED", "PICKED_EXECUTION_LOSS", "UNCLASSIFIED"
+            "VISIBLE_GUARDRAIL_REJECTED", "VISIBLE_REVERSAL_CANDIDATE",
+            "PICKED_EXECUTION_LOSS", "UNCLASSIFIED"
           ]
         },
         "failure_reason_codes": {
@@ -149,6 +152,40 @@
         "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10},
         "score_pct": {"type": "number", "minimum": 0, "maximum": 100},
         "premarket_real_bars_60m": {"type": "integer", "minimum": 0}
+      }
+    },
+    "reversalCohort": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "candidate_count", "selected_count", "close_above_open_share",
+        "mean_day_mfe_pct", "policy_returns", "candidates"
+      ],
+      "properties": {
+        "candidate_count": {"type": "integer", "minimum": 0},
+        "selected_count": {"type": "integer", "minimum": 0},
+        "close_above_open_share": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "mean_day_mfe_pct": {"$ref": "#/$defs/nullableNumber"},
+        "policy_returns": {
+          "type": "object", "additionalProperties": {"type": "number"}
+        },
+        "candidates": {
+          "type": "array", "items": {"$ref": "#/$defs/reversalCandidate"}
+        }
+      }
+    },
+    "reversalCandidate": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "ticker", "reversal_score_pct", "selected", "day_mfe_pct",
+        "close_vs_open_return_pct", "closed_above_open"
+      ],
+      "properties": {
+        "ticker": {"type": "string", "minLength": 1},
+        "reversal_score_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "selected": {"type": "boolean"},
+        "day_mfe_pct": {"$ref": "#/$defs/nullableNumber"},
+        "close_vs_open_return_pct": {"$ref": "#/$defs/nullableNumber"},
+        "closed_above_open": {"type": ["boolean", "null"]}
       }
     },
     "executionReview": {
@@ -260,7 +297,7 @@
     "reachability": {
       "type": "object", "additionalProperties": false,
       "required": [
-        "bars_0", "bars_1_9", "bars_10_29", "visible_scored_low",
+        "bars_0", "bars_1_9", "bars_10_29", "visible_scored_low", "visible_reversal_candidate",
         "visible_guardrail_rejected", "picked", "opening_range_reachable_count"
       ],
       "properties": {
@@ -268,6 +305,7 @@
         "bars_1_9": {"type": "integer", "minimum": 0, "maximum": 10},
         "bars_10_29": {"type": "integer", "minimum": 0, "maximum": 10},
         "visible_scored_low": {"type": "integer", "minimum": 0, "maximum": 10},
+        "visible_reversal_candidate": {"type": "integer", "minimum": 0, "maximum": 10},
         "visible_guardrail_rejected": {"type": "integer", "minimum": 0, "maximum": 10},
         "picked": {"type": "integer", "minimum": 0, "maximum": 10},
         "opening_range_reachable_count": {"type": "integer", "minimum": 0, "maximum": 10}

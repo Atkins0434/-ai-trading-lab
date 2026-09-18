@@ -49,8 +49,11 @@ def _component_scores(relative_volume=2.0, gap_pct=2.0):
     }
 
 
-def _candidate(*, selected=False, total_score=20, guardrail_action="PASS"):
-    return {
+def _candidate(
+    *, selected=False, total_score=20, guardrail_action="PASS",
+    reversal_score_pct=None,
+):
+    candidate = {
         "ticker": "MOVE",
         "research_eligible": guardrail_action != "REJECT",
         "research_selected": selected,
@@ -70,6 +73,9 @@ def _candidate(*, selected=False, total_score=20, guardrail_action="PASS"):
             }
         },
     }
+    if reversal_score_pct is not None:
+        candidate["reversal_score_pct"] = reversal_score_pct
+    return candidate
 
 
 def _snapshot(*, eligible=True, real_bar_count_60m=60):
@@ -213,6 +219,33 @@ def test_visible_scored_low_classification():
     )
 
 
+def test_visible_reversal_candidate_relabels_only_visible_scored_low():
+    result = _postmortem(
+        candidate=_candidate(total_score=20, reversal_score_pct=75.0)
+    )
+    miss = result["missed_opportunities"][0]
+    assert miss["miss_classification"] == "VISIBLE_REVERSAL_CANDIDATE"
+    assert miss["reversal_score_pct"] == 75.0
+    assert miss["opening_range"]["day_high_timestamp"] == (
+        "2026-09-14T15:00:00+00:00"
+    )
+    assert result["reachability"]["visible_reversal_candidate"] == 1
+    assert result["reachability"]["visible_scored_low"] == 0
+
+
+def test_guardrail_rejection_wins_over_high_reversal_score():
+    result = _postmortem(
+        candidate=_candidate(
+            total_score=20,
+            guardrail_action="REJECT",
+            reversal_score_pct=95.0,
+        )
+    )
+    assert result["missed_opportunities"][0]["miss_classification"] == (
+        "VISIBLE_GUARDRAIL_REJECTED"
+    )
+
+
 def test_visible_guardrail_reject_classification():
     result = _postmortem(
         candidate=_candidate(total_score=35, guardrail_action="REJECT")
@@ -337,6 +370,7 @@ def test_reachability_has_one_mover_in_each_bucket_and_reports_shadow_score():
         "bars_1_9": 1,
         "bars_10_29": 1,
         "visible_scored_low": 1,
+        "visible_reversal_candidate": 0,
         "visible_guardrail_rejected": 1,
         "picked": 1,
         "opening_range_reachable_count": 0,
@@ -487,6 +521,102 @@ def test_random_draw_verdict_is_deterministic_and_top_10_is_diagnostic_only(
     report = tmp_path / "postmortem.pdf"
     generate_postmortem_pdf(first, postmortem, report)
     assert report.read_bytes().startswith(b"%PDF")
+
+
+def test_reversal_exploration_never_enters_scout_summary_or_verdict():
+    snapshot = {
+        "replay_id": "reversal-verdict",
+        "trading_date": "2026-09-14",
+        "universe_version": "research_universe_v1.0",
+        **EVIDENCE,
+        "securities": [
+            {"ticker": ticker, "eligible": True}
+            for ticker in ("PRIMARY", "REVERSAL")
+        ],
+    }
+    scout = {
+        "scout_version": "research_scout_alpha_v1.0",
+        **EVIDENCE,
+        "candidates": [
+            {"ticker": "PRIMARY", "research_eligible": True},
+            {"ticker": "REVERSAL", "research_eligible": True},
+        ],
+    }
+    primary_bars = _bars(close=10.5, high=11.0, low=9.9)
+    reversal_bars = _bars(close=12.0, high=12.5, low=9.8)
+    primary_execution = {
+        "trade_executed": True,
+        "realized_return_pct": 5.0,
+        "realized_pnl_usd": 25.0,
+        "capture_ratio": 0.5,
+        "maximum_position_drawdown_pct": -1.0,
+        "exit_reason": "SESSION_END",
+        "exit_timestamp": primary_bars[-1]["timestamp"],
+    }
+    reversal_execution = {
+        **primary_execution,
+        "realized_return_pct": 20.0,
+        "realized_pnl_usd": 100.0,
+        "capture_ratio": 0.8,
+        "exit_timestamp": reversal_bars[-1]["timestamp"],
+    }
+    outcomes = [{
+        "ticker": "PRIMARY",
+        "selected": True,
+        "selection_basis": "QUALIFYING_THRESHOLD",
+        "mfe_pct": 10.0,
+        "day_mfe_pct": 10.0,
+        "mae_pct": -1.0,
+        "maximum_capturable_move_pct": 10.0,
+        "intraday_path": primary_bars,
+        "execution_result": primary_execution,
+    }, {
+        "ticker": "REVERSAL",
+        "selected": True,
+        "selection_basis": "REVERSAL_EXPLORATION",
+        "mfe_pct": 25.0,
+        "day_mfe_pct": 25.0,
+        "mae_pct": -2.0,
+        "maximum_capturable_move_pct": 25.0,
+        "intraday_path": reversal_bars,
+        "execution_result": reversal_execution,
+    }]
+    with_reversal = build_same_universe_benchmark(
+        snapshot,
+        scout,
+        {
+            "execution_policy_version": "execution_policy_v1.0_hypothetical",
+            **EVIDENCE,
+            "outcomes": outcomes,
+        },
+        2500.0,
+    )
+    without_reversal_outcomes = deepcopy(outcomes)
+    without_reversal_outcomes[1].update({
+        "selected": False,
+        "selection_basis": "NOT_SELECTED",
+        "execution_result": {
+            "trade_executed": False,
+            "realized_return_pct": 0.0,
+        },
+    })
+    without_reversal = build_same_universe_benchmark(
+        snapshot,
+        scout,
+        {
+            "execution_policy_version": "execution_policy_v1.0_hypothetical",
+            **EVIDENCE,
+            "outcomes": without_reversal_outcomes,
+        },
+        2500.0,
+    )
+
+    assert with_reversal["scout_summary"] == without_reversal["scout_summary"]
+    assert with_reversal["comparison"]["result_code"] == without_reversal[
+        "comparison"
+    ]["result_code"]
+    assert with_reversal["exploration_summary"]["candidate_count"] == 1
+    assert with_reversal["exploration_summary"]["realized_pnl_usd"] == 100.0
 
 
 def test_eligible_basket_baseline_scales_mean_position_to_position_cap():
@@ -843,3 +973,103 @@ def test_postmortem_surfaces_policy_review_and_universe_scorability():
         "zero_premarket_60m_bar_count": 2,
         "top_10_invisible_count": 0,
     }
+
+
+def test_reversal_cohort_base_rates_reconcile_all_candidates():
+    snapshot = _snapshot()
+    snapshot["securities"] = [
+        {**deepcopy(snapshot["securities"][0]), "ticker": ticker}
+        for ticker in ("REV1", "REV2", "LOW")
+    ]
+    candidates = []
+    for ticker, score, basis in (
+        ("REV1", 90.0, "REVERSAL_EXPLORATION"),
+        ("REV2", 80.0, "NOT_SELECTED"),
+        ("LOW", 60.0, "NOT_SELECTED"),
+    ):
+        candidate = _candidate(total_score=20, reversal_score_pct=score)
+        candidate.update({
+            "ticker": ticker,
+            "research_selected": basis != "NOT_SELECTED",
+            "selection_basis": basis,
+        })
+        candidates.append(candidate)
+    champion = {
+        "trade_executed": True,
+        "policy_id": "execution_policy_v1.0",
+        "exit_mode": "PERCENT",
+        "sizing_mode": "FIXED_FRACTION",
+        "realized_return_pct": 5.0,
+        "realized_pnl_usd": 25.0,
+        "capture_ratio": 0.25,
+        "maximum_position_drawdown_pct": -1.0,
+        "exit_reason": "SESSION_END",
+    }
+    challenger = {
+        **champion,
+        "policy_id": "execution_policy_atr_v1.0",
+        "exit_mode": "ATR",
+        "sizing_mode": "RISK_PER_TRADE",
+        "realized_return_pct": 4.0,
+        "realized_pnl_usd": 20.0,
+    }
+    paths = {
+        "REV1": _bars(close=11.0, high=12.0, low=9.8),
+        "REV2": _bars(close=9.0, high=10.5, low=8.5),
+        "LOW": _bars(close=10.2, high=10.3, low=9.9),
+    }
+    outcomes = []
+    for ticker, selected in (("REV1", True), ("REV2", False), ("LOW", False)):
+        outcomes.append({
+            "ticker": ticker,
+            "selected": selected,
+            "selection_basis": (
+                "REVERSAL_EXPLORATION" if selected else "NOT_SELECTED"
+            ),
+            "intraday_path": paths[ticker],
+            "day_mfe_pct": {
+                "REV1": 20.0, "REV2": 5.0, "LOW": 3.0
+            }[ticker],
+            "execution_result": champion if selected else {},
+        })
+    outcome = {
+        "outcomes": outcomes,
+        "policy_comparisons": [{
+            "policy_id": "execution_policy_atr_v1.0",
+            "exit_mode": "ATR",
+            "sizing_mode": "RISK_PER_TRADE",
+            "executions": [{
+                "ticker": "REV1",
+                "cohort": "SCOUT_SELECTION",
+                "benchmark_rank": None,
+                "execution_result": challenger,
+            }],
+        }],
+    }
+    benchmark = _benchmark()
+    benchmark["benchmark_candidates"] = []
+
+    result = build_postmortem(
+        snapshot,
+        {
+            "scout_version": "research_scout_alpha_v1.0",
+            **EVIDENCE,
+            "candidates": candidates,
+        },
+        benchmark,
+        outcome_result=outcome,
+        strategy_capital_usd=2500.0,
+    )
+
+    cohort = result["reversal_cohort"]
+    assert cohort["candidate_count"] == 2
+    assert cohort["selected_count"] == 1
+    assert cohort["close_above_open_share"] == pytest.approx(0.5)
+    assert cohort["mean_day_mfe_pct"] == pytest.approx(12.5)
+    assert cohort["policy_returns"] == {
+        "execution_policy_v1.0": pytest.approx(1.0),
+        "execution_policy_atr_v1.0": pytest.approx(0.8),
+    }
+    assert [item["ticker"] for item in cohort["candidates"]] == [
+        "REV1", "REV2"
+    ]

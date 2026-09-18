@@ -117,6 +117,7 @@ def _day_evidence(
         "policies": policies,
         "verdict": VERDICT_LABELS.get(result_code),
         "reachability": postmortem.get("reachability", {}),
+        "reversal_cohort": postmortem.get("reversal_cohort", {}),
     }
 
 
@@ -140,6 +141,7 @@ def render_range_summary(
             f"eligible={day.get('universe_size', 0)} "
             f"scorable={day.get('scored_ticker_count', 0)} "
             f"selected={_fmt(evidence['selected_count'])} "
+            f"reversal_candidates={int(evidence['reversal_cohort'].get('candidate_count', 0))} "
             f"primary_return={_fmt(primary.get('return_pct'), suffix='%')} "
             f"atr_return={_fmt(atr.get('return_pct'), suffix='%')} "
             f"excluded_tickers={len(day.get('excluded_tickers', []))} "
@@ -159,6 +161,10 @@ def render_range_summary(
     policy_returns: dict[str, float] = Counter()
     policy_captures: dict[str, list[float]] = {}
     reachability: Counter[str] = Counter()
+    reversal_candidates_by_day: list[str] = []
+    reversal_closed_above: list[bool] = []
+    reversal_day_mfe: list[float] = []
+    reversal_policy_returns: Counter[str] = Counter()
     for date_value in completed:
         evidence = evidence_by_date.get(date_value)
         if evidence is None:
@@ -170,6 +176,19 @@ def render_range_summary(
         reachability.update({
             key: int(value)
             for key, value in evidence.get("reachability", {}).items()
+        })
+        cohort = evidence.get("reversal_cohort", {})
+        reversal_candidates_by_day.append(
+            f"{date_value}={int(cohort.get('candidate_count', 0))}"
+        )
+        for candidate in cohort.get("candidates", []):
+            if candidate.get("closed_above_open") is not None:
+                reversal_closed_above.append(candidate["closed_above_open"])
+            if candidate.get("day_mfe_pct") is not None:
+                reversal_day_mfe.append(float(candidate["day_mfe_pct"]))
+        reversal_policy_returns.update({
+            policy_id: float(value)
+            for policy_id, value in cohort.get("policy_returns", {}).items()
         })
 
     primary_ids = [
@@ -209,9 +228,29 @@ def render_range_summary(
             f"bars_1_9={reachability['bars_1_9']} "
             f"bars_10_29={reachability['bars_10_29']} "
             f"visible_scored_low={reachability['visible_scored_low']} "
+            f"visible_reversal_candidate={reachability['visible_reversal_candidate']} "
             f"visible_guardrail_rejected={reachability['visible_guardrail_rejected']} "
             f"picked={reachability['picked']} "
             f"opening_range_reachable={reachability['opening_range_reachable_count']}"
+        ),
+        "Reversal candidates per day: " + (
+            ", ".join(reversal_candidates_by_day)
+            if reversal_candidates_by_day else "none"
+        ),
+        (
+            "Reversal share closing above open: "
+            f"{_fmt(sum(reversal_closed_above) / len(reversal_closed_above) if reversal_closed_above else None)}"
+        ),
+        (
+            "Reversal mean day MFE: "
+            f"{_fmt(mean(reversal_day_mfe) if reversal_day_mfe else None, suffix='%')}"
+        ),
+        "Reversal exploration returns by policy: " + (
+            ", ".join(
+                f"{policy_id}={_fmt(value, suffix='%')}"
+                for policy_id, value in sorted(reversal_policy_returns.items())
+            )
+            if reversal_policy_returns else "none"
         ),
         f"Total wall time: {_fmt(total_wall)} seconds",
     ])

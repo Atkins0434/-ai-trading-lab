@@ -23,6 +23,7 @@ class OutcomeError(Exception):
 
 QUALIFYING_THRESHOLD = "QUALIFYING_THRESHOLD"
 EXPLORATION_TOP_K = "EXPLORATION_TOP_K"
+REVERSAL_EXPLORATION = "REVERSAL_EXPLORATION"
 NOT_SELECTED = "NOT_SELECTED"
 
 
@@ -356,7 +357,12 @@ def grade_replay_outcomes(
             "selection_basis",
             QUALIFYING_THRESHOLD if selected else NOT_SELECTED,
         )
-        allowed = {QUALIFYING_THRESHOLD, EXPLORATION_TOP_K, NOT_SELECTED}
+        allowed = {
+            QUALIFYING_THRESHOLD,
+            EXPLORATION_TOP_K,
+            REVERSAL_EXPLORATION,
+            NOT_SELECTED,
+        }
         if basis not in allowed:
             raise OutcomeError(
                 f"ticker={candidate['ticker']}: unknown selection basis: {basis}"
@@ -380,7 +386,9 @@ def grade_replay_outcomes(
         (
             candidate
             for candidate in scout_result["candidates"]
-            if selection_basis(candidate) == EXPLORATION_TOP_K
+            if selection_basis(candidate) in {
+                EXPLORATION_TOP_K, REVERSAL_EXPLORATION
+            }
         ),
         key=lambda candidate: candidate["rank"] or 999999,
     )

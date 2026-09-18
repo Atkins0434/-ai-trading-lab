@@ -4,7 +4,7 @@
   "title": "Research Scout Alpha Output",
   "type": "object",
   "additionalProperties": false,
-  "required": ["replay_id", "scout_version", "mode", "snapshot_timestamp", "massive_plan", "universe_mode", "universe_manifest_hash", "universe_coverage", "research_evidence", "promotion_eligible", "scoring_threshold_pct", "eligible_universe_count", "scorable_candidate_count", "shadow_scored_candidate_count", "not_scorable_candidate_count", "qualifying_candidate_count", "exploration_top_k", "exploration_candidate_count", "selected_candidate_count", "candidates"],
+  "required": ["replay_id", "scout_version", "mode", "snapshot_timestamp", "massive_plan", "universe_mode", "universe_manifest_hash", "universe_coverage", "research_evidence", "promotion_eligible", "scoring_threshold_pct", "reversal_pattern_id", "reversal_scoring_threshold_pct", "reversal_exploration_top_k", "eligible_universe_count", "scorable_candidate_count", "shadow_scored_candidate_count", "not_scorable_candidate_count", "qualifying_candidate_count", "exploration_top_k", "exploration_candidate_count", "reversal_candidate_count", "reversal_selected_count", "selected_candidate_count", "candidates"],
   "properties": {
     "replay_id": {"type": "string"},
     "scout_version": {"const": "research_scout_alpha_v1.0"},
@@ -17,6 +17,9 @@
     "research_evidence": {"type": "boolean"},
     "promotion_eligible": {"type": "boolean"},
     "scoring_threshold_pct": {"type": "number", "minimum": 0, "maximum": 100},
+    "reversal_pattern_id": {"const": "research_reversal_v1.0"},
+    "reversal_scoring_threshold_pct": {"type": "number", "minimum": 0, "maximum": 100},
+    "reversal_exploration_top_k": {"type": "integer", "minimum": 0, "maximum": 5},
     "eligible_universe_count": {"type": "integer", "minimum": 0},
     "scorable_candidate_count": {"type": "integer", "minimum": 0},
     "shadow_scored_candidate_count": {"type": "integer", "minimum": 0},
@@ -24,6 +27,8 @@
     "qualifying_candidate_count": {"type": "integer", "minimum": 0},
     "exploration_top_k": {"type": "integer", "minimum": 0, "maximum": 5},
     "exploration_candidate_count": {"type": "integer", "minimum": 0},
+    "reversal_candidate_count": {"type": "integer", "minimum": 0},
+    "reversal_selected_count": {"type": "integer", "minimum": 0},
     "selected_candidate_count": {"type": "integer", "minimum": 0},
     "candidates": {"type": "array", "items": {"$ref": "#/$defs/candidate"}}
   },
@@ -42,7 +47,7 @@
     "candidate": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["ticker", "timestamp", "status", "shadow", "research_eligible", "qualification_selected", "research_selected", "selection_basis", "execution_eligible", "rank", "total_score", "maximum_possible_score", "score_pct", "threshold_points", "component_scores", "guardrails", "reason_codes", "rejection_reasons", "unavailable_execution_checks"],
+      "required": ["ticker", "timestamp", "status", "shadow", "research_eligible", "qualification_selected", "research_selected", "selection_basis", "execution_eligible", "rank", "total_score", "maximum_possible_score", "score_pct", "threshold_points", "component_scores", "reversal_status", "reversal_total_score", "reversal_score_pct", "reversal_component_scores", "guardrails", "reason_codes", "rejection_reasons", "unavailable_execution_checks"],
       "properties": {
         "ticker": {"type": "string", "minLength": 1},
         "timestamp": {"type": "string", "format": "date-time"},
@@ -51,7 +56,7 @@
         "research_eligible": {"type": "boolean"},
         "qualification_selected": {"type": "boolean"},
         "research_selected": {"type": "boolean"},
-        "selection_basis": {"enum": ["QUALIFYING_THRESHOLD", "EXPLORATION_TOP_K", "NOT_SELECTED"]},
+        "selection_basis": {"enum": ["QUALIFYING_THRESHOLD", "EXPLORATION_TOP_K", "REVERSAL_EXPLORATION", "NOT_SELECTED"]},
         "execution_eligible": {"const": false},
         "rank": {"type": ["integer", "null"], "minimum": 1},
         "total_score": {"type": "integer", "minimum": 0, "maximum": 48},
@@ -59,6 +64,16 @@
         "score_pct": {"type": "number", "minimum": 0, "maximum": 100},
         "threshold_points": {"type": "integer", "minimum": 0, "maximum": 48},
         "component_scores": {
+          "type": "object",
+          "minProperties": 12,
+          "maxProperties": 12,
+          "propertyNames": {"enum": ["relative_volume", "price_slope_15m", "price_slope_30m", "price_slope_60m", "volume_slope_15m", "volume_slope_30m", "volume_slope_60m", "premarket_gap_strength", "price_vs_premarket_vwap", "premarket_trend_consistency", "price_volume_confirmation", "premarket_range_expansion"]},
+          "additionalProperties": {"$ref": "#/$defs/component"}
+        },
+        "reversal_status": {"enum": ["SCORED", "NOT_A_REVERSAL_CANDIDATE", "NOT_SCORABLE"]},
+        "reversal_total_score": {"type": ["integer", "null"], "minimum": 0, "maximum": 48},
+        "reversal_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "reversal_component_scores": {
           "type": "object",
           "minProperties": 12,
           "maxProperties": 12,

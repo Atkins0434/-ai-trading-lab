@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from math import ceil
 from pathlib import Path
 from typing import Any
@@ -19,6 +20,7 @@ from trainer.validate_contracts import ContractError, load_json, validate_contra
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "config" / "scout_alpha_v1.json"
+REVERSAL_CONFIG_PATH = ROOT / "config" / "scout_reversal_v1.json"
 REGISTRY_PATH = ROOT / "config" / "feature_registry_alpha_v1.json"
 MAXIMUM_POINTS = 48
 
@@ -27,8 +29,9 @@ class ResearchScoutError(Exception):
     """Raised when Research Scout Alpha cannot score a frozen snapshot."""
 
 
-def _load_contract() -> tuple[dict[str, Any], dict[str, Any]]:
+def _load_contract() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     config = load_json(CONFIG_PATH)
+    reversal = load_json(REVERSAL_CONFIG_PATH)
     registry = load_json(REGISTRY_PATH)
     metrics = registry.get("metrics", [])
     ids = [metric.get("id") for metric in metrics]
@@ -40,9 +43,18 @@ def _load_contract() -> tuple[dict[str, Any], dict[str, Any]]:
         or len(set(ids)) != 12
         or not 0 <= int(config.get("shadow_min_premarket_bars", -1))
         < int(config["minimum_real_bars_60m"])
+        or reversal.get("pattern_id") != "research_reversal_v1.0"
+        or reversal.get("execution_allowed") is not False
+        or reversal.get("morning_freeze_time") != config["morning_freeze_time"]
+        or reversal.get("minimum_real_bars_60m")
+        != config["minimum_real_bars_60m"]
+        or reversal.get("liquidity") != config["liquidity"]
+        or reversal.get("spread") != config["spread"]
+        or reversal.get("order_book_depth") != config["order_book_depth"]
+        or set(reversal.get("scoring", {}).get("metrics", {})) != set(ids)
     ):
         raise ResearchScoutError("Alpha must remain a 12-metric, 48-point research contract.")
-    return config, registry
+    return config, registry, reversal
 
 
 def _missing_component() -> dict[str, Any]:
@@ -57,10 +69,137 @@ def _missing_component() -> dict[str, Any]:
     }
 
 
+def _numeric_raw(component: dict[str, Any], path: str | None = None) -> float | None:
+    if component.get("status") != "OBSERVED":
+        return None
+    value = component.get("raw_value")
+    if path is not None:
+        value = value.get(path) if isinstance(value, dict) else None
+    if not isinstance(value, (int, float)) or isinstance(value, bool):
+        return None
+    return float(value)
+
+
+def _threshold_score(value: float, thresholds: dict[str, Any]) -> int:
+    score = 0
+    for points in range(1, 5):
+        if value >= float(thresholds[str(points)]):
+            score = points
+    return score
+
+
+def _reversal_component_scores(
+    component_scores: dict[str, dict[str, Any]],
+    reversal_config: dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    scored: dict[str, dict[str, Any]] = {}
+    rules = reversal_config["scoring"]["metrics"]
+    for metric_id, primary in component_scores.items():
+        component = deepcopy(primary)
+        rule = rules[metric_id]
+        mode = rule["mode"]
+        if primary.get("status") != "OBSERVED":
+            component["score"] = None
+        elif mode == "PRIMARY_SCORE":
+            component["score"] = primary.get("score")
+        else:
+            raw = _numeric_raw(primary, rule.get("raw_value_path"))
+            if raw is None:
+                component["score"] = None
+            elif mode == "NEGATIVE_MAGNITUDE":
+                component["score"] = (
+                    _threshold_score(abs(raw), rule["thresholds"])
+                    if raw < 0
+                    else 0
+                )
+            elif mode == "MAXIMUM":
+                component["score"] = next(
+                    (
+                        points
+                        for points in range(4, 0, -1)
+                        if raw <= float(rule["thresholds"][str(points)])
+                    ),
+                    0,
+                )
+            else:
+                raise ResearchScoutError(
+                    f"Unknown reversal scoring mode for {metric_id}: {mode}"
+                )
+        component["reason_code"] = f"REVERSAL_{metric_id.upper()}_SCORE"
+        component["calculation_version"] = reversal_config["pattern_id"]
+        scored[metric_id] = component
+    return scored
+
+
+def _reversal_score(
+    component_scores: dict[str, dict[str, Any]],
+    reversal_config: dict[str, Any],
+) -> tuple[str, int | None, float | None, dict[str, dict[str, Any]]]:
+    reversal_components = _reversal_component_scores(
+        component_scores, reversal_config
+    )
+    for metric_id, condition in reversal_config["scoring"][
+        "required_conditions"
+    ].items():
+        raw = _numeric_raw(component_scores[metric_id])
+        if condition["operator"] != ">":
+            raise ResearchScoutError(
+                f"Unsupported reversal required-condition operator: {condition['operator']}"
+            )
+        if raw is None or raw <= float(condition["value"]):
+            return (
+                "NOT_A_REVERSAL_CANDIDATE",
+                None,
+                None,
+                reversal_components,
+            )
+    total = sum(item.get("score") or 0 for item in reversal_components.values())
+    maximum = int(reversal_config["scoring"]["maximum_points"])
+    return "SCORED", total, total / maximum * 100.0, reversal_components
+
+
+def _select_reversal_exploration(
+    candidates: list[dict[str, Any]],
+    reversal_config: dict[str, Any],
+) -> list[dict[str, Any]]:
+    threshold = float(reversal_config["selection_threshold_pct"])
+    selected = sorted(
+        (
+            candidate
+            for candidate in candidates
+            if candidate["research_eligible"]
+            and candidate["status"] == "SCORED"
+            and not candidate["qualification_selected"]
+            and candidate["selection_basis"] == "NOT_SELECTED"
+            and candidate["reversal_status"] == "SCORED"
+            and candidate["reversal_score_pct"] >= threshold
+        ),
+        key=lambda candidate: (
+            -candidate["reversal_score_pct"], candidate["ticker"]
+        ),
+    )[: int(reversal_config["exploration_top_k"])]
+    for candidate in selected:
+        candidate["research_selected"] = True
+        candidate["selection_basis"] = "REVERSAL_EXPLORATION"
+        candidate["reason_codes"] = list(dict.fromkeys(
+            [
+                reason for reason in candidate["reason_codes"]
+                if reason != "RESEARCH_ALPHA_NOT_SELECTED"
+            ]
+            + ["RESEARCH_REVERSAL_EXPLORATION_SELECTED"]
+        ))
+        candidate["rejection_reasons"] = [
+            reason for reason in candidate["rejection_reasons"]
+            if reason != "BELOW_RESEARCH_THRESHOLD"
+        ]
+    return selected
+
+
 def _score_security(
     security: dict[str, Any],
     config: dict[str, Any],
     registry: dict[str, Any],
+    reversal_config: dict[str, Any],
     threshold_pct: float,
     timestamp: str,
 ) -> dict[str, Any]:
@@ -102,6 +241,10 @@ def _score_security(
             "score_pct": 0.0,
             "threshold_points": threshold_points,
             "component_scores": component_scores,
+            "reversal_status": "NOT_SCORABLE",
+            "reversal_total_score": None,
+            "reversal_score_pct": None,
+            "reversal_component_scores": deepcopy(component_scores),
             "guardrails": {},
             "reason_codes": [
                 "INSUFFICIENT_PREMARKET_BARS",
@@ -157,6 +300,12 @@ def _score_security(
         rejection_reasons.extend(security.get("eligibility_reasons", ["UNIVERSE_INELIGIBLE"]))
 
     total_score = sum(item["score"] or 0 for item in component_scores.values())
+    (
+        reversal_status,
+        reversal_total_score,
+        reversal_score_pct,
+        reversal_component_scores,
+    ) = _reversal_score(component_scores, reversal_config)
     threshold_points = ceil(threshold_pct / 100 * MAXIMUM_POINTS)
     research_eligible = security["eligible"] and not rejection_reasons
     research_selected = (
@@ -193,6 +342,10 @@ def _score_security(
         "score_pct": total_score / MAXIMUM_POINTS * 100,
         "threshold_points": threshold_points,
         "component_scores": component_scores,
+        "reversal_status": reversal_status,
+        "reversal_total_score": reversal_total_score,
+        "reversal_score_pct": reversal_score_pct,
+        "reversal_component_scores": reversal_component_scores,
         "guardrails": guardrails,
         "reason_codes": list(dict.fromkeys(reason_codes)),
         "rejection_reasons": list(dict.fromkeys(rejection_reasons)),
@@ -212,7 +365,7 @@ def run_research_scout_alpha(
     except (ContractError, ReplayError) as exc:
         raise ResearchScoutError(f"Invalid Alpha snapshot: {exc}") from exc
 
-    config, registry = _load_contract()
+    config, registry, reversal_config = _load_contract()
     try:
         validate_freeze_timestamp(snapshot, config=config)
     except ReplayError as exc:
@@ -225,9 +378,20 @@ def run_research_scout_alpha(
     if exploration_top_k < 0 or exploration_top_k > 5:
         raise ResearchScoutError("Alpha exploration_top_k must be between 0 and 5.")
     candidates = [
-        _score_security(security, config, registry, threshold, snapshot["freeze_timestamp"])
+        _score_security(
+            security,
+            config,
+            registry,
+            reversal_config,
+            threshold,
+            snapshot["freeze_timestamp"],
+        )
         for security in snapshot["securities"]
     ]
+    reversal_threshold = float(reversal_config["selection_threshold_pct"])
+    reversal_pool = _select_reversal_exploration(
+        candidates, reversal_config
+    )
     exploration_pool = sorted(
         (
             candidate
@@ -235,6 +399,7 @@ def run_research_scout_alpha(
             if candidate["research_eligible"]
             and candidate["status"] == "SCORED"
             and not candidate["qualification_selected"]
+            and candidate["selection_basis"] == "NOT_SELECTED"
         ),
         key=lambda candidate: (-candidate["score_pct"], candidate["ticker"]),
     )[:exploration_top_k]
@@ -269,11 +434,21 @@ def run_research_scout_alpha(
         ),
         key=lambda candidate: (-candidate["score_pct"], candidate["ticker"]),
     )
+    reversal_exploration = sorted(
+        (
+            candidate
+            for candidate in candidates
+            if candidate["selection_basis"] == "REVERSAL_EXPLORATION"
+        ),
+        key=lambda candidate: (
+            -candidate["reversal_score_pct"], candidate["ticker"]
+        ),
+    )
     # Rank the production-like qualifying basket first. Exploration names are
     # explicitly appended so they can never take an execution slot from a
     # qualifying candidate, even if a future scoring change makes their raw
     # score ordering overlap.
-    selected = qualifying + exploration
+    selected = qualifying + exploration + reversal_exploration
     for rank, candidate in enumerate(selected, start=1):
         candidate["rank"] = rank
 
@@ -284,6 +459,9 @@ def run_research_scout_alpha(
         "snapshot_timestamp": snapshot["freeze_timestamp"],
         "massive_plan": snapshot.get("massive_plan", load_massive_plan()),
         "scoring_threshold_pct": threshold,
+        "reversal_pattern_id": reversal_config["pattern_id"],
+        "reversal_scoring_threshold_pct": reversal_threshold,
+        "reversal_exploration_top_k": int(reversal_config["exploration_top_k"]),
         "universe_mode": snapshot["universe_mode"],
         "universe_manifest_hash": snapshot["universe_manifest_hash"],
         "universe_coverage": snapshot["universe_coverage"],
@@ -301,7 +479,18 @@ def run_research_scout_alpha(
         ),
         "qualifying_candidate_count": sum(c["qualification_selected"] for c in candidates),
         "exploration_top_k": exploration_top_k,
-        "exploration_candidate_count": sum(c["selection_basis"] == "EXPLORATION_TOP_K" for c in candidates),
+        "exploration_candidate_count": sum(
+            c["selection_basis"] in {
+                "EXPLORATION_TOP_K", "REVERSAL_EXPLORATION"
+            }
+            for c in candidates
+        ),
+        "reversal_candidate_count": sum(
+            c["reversal_score_pct"] is not None
+            and c["reversal_score_pct"] >= reversal_threshold
+            for c in candidates
+        ),
+        "reversal_selected_count": len(reversal_exploration),
         "selected_candidate_count": len(selected),
         "candidates": candidates,
     }

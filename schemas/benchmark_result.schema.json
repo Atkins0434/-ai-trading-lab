@@ -74,7 +74,7 @@
         "universe_eligible": {"type": "boolean"},
         "scout_selected": {"type": "boolean"},
         "scout_selection_basis": {
-          "enum": ["QUALIFYING_THRESHOLD", "EXPLORATION_TOP_K", "NOT_SELECTED"]
+          "enum": ["QUALIFYING_THRESHOLD", "EXPLORATION_TOP_K", "REVERSAL_EXPLORATION", "NOT_SELECTED"]
         },
         "scout_trade_executed": {"type": "boolean"},
         "scout_realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
