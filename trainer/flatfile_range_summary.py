@@ -55,6 +55,7 @@ def _day_evidence(
     scout = _load_json(day_root / "research_alpha_output.json") or {}
     outcome = _load_json(day_root / "end_of_day_outcome.json") or {}
     benchmark = _load_json(day_root / "benchmark_result.json") or {}
+    postmortem = _load_json(day_root / "postmortem.json") or {}
     selected_tickers = {
         item["ticker"]
         for item in scout.get("candidates", [])
@@ -115,6 +116,7 @@ def _day_evidence(
         "atr_policy_id": atr_id,
         "policies": policies,
         "verdict": VERDICT_LABELS.get(result_code),
+        "reachability": postmortem.get("reachability", {}),
     }
 
 
@@ -156,6 +158,7 @@ def render_range_summary(
     )
     policy_returns: dict[str, float] = Counter()
     policy_captures: dict[str, list[float]] = {}
+    reachability: Counter[str] = Counter()
     for date_value in completed:
         evidence = evidence_by_date.get(date_value)
         if evidence is None:
@@ -164,6 +167,10 @@ def render_range_summary(
             if values["return_pct"] is not None:
                 policy_returns[policy_id] += float(values["return_pct"])
             policy_captures.setdefault(policy_id, []).extend(values["captures"])
+        reachability.update({
+            key: int(value)
+            for key, value in evidence.get("reachability", {}).items()
+        })
 
     primary_ids = [
         evidence["primary_policy_id"]
@@ -195,6 +202,16 @@ def render_range_summary(
         (
             f"{atr_id} cumulative capture ratio: "
             f"{_fmt(mean(policy_captures.get(atr_id, [])) if policy_captures.get(atr_id) else None)}"
+        ),
+        (
+            "Top-10 reachability: "
+            f"bars_0={reachability['bars_0']} "
+            f"bars_1_9={reachability['bars_1_9']} "
+            f"bars_10_29={reachability['bars_10_29']} "
+            f"visible_scored_low={reachability['visible_scored_low']} "
+            f"visible_guardrail_rejected={reachability['visible_guardrail_rejected']} "
+            f"picked={reachability['picked']} "
+            f"opening_range_reachable={reachability['opening_range_reachable_count']}"
         ),
         f"Total wall time: {_fmt(total_wall)} seconds",
     ])

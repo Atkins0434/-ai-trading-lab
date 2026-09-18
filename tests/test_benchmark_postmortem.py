@@ -185,28 +185,25 @@ def test_not_in_universe_classification_includes_component_scores():
     }
 
 
-@pytest.mark.parametrize(
-    ("real_bar_count_60m", "relative_volume", "gap_pct", "reason"),
-    [
-        (20, 2.0, 2.0, "INSUFFICIENT_PREMARKET_BARS"),
-        (60, 0.9, 0.5, "LOW_RELATIVE_VOLUME_AND_SUB_1PCT_GAP"),
-    ],
-)
-def test_invisible_at_freeze_classification(
-    real_bar_count_60m, relative_volume, gap_pct, reason
-):
+def test_invisible_at_freeze_means_insufficient_premarket_bars_only():
     candidate = _candidate()
-    candidate["component_scores"] = _component_scores(
-        relative_volume, gap_pct
-    )
     result = _postmortem(
-        candidate=candidate, real_bar_count_60m=real_bar_count_60m
+        candidate=candidate, real_bar_count_60m=20
     )
     miss = result["missed_opportunities"][0]
     assert miss["miss_classification"] == "INVISIBLE_AT_FREEZE"
-    assert reason in miss["failure_reason_codes"]
+    assert "INSUFFICIENT_PREMARKET_BARS" in miss["failure_reason_codes"]
     assert result["unreachable_mover_count"] == 1
     assert result["unreachable_pct"] == 100.0
+
+
+def test_low_relative_volume_is_visible_scored_low():
+    candidate = _candidate()
+    candidate["component_scores"] = _component_scores(0.9, 0.5)
+    result = _postmortem(candidate=candidate, real_bar_count_60m=60)
+    assert result["missed_opportunities"][0]["miss_classification"] == (
+        "VISIBLE_SCORED_LOW"
+    )
 
 
 def test_visible_scored_low_classification():
@@ -221,8 +218,135 @@ def test_visible_guardrail_reject_classification():
         candidate=_candidate(total_score=35, guardrail_action="REJECT")
     )
     assert result["missed_opportunities"][0]["miss_classification"] == (
-        "VISIBLE_GUARDRAIL_REJECT"
+        "VISIBLE_GUARDRAIL_REJECTED"
     )
+
+
+def test_opening_range_fields_use_regular_bars_and_average_daily_volume():
+    snapshot = _snapshot(real_bar_count_60m=20)
+    snapshot["securities"][0]["market_data"]["average_daily_volume"] = {
+        "value": 500,
+        "as_of_timestamp": "2026-09-13T20:00:00-04:00",
+        "source": "TEST",
+    }
+    bars = [
+        {
+            "timestamp": "2026-09-14T13:30:00+00:00",
+            "open": 10.0, "high": 10.4, "low": 9.9, "close": 10.2,
+            "volume": 100,
+        },
+        {
+            "timestamp": "2026-09-14T13:44:00+00:00",
+            "open": 10.2, "high": 10.6, "low": 10.1, "close": 10.5,
+            "volume": 200,
+        },
+        {
+            "timestamp": "2026-09-14T13:59:00+00:00",
+            "open": 10.5, "high": 11.2, "low": 10.4, "close": 11.0,
+            "volume": 700,
+        },
+    ]
+    result = build_postmortem(
+        snapshot,
+        {
+            "scout_version": "research_scout_alpha_v1.0",
+            **EVIDENCE,
+            "candidates": [_candidate()],
+        },
+        _benchmark(),
+        outcome_result={
+            "outcomes": [{
+                "ticker": "MOVE", "selected": False,
+                "intraday_path": bars, "execution_result": {},
+            }],
+            "policy_comparisons": [],
+        },
+        bar_statistics={
+            "by_ticker": {
+                "MOVE": {"real_premarket": 42, "real_premarket_60m": 20}
+            }
+        },
+    )
+
+    miss = result["missed_opportunities"][0]
+    opening = miss["opening_range"]
+    assert opening["return_0930_0945_pct"] == pytest.approx(5.0)
+    assert opening["return_0930_1000_pct"] == pytest.approx(10.0)
+    assert opening["volume_0930_1000"] == pytest.approx(2.0)
+    assert opening["high_0930_1000_pct"] == pytest.approx(12.0)
+    assert opening["time_first_crossed_plus_5pct"] == (
+        "2026-09-14T09:44:00-04:00"
+    )
+    assert opening["day_high_timestamp"] == "2026-09-14T15:00:00+00:00"
+    assert miss["premarket_real_bars_60m"] == 20
+    assert miss["premarket_real_bars_total"] == 42
+    assert result["reachability"]["opening_range_reachable_count"] == 1
+
+
+def test_reachability_has_one_mover_in_each_bucket_and_reports_shadow_score():
+    specifications = [
+        ("ZERO", 0, 20, False, "PASS", None),
+        ("NINE", 9, 20, False, "PASS", None),
+        ("SHADOW", 15, 20, False, "PASS", "SHADOW_SCORED"),
+        ("LOW", 30, 20, False, "PASS", "SCORED"),
+        ("GUARD", 30, 35, False, "REJECT", "SCORED"),
+        ("PICK", 30, 35, True, "PASS", "SCORED"),
+    ]
+    snapshot = _snapshot()
+    snapshot["securities"] = []
+    scout_candidates = []
+    benchmark_candidates = []
+    by_ticker = {}
+    for rank, (ticker, bars, score, selected, guardrail, status) in enumerate(
+        specifications, start=1
+    ):
+        security = deepcopy(_snapshot(real_bar_count_60m=bars)["securities"][0])
+        security["ticker"] = ticker
+        snapshot["securities"].append(security)
+        candidate = _candidate(
+            selected=selected, total_score=score, guardrail_action=guardrail
+        )
+        candidate["ticker"] = ticker
+        if status is not None:
+            candidate["status"] = status
+        scout_candidates.append(candidate)
+        mover = _benchmark_candidate(selected=selected)
+        mover["ticker"] = ticker
+        mover["benchmark_rank"] = rank
+        benchmark_candidates.append(mover)
+        by_ticker[ticker] = {
+            "real_premarket": bars + 5,
+            "real_premarket_60m": bars,
+        }
+    benchmark = _benchmark()
+    benchmark["benchmark_candidates"] = benchmark_candidates
+
+    result = build_postmortem(
+        snapshot,
+        {
+            "scout_version": "research_scout_alpha_v1.0",
+            **EVIDENCE,
+            "candidates": scout_candidates,
+        },
+        benchmark,
+        bar_statistics={"by_ticker": by_ticker},
+    )
+
+    assert result["reachability"] == {
+        "bars_0": 1,
+        "bars_1_9": 1,
+        "bars_10_29": 1,
+        "visible_scored_low": 1,
+        "visible_guardrail_rejected": 1,
+        "picked": 1,
+        "opening_range_reachable_count": 0,
+    }
+    assert result["shadow_scores"] == [{
+        "ticker": "SHADOW",
+        "benchmark_rank": 3,
+        "score_pct": pytest.approx(20 / 48 * 100),
+        "premarket_real_bars_60m": 15,
+    }]
 
 
 def test_not_evaluated_guardrail_is_not_classified_as_rejection():

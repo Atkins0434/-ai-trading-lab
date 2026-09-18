@@ -905,6 +905,24 @@ def generate_cumulative_replay_report(
         ["Completed days", "Universe observations", "Scorable", "Selected", "Scout return sum", "Baseline return sum"],
         [str(len(models)), str(totals["universe"]), str(totals["scorable"]), str(totals["selected"]), _fmt_pct(totals["scout_return"]), _fmt_pct(totals["baseline_return"])],
     ], [1.1*inch,1.35*inch,0.9*inch,0.9*inch,1.25*inch,1.35*inch], right_columns=(0,1,2,3,4,5), font_size=6.5))
+    reachability: Counter[str] = Counter()
+    for model in models:
+        reachability.update(
+            (model.get("postmortem") or {}).get("reachability", {})
+        )
+    story.append(Paragraph("Top-10 mover reachability", styles["subsection"]))
+    story.append(_table([
+        ["0 bars", "1-9 bars", "10-29 bars", "Visible low", "Guardrail rejected", "Picked", "Opening-range reachable"],
+        [
+            str(reachability["bars_0"]),
+            str(reachability["bars_1_9"]),
+            str(reachability["bars_10_29"]),
+            str(reachability["visible_scored_low"]),
+            str(reachability["visible_guardrail_rejected"]),
+            str(reachability["picked"]),
+            str(reachability["opening_range_reachable_count"]),
+        ],
+    ], [0.75*inch,0.75*inch,0.85*inch,0.9*inch,1.2*inch,0.65*inch,1.35*inch], right_columns=(0,1,2,3,4,5,6), font_size=6))
     story.append(PageBreak())
     story.append(Paragraph("Miss-category totals across completed days", styles["section"]))
     miss_totals: Counter[str] = Counter()

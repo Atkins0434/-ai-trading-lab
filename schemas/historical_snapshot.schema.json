@@ -183,6 +183,10 @@
               "$ref": "#/$defs/marketObservation"
             },
 
+            "average_daily_volume": {
+              "$ref": "#/$defs/marketObservation"
+            },
+
             "relative_volume": {
               "$ref": "#/$defs/marketObservation"
             },

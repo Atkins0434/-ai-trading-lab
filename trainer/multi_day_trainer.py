@@ -31,7 +31,7 @@ MINIMUM_OCCURRENCES = 30
 STATE_VERSION = "multi_day_trainer_run_v2.2"
 HYPOTHESIS_ELIGIBLE_MISSES = {
     "VISIBLE_SCORED_LOW",
-    "VISIBLE_GUARDRAIL_REJECT",
+    "VISIBLE_GUARDRAIL_REJECTED",
 }
 DayRunner = Callable[..., dict[str, Any]]
 
@@ -73,7 +73,7 @@ def _validate_dates(trading_dates: list[str]) -> list[str]:
 
 
 def _hypothesis_key(classification: str) -> tuple[str, str, str]:
-    if classification == "VISIBLE_GUARDRAIL_REJECT":
+    if classification == "VISIBLE_GUARDRAIL_REJECTED":
         return ("aggregate_liquidity", "GUARDRAIL_REVIEW", "Review whether the research liquidity guardrail excludes repeatable tradable movers.")
     if classification == "VISIBLE_SCORED_LOW":
         return ("selection_threshold", "THRESHOLD_REVIEW", "Review whether the Alpha selection threshold suppresses repeatable tradable movers.")

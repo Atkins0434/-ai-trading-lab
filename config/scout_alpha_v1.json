@@ -4,6 +4,7 @@
   "execution_allowed": false,
   "morning_freeze_time": "09:15:00",
   "minimum_real_bars_60m": 30,
+  "shadow_min_premarket_bars": 10,
   "selection_threshold_pct": 70,
   "validation_thresholds_pct": [60, 70, 80, 85],
   "scoring": {

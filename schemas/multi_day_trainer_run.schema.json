@@ -131,7 +131,7 @@
     "hypothesisEvidence": {
       "type": "object", "additionalProperties": false,
       "required": ["trading_date", "ticker", "partition", "benchmark_rank", "miss_classification", "failure_reason_codes"],
-      "properties": {"trading_date": {"type": "string", "format": "date"}, "ticker": {"type": "string"}, "partition": {"const": "DEVELOPMENT"}, "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10}, "miss_classification": {"enum": ["VISIBLE_SCORED_LOW", "VISIBLE_GUARDRAIL_REJECT"]}, "failure_reason_codes": {"type": "array", "items": {"type": "string"}}}
+      "properties": {"trading_date": {"type": "string", "format": "date"}, "ticker": {"type": "string"}, "partition": {"const": "DEVELOPMENT"}, "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10}, "miss_classification": {"enum": ["VISIBLE_SCORED_LOW", "VISIBLE_GUARDRAIL_REJECTED"]}, "failure_reason_codes": {"type": "array", "items": {"type": "string"}}}
     },
     "candidateThresholdReview": {
       "type": "object", "additionalProperties": false,

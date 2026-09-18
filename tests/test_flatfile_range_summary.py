@@ -47,6 +47,17 @@ def test_range_summary_handles_complete_failed_and_pending_days(
             }],
         }],
     })
+    _write_json(day_root / "postmortem.json", {
+        "reachability": {
+            "bars_0": 3,
+            "bars_1_9": 2,
+            "bars_10_29": 1,
+            "visible_scored_low": 1,
+            "visible_guardrail_rejected": 1,
+            "picked": 2,
+            "opening_range_reachable_count": 4,
+        }
+    })
     manifest = {
         "status": "PAUSED_WALL_BUDGET",
         "requested_dates": [
@@ -97,4 +108,9 @@ def test_range_summary_handles_complete_failed_and_pending_days(
     assert "execution_policy_atr_v1.0 cumulative return: 4.2500%" in summary
     assert "execution_policy_v1.0 cumulative capture ratio: 0.4000" in summary
     assert "execution_policy_atr_v1.0 cumulative capture ratio: 0.3500" in summary
+    assert (
+        "Top-10 reachability: bars_0=3 bars_1_9=2 bars_10_29=1 "
+        "visible_scored_low=1 visible_guardrail_rejected=1 picked=2 "
+        "opening_range_reachable=4"
+    ) in summary
     assert "Total wall time: 965.0000 seconds" in summary

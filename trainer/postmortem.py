@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, time
 from collections import Counter
 from pathlib import Path
 from statistics import mean
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from trainer.evidence_eligibility import (
     EvidenceEligibilityError,
@@ -19,13 +20,14 @@ MISS_CLASSIFICATIONS = {
     "NOT_IN_UNIVERSE",
     "INVISIBLE_AT_FREEZE",
     "VISIBLE_SCORED_LOW",
-    "VISIBLE_GUARDRAIL_REJECT",
+    "VISIBLE_GUARDRAIL_REJECTED",
     "PICKED_EXECUTION_LOSS",
     "UNCLASSIFIED",
 }
 ALPHA_CONFIG_PATH = (
     Path(__file__).resolve().parent.parent / "config" / "scout_alpha_v1.json"
 )
+EASTERN = ZoneInfo("America/New_York")
 
 
 class PostmortemError(Exception):
@@ -54,13 +56,6 @@ def _component_scores(candidate: dict[str, Any] | None) -> list[dict[str, Any]]:
     ]
 
 
-def _raw_metric(candidate: dict[str, Any], metric_id: str) -> Any:
-    component = candidate.get("component_scores", {}).get(metric_id, {})
-    if component.get("status") != "OBSERVED":
-        return None
-    return component.get("raw_value")
-
-
 def _is_invisible_at_freeze(
     security: dict[str, Any] | None,
     candidate: dict[str, Any],
@@ -76,15 +71,6 @@ def _is_invisible_at_freeze(
         and float(real_bar_count) < minimum
     ):
         return True, ["INSUFFICIENT_PREMARKET_BARS"]
-    relative_volume = _raw_metric(candidate, "relative_volume")
-    gap_pct = _raw_metric(candidate, "premarket_gap_strength")
-    if (
-        isinstance(relative_volume, (int, float))
-        and isinstance(gap_pct, (int, float))
-        and float(relative_volume) < 1.0
-        and abs(float(gap_pct)) < 1.0
-    ):
-        return True, ["LOW_RELATIVE_VOLUME_AND_SUB_1PCT_GAP"]
     return False, []
 
 
@@ -144,20 +130,122 @@ def _classify_miss(
     if invisible:
         return "INVISIBLE_AT_FREEZE", reasons
 
+    guardrail_reasons = _guardrail_reasons(candidate)
+    if guardrail_reasons:
+        return "VISIBLE_GUARDRAIL_REJECTED", guardrail_reasons
+
     total_score = int(candidate.get("total_score", 0))
     threshold_points = int(candidate.get("threshold_points", 0))
     if total_score < threshold_points:
         return "VISIBLE_SCORED_LOW", ["BELOW_RESEARCH_THRESHOLD"]
-
-    guardrail_reasons = _guardrail_reasons(candidate)
-    if guardrail_reasons:
-        return "VISIBLE_GUARDRAIL_REJECT", guardrail_reasons
     return "UNCLASSIFIED", sorted(
         set(
             candidate.get("rejection_reasons", [])
             + ["NO_KNOWN_REJECTION_PATH"]
         )
     )
+
+
+def _observation_value(
+    security: dict[str, Any] | None,
+    observation_id: str,
+) -> Any:
+    return (
+        (security or {})
+        .get("market_data", {})
+        .get(observation_id, {})
+        .get("value")
+    )
+
+
+def _premarket_counts(
+    ticker: str,
+    security: dict[str, Any] | None,
+    bar_statistics: dict[str, Any] | None,
+) -> tuple[int, int]:
+    stats = (bar_statistics or {}).get("by_ticker", {}).get(ticker, {})
+    count_60m = stats.get(
+        "real_premarket_60m",
+        _observation_value(security, "real_bar_count_60m") or 0,
+    )
+    count_total = stats.get(
+        "real_premarket",
+        _observation_value(security, "real_bar_count") or 0,
+    )
+    return int(count_60m), int(count_total)
+
+
+def _opening_range(
+    item: dict[str, Any],
+    security: dict[str, Any] | None,
+    outcome: dict[str, Any] | None,
+) -> dict[str, Any]:
+    result = {
+        "return_0930_0945_pct": None,
+        "return_0930_1000_pct": None,
+        "volume_0930_1000": None,
+        "high_0930_1000_pct": None,
+        "time_first_crossed_plus_5pct": None,
+        "day_high_timestamp": item.get("day_high_timestamp"),
+    }
+    timed_bars: list[tuple[datetime, dict[str, Any]]] = []
+    for bar in (outcome or {}).get("intraday_path", []):
+        timestamp = _timestamp(bar.get("timestamp"))
+        if timestamp is not None:
+            timed_bars.append((timestamp.astimezone(EASTERN), bar))
+    timed_bars.sort(key=lambda value: value[0])
+    opening = next(
+        (
+            bar
+            for timestamp, bar in timed_bars
+            if timestamp.time().replace(tzinfo=None) == time(9, 30)
+        ),
+        None,
+    )
+    if opening is None or float(opening.get("open") or 0.0) <= 0:
+        return result
+
+    open_price = float(opening["open"])
+    first_15 = [
+        (timestamp, bar)
+        for timestamp, bar in timed_bars
+        if time(9, 30) <= timestamp.time().replace(tzinfo=None) < time(9, 45)
+    ]
+    first_30 = [
+        (timestamp, bar)
+        for timestamp, bar in timed_bars
+        if time(9, 30) <= timestamp.time().replace(tzinfo=None) < time(10, 0)
+    ]
+    if first_15:
+        result["return_0930_0945_pct"] = (
+            float(first_15[-1][1]["close"]) / open_price - 1.0
+        ) * 100.0
+    if first_30:
+        result["return_0930_1000_pct"] = (
+            float(first_30[-1][1]["close"]) / open_price - 1.0
+        ) * 100.0
+        result["high_0930_1000_pct"] = (
+            max(float(bar["high"]) for _, bar in first_30) / open_price - 1.0
+        ) * 100.0
+        average_daily_volume = _observation_value(
+            security, "average_daily_volume"
+        )
+        if isinstance(average_daily_volume, (int, float)) and average_daily_volume > 0:
+            result["volume_0930_1000"] = (
+                sum(float(bar.get("volume") or 0.0) for _, bar in first_30)
+                / float(average_daily_volume)
+            )
+        crossed = next(
+            (
+                timestamp
+                for timestamp, bar in first_30
+                if float(bar["high"]) > open_price * 1.05
+            ),
+            None,
+        )
+        if crossed is not None:
+            result["time_first_crossed_plus_5pct"] = crossed.isoformat()
+    return result
 
 
 def build_postmortem(
@@ -184,12 +272,63 @@ def build_postmortem(
     securities = {
         item["ticker"]: item for item in snapshot.get("securities", [])
     }
+    outcomes = {
+        item["ticker"]: item
+        for item in (outcome_result or {}).get("outcomes", [])
+    }
     missed: list[dict[str, Any]] = []
     failures: dict[tuple[str, str], dict[str, Any]] = {}
+    reachability = {
+        "bars_0": 0,
+        "bars_1_9": 0,
+        "bars_10_29": 0,
+        "visible_scored_low": 0,
+        "visible_guardrail_rejected": 0,
+        "picked": 0,
+        "opening_range_reachable_count": 0,
+    }
+    shadow_scores: list[dict[str, Any]] = []
     for item in benchmark_result["benchmark_candidates"]:
-        candidate = candidates.get(item["ticker"])
+        ticker = item["ticker"]
+        candidate = candidates.get(ticker)
+        security = securities.get(ticker)
+        count_60m, count_total = _premarket_counts(
+            ticker, security, bar_statistics
+        )
+        opening_range = _opening_range(
+            item, security, outcomes.get(ticker)
+        )
+        if (
+            opening_range["return_0930_1000_pct"] is not None
+            and opening_range["return_0930_1000_pct"] >= 5.0
+            and opening_range["volume_0930_1000"] is not None
+            and opening_range["volume_0930_1000"] >= 2.0
+        ):
+            reachability["opening_range_reachable_count"] += 1
+
+        if item.get("scout_selected"):
+            reachability["picked"] += 1
+        elif count_60m == 0:
+            reachability["bars_0"] += 1
+        elif count_60m < 10:
+            reachability["bars_1_9"] += 1
+        elif count_60m < 30:
+            reachability["bars_10_29"] += 1
+        elif candidate is not None and _guardrail_reasons(candidate):
+            reachability["visible_guardrail_rejected"] += 1
+        else:
+            reachability["visible_scored_low"] += 1
+
+        if candidate is not None and candidate.get("status") == "SHADOW_SCORED":
+            shadow_scores.append({
+                "ticker": ticker,
+                "benchmark_rank": item["benchmark_rank"],
+                "score_pct": candidate["score_pct"],
+                "premarket_real_bars_60m": count_60m,
+            })
+
         classification, classification_reasons = _classify_miss(
-            item, candidate, securities.get(item["ticker"])
+            item, candidate, security
         )
         if classification is None:
             continue
@@ -219,10 +358,13 @@ def build_postmortem(
                 "maximum_capturable_move_pct"
             ],
             "scout_exit_reason": item.get("scout_exit_reason"),
+            "premarket_real_bars_60m": count_60m,
+            "premarket_real_bars_total": count_total,
+            "opening_range": opening_range,
         }
         missed.append(miss)
 
-        if classification == "VISIBLE_GUARDRAIL_REJECT":
+        if classification == "VISIBLE_GUARDRAIL_REJECTED":
             key = ("aggregate_liquidity", "OTHER")
             failure = failures.setdefault(
                 key,
@@ -332,6 +474,8 @@ def build_postmortem(
             scorability_statistics,
             len(unreachable),
         ),
+        "reachability": reachability,
+        "shadow_scores": shadow_scores,
         "missed_opportunities": missed,
         "execution_policy_review": execution_review,
         "execution_policy_verdict": execution_verdict,

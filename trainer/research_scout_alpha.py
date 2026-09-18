@@ -38,6 +38,8 @@ def _load_contract() -> tuple[dict[str, Any], dict[str, Any]]:
         or registry.get("maximum_points") != MAXIMUM_POINTS
         or len(metrics) != 12
         or len(set(ids)) != 12
+        or not 0 <= int(config.get("shadow_min_premarket_bars", -1))
+        < int(config["minimum_real_bars_60m"])
     ):
         raise ResearchScoutError("Alpha must remain a 12-metric, 48-point research contract.")
     return config, registry
@@ -79,12 +81,16 @@ def _score_security(
             < freeze
             for bar in security.get("premarket_bars", [])
         )
-    if int(real_bar_count_60m) < int(config["minimum_real_bars_60m"]):
+    real_bar_count_60m = int(real_bar_count_60m)
+    selection_minimum = int(config["minimum_real_bars_60m"])
+    shadow_minimum = int(config["shadow_min_premarket_bars"])
+    if real_bar_count_60m < shadow_minimum:
         threshold_points = ceil(threshold_pct / 100 * MAXIMUM_POINTS)
         return {
             "ticker": security["ticker"],
             "timestamp": timestamp,
             "status": "NOT_SCORABLE",
+            "shadow": False,
             "research_eligible": bool(security["eligible"]),
             "qualification_selected": False,
             "research_selected": False,
@@ -106,6 +112,7 @@ def _score_security(
                 "unavailable_execution_checks"
             ],
         }
+    shadow = real_bar_count_60m < selection_minimum
     relative_observation = market_data.get("relative_volume")
     if relative_observation is not None and relative_observation.get("value") is not None:
         relative_volume = float(relative_observation["value"])
@@ -152,18 +159,29 @@ def _score_security(
     total_score = sum(item["score"] or 0 for item in component_scores.values())
     threshold_points = ceil(threshold_pct / 100 * MAXIMUM_POINTS)
     research_eligible = security["eligible"] and not rejection_reasons
-    research_selected = research_eligible and total_score >= threshold_points
-    reason_codes = guardrail_reason_codes + [
-        "RESEARCH_ALPHA_SELECTED" if research_selected else "RESEARCH_ALPHA_NOT_SELECTED",
+    research_selected = (
+        research_eligible and not shadow and total_score >= threshold_points
+    )
+    reason_codes = guardrail_reason_codes + (
+        ["SHADOW_SCORED_DIAGNOSTIC_ONLY", "INSUFFICIENT_PREMARKET_BARS"]
+        if shadow
+        else []
+    ) + [
+        "RESEARCH_ALPHA_SELECTED"
+        if research_selected
+        else "RESEARCH_ALPHA_NOT_SELECTED",
         "EXECUTION_DISABLED_RESEARCH_ONLY",
     ]
-    if research_eligible and not research_selected:
+    if shadow:
+        rejection_reasons.append("INSUFFICIENT_PREMARKET_BARS")
+    elif research_eligible and not research_selected:
         rejection_reasons.append("BELOW_RESEARCH_THRESHOLD")
 
     return {
         "ticker": security["ticker"],
         "timestamp": timestamp,
-        "status": "SCORED",
+        "status": "SHADOW_SCORED" if shadow else "SCORED",
+        "shadow": shadow,
         "research_eligible": research_eligible,
         "qualification_selected": research_selected,
         "research_selected": research_selected,
@@ -275,8 +293,11 @@ def run_research_scout_alpha(
         "scorable_candidate_count": sum(
             c["status"] == "SCORED" for c in candidates
         ),
+        "shadow_scored_candidate_count": sum(
+            c["status"] == "SHADOW_SCORED" for c in candidates
+        ),
         "not_scorable_candidate_count": sum(
-            c["status"] == "NOT_SCORABLE" for c in candidates
+            c["status"] != "SCORED" for c in candidates
         ),
         "qualifying_candidate_count": sum(c["qualification_selected"] for c in candidates),
         "exploration_top_k": exploration_top_k,
