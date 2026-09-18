@@ -7,8 +7,8 @@ concurrency:
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches-ignore:
+      - replay-results
     paths:
       - ".github/workflows/massive-smoke.yml"
       - "config/massive_plan.json"
@@ -34,8 +34,9 @@ on:
 jobs:
   probe:
     if: >-
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name == github.repository
+      (github.event_name != 'push' || github.ref == 'refs/heads/main') &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

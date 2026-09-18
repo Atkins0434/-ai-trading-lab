@@ -3,8 +3,8 @@ name: Tiingo Capability Check
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches-ignore:
+      - replay-results
     paths:
       - ".github/workflows/tiingo-smoke.yml"
       - "trainer/tiingo_capability_report.py"
@@ -12,6 +12,7 @@ on:
 
 jobs:
   probe:
+    if: github.event_name != 'push' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
