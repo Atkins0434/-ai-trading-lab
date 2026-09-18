@@ -1,0 +1,62 @@
+{
+  "pattern_id": "research_reversal_v1.0",
+  "status": "research_only_not_promoted",
+  "execution_allowed": false,
+  "morning_freeze_time": "09:15:00",
+  "minimum_real_bars_60m": 30,
+  "shadow_min_premarket_bars": 10,
+  "selection_threshold_pct": 70,
+  "exploration_top_k": 2,
+  "scoring": {
+    "metric_count": 12,
+    "points_per_metric": 4,
+    "maximum_points": 48,
+    "denominator_policy": "FIXED_48",
+    "required_conditions": {
+      "price_slope_15m": {"operator": ">", "value": 0.0},
+      "price_slope_30m": {"operator": ">", "value": 0.0}
+    },
+    "metrics": {
+      "relative_volume": {"mode": "PRIMARY_SCORE"},
+      "price_slope_15m": {"mode": "PRIMARY_SCORE"},
+      "price_slope_30m": {"mode": "PRIMARY_SCORE"},
+      "price_slope_60m": {
+        "mode": "NEGATIVE_MAGNITUDE",
+        "thresholds": {"1": 0.015, "2": 0.030, "3": 0.050, "4": 0.075}
+      },
+      "volume_slope_15m": {"mode": "PRIMARY_SCORE"},
+      "volume_slope_30m": {"mode": "PRIMARY_SCORE"},
+      "volume_slope_60m": {"mode": "PRIMARY_SCORE"},
+      "premarket_gap_strength": {
+        "mode": "NEGATIVE_MAGNITUDE",
+        "thresholds": {"1": 3.0, "2": 6.0, "3": 10.0, "4": 15.0}
+      },
+      "price_vs_premarket_vwap": {
+        "mode": "NEGATIVE_MAGNITUDE",
+        "raw_value_path": "price_vs_vwap_pct",
+        "thresholds": {"1": 0.5, "2": 1.0, "3": 2.0, "4": 4.0}
+      },
+      "premarket_trend_consistency": {
+        "mode": "MAXIMUM",
+        "thresholds": {"1": 45.0, "2": 40.0, "3": 35.0, "4": 30.0}
+      },
+      "price_volume_confirmation": {"mode": "PRIMARY_SCORE"},
+      "premarket_range_expansion": {"mode": "PRIMARY_SCORE"}
+    }
+  },
+  "liquidity": {
+    "minimum_average_daily_dollar_volume_usd": 5000000,
+    "minimum_premarket_dollar_volume_usd": 250000
+  },
+  "spread": {
+    "enabled": true,
+    "missing_quotes_policy": "NOT_EVALUATED",
+    "penalty_starts_pct": 0.20,
+    "hard_reject_pct": 0.40
+  },
+  "order_book_depth": {
+    "enabled": true,
+    "missing_depth_policy": "NOT_EVALUATED",
+    "hard_reject_below_multiple": 2.0
+  }
+}

@@ -17,6 +17,7 @@ RANDOM_BASELINE_SEED = 20260916
 RANDOM_BASELINE_DRAWS = 200
 QUALIFYING_THRESHOLD = "QUALIFYING_THRESHOLD"
 EXPLORATION_TOP_K = "EXPLORATION_TOP_K"
+REVERSAL_EXPLORATION = "REVERSAL_EXPLORATION"
 NOT_SELECTED = "NOT_SELECTED"
 
 
@@ -212,7 +213,12 @@ def _selection_basis(outcome: dict[str, Any]) -> str:
     basis = outcome.get("selection_basis")
     if basis is None:
         return QUALIFYING_THRESHOLD if outcome.get("selected") else NOT_SELECTED
-    if basis not in {QUALIFYING_THRESHOLD, EXPLORATION_TOP_K, NOT_SELECTED}:
+    if basis not in {
+        QUALIFYING_THRESHOLD,
+        EXPLORATION_TOP_K,
+        REVERSAL_EXPLORATION,
+        NOT_SELECTED,
+    }:
         raise BenchmarkError(
             f"Unknown selection basis for {outcome['ticker']}: {basis}"
         )
@@ -333,7 +339,9 @@ def build_same_universe_benchmark(
     exploration_outcomes = [
         item
         for item in outcome_result["outcomes"]
-        if _selection_basis(item) == EXPLORATION_TOP_K
+        if _selection_basis(item) in {
+            EXPLORATION_TOP_K, REVERSAL_EXPLORATION
+        }
     ]
     qualifying_executions = [
         item["execution_result"]
@@ -373,7 +381,9 @@ def build_same_universe_benchmark(
     exploration_selected = {
         item["ticker"]
         for item in outcome_result["outcomes"]
-        if _selection_basis(item) == EXPLORATION_TOP_K
+        if _selection_basis(item) in {
+            EXPLORATION_TOP_K, REVERSAL_EXPLORATION
+        }
     }
     combined_selected = {
         item["ticker"]

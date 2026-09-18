@@ -53,10 +53,25 @@ def test_range_summary_handles_complete_failed_and_pending_days(
             "bars_1_9": 2,
             "bars_10_29": 1,
             "visible_scored_low": 1,
+            "visible_reversal_candidate": 0,
             "visible_guardrail_rejected": 1,
             "picked": 2,
             "opening_range_reachable_count": 4,
-        }
+        },
+        "reversal_cohort": {
+            "candidate_count": 2,
+            "selected_count": 1,
+            "close_above_open_share": 0.5,
+            "mean_day_mfe_pct": 12.5,
+            "policy_returns": {
+                "execution_policy_v1.0": 1.0,
+                "execution_policy_atr_v1.0": 0.8,
+            },
+            "candidates": [
+                {"closed_above_open": True, "day_mfe_pct": 20.0},
+                {"closed_above_open": False, "day_mfe_pct": 5.0},
+            ],
+        },
     })
     manifest = {
         "status": "PAUSED_WALL_BUDGET",
@@ -97,7 +112,10 @@ def test_range_summary_handles_complete_failed_and_pending_days(
 
     summary = render_range_summary(manifest, tmp_path)
 
-    assert "2024-03-01 status=COMPLETE eligible=2455 scorable=32 selected=1" in summary
+    assert (
+        "2024-03-01 status=COMPLETE eligible=2455 scorable=32 selected=1 "
+        "reversal_candidates=2"
+    ) in summary
     assert "primary_return=5.0000% atr_return=4.2500%" in summary
     assert "2024-03-04 status=FAILED" in summary
     assert "2024-03-05 status=IN_PROGRESS" in summary
@@ -110,7 +128,12 @@ def test_range_summary_handles_complete_failed_and_pending_days(
     assert "execution_policy_atr_v1.0 cumulative capture ratio: 0.3500" in summary
     assert (
         "Top-10 reachability: bars_0=3 bars_1_9=2 bars_10_29=1 "
-        "visible_scored_low=1 visible_guardrail_rejected=1 picked=2 "
+        "visible_scored_low=1 visible_reversal_candidate=0 "
+        "visible_guardrail_rejected=1 picked=2 "
         "opening_range_reachable=4"
     ) in summary
+    assert "Reversal candidates per day: 2024-03-01=2" in summary
+    assert "Reversal share closing above open: 0.5000" in summary
+    assert "Reversal mean day MFE: 12.5000%" in summary
+    assert "execution_policy_atr_v1.0=0.8000%" in summary
     assert "Total wall time: 965.0000 seconds" in summary

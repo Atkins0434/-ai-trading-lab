@@ -158,9 +158,21 @@ def test_cumulative_report_covers_completed_days(tmp_path: Path):
             "bars_1_9": 2,
             "bars_10_29": 1,
             "visible_scored_low": 1,
+            "visible_reversal_candidate": 0,
             "visible_guardrail_rejected": 1,
             "picked": 2,
             "opening_range_reachable_count": 4,
+        },
+        "reversal_cohort": {
+            "candidate_count": 2,
+            "selected_count": 1,
+            "close_above_open_share": 0.5,
+            "mean_day_mfe_pct": 12.5,
+            "policy_returns": {"execution_policy_v1.0": 1.0},
+            "candidates": [
+                {"closed_above_open": True, "day_mfe_pct": 20.0},
+                {"closed_above_open": False, "day_mfe_pct": 5.0},
+            ],
         },
     }
     _materialize(tmp_path, bundle)
@@ -180,4 +192,5 @@ def test_cumulative_report_covers_completed_days(tmp_path: Path):
     assert "2024-03-15" in text
     assert "Top-10 mover reachability" in text
     assert "Opening-range reachable" in text
+    assert "Reversal exploration base rates" in text
     assert "Miss-category totals across completed days" in text

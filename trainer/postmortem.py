@@ -20,12 +20,16 @@ MISS_CLASSIFICATIONS = {
     "NOT_IN_UNIVERSE",
     "INVISIBLE_AT_FREEZE",
     "VISIBLE_SCORED_LOW",
+    "VISIBLE_REVERSAL_CANDIDATE",
     "VISIBLE_GUARDRAIL_REJECTED",
     "PICKED_EXECUTION_LOSS",
     "UNCLASSIFIED",
 }
 ALPHA_CONFIG_PATH = (
     Path(__file__).resolve().parent.parent / "config" / "scout_alpha_v1.json"
+)
+REVERSAL_CONFIG_PATH = (
+    Path(__file__).resolve().parent.parent / "config" / "scout_reversal_v1.json"
 )
 EASTERN = ZoneInfo("America/New_York")
 
@@ -137,6 +141,18 @@ def _classify_miss(
     total_score = int(candidate.get("total_score", 0))
     threshold_points = int(candidate.get("threshold_points", 0))
     if total_score < threshold_points:
+        reversal_score = candidate.get("reversal_score_pct")
+        reversal_threshold = float(
+            load_json(REVERSAL_CONFIG_PATH)["selection_threshold_pct"]
+        )
+        if (
+            isinstance(reversal_score, (int, float))
+            and not isinstance(reversal_score, bool)
+            and float(reversal_score) >= reversal_threshold
+        ):
+            return "VISIBLE_REVERSAL_CANDIDATE", [
+                "REVERSAL_SCORE_AT_OR_ABOVE_THRESHOLD"
+            ]
         return "VISIBLE_SCORED_LOW", ["BELOW_RESEARCH_THRESHOLD"]
     return "UNCLASSIFIED", sorted(
         set(
@@ -248,6 +264,120 @@ def _opening_range(
     return result
 
 
+def _policy_return(
+    executions: list[dict[str, Any]],
+    tickers: set[str],
+    strategy_capital_usd: float,
+) -> float:
+    pnl = sum(
+        float(item.get("execution_result", {}).get("realized_pnl_usd") or 0.0)
+        for item in executions
+        if item.get("ticker") in tickers
+    )
+    return pnl / strategy_capital_usd * 100.0
+
+
+def _reversal_cohort(
+    candidates: dict[str, dict[str, Any]],
+    outcomes: dict[str, dict[str, Any]],
+    outcome_result: dict[str, Any] | None,
+    strategy_capital_usd: float,
+) -> dict[str, Any]:
+    threshold = float(
+        load_json(REVERSAL_CONFIG_PATH)["selection_threshold_pct"]
+    )
+    cohort_candidates = sorted(
+        (
+            candidate
+            for candidate in candidates.values()
+            if isinstance(candidate.get("reversal_score_pct"), (int, float))
+            and not isinstance(candidate.get("reversal_score_pct"), bool)
+            and float(candidate["reversal_score_pct"]) >= threshold
+        ),
+        key=lambda candidate: (
+            -float(candidate["reversal_score_pct"]), candidate["ticker"]
+        ),
+    )
+    rows = []
+    for candidate in cohort_candidates:
+        outcome = outcomes.get(candidate["ticker"], {})
+        bars = outcome.get("intraday_path", [])
+        close_return = None
+        closed_above = None
+        if bars and float(bars[0]["open"]) > 0:
+            open_price = float(bars[0]["open"])
+            close_return = (float(bars[-1]["close"]) / open_price - 1.0) * 100.0
+            closed_above = float(bars[-1]["close"]) > open_price
+        rows.append({
+            "ticker": candidate["ticker"],
+            "reversal_score_pct": float(candidate["reversal_score_pct"]),
+            "selected": candidate.get("selection_basis")
+            == "REVERSAL_EXPLORATION",
+            "day_mfe_pct": (
+                float(outcome["day_mfe_pct"])
+                if outcome.get("day_mfe_pct") is not None
+                else None
+            ),
+            "close_vs_open_return_pct": close_return,
+            "closed_above_open": closed_above,
+        })
+    observed_close = [
+        item["closed_above_open"]
+        for item in rows
+        if item["closed_above_open"] is not None
+    ]
+    observed_mfe = [
+        float(item["day_mfe_pct"])
+        for item in rows
+        if item["day_mfe_pct"] is not None
+    ]
+    selected_tickers = {
+        item["ticker"] for item in rows if item["selected"]
+    }
+    policy_returns: dict[str, float] = {}
+    if outcome_result is not None:
+        champion_executions = [
+            {
+                "ticker": item["ticker"],
+                "execution_result": item.get("execution_result", {}),
+            }
+            for item in outcome_result.get("outcomes", [])
+        ]
+        champion_id = next(
+            (
+                item.get("execution_result", {}).get("policy_id")
+                for item in outcome_result.get("outcomes", [])
+                if item.get("execution_result", {}).get("policy_id")
+            ),
+            "execution_policy_v1.0",
+        )
+        policy_returns[champion_id] = _policy_return(
+            champion_executions, selected_tickers, strategy_capital_usd
+        )
+        for comparison in outcome_result.get("policy_comparisons", []):
+            policy_returns[comparison["policy_id"]] = _policy_return(
+                [
+                    item
+                    for item in comparison.get("executions", [])
+                    if item.get("cohort") == "SCOUT_SELECTION"
+                ],
+                selected_tickers,
+                strategy_capital_usd,
+            )
+    return {
+        "candidate_count": len(rows),
+        "selected_count": len(selected_tickers),
+        "close_above_open_share": (
+            sum(observed_close) / len(observed_close)
+            if observed_close
+            else None
+        ),
+        "mean_day_mfe_pct": mean(observed_mfe) if observed_mfe else None,
+        "policy_returns": policy_returns,
+        "candidates": rows,
+    }
+
+
 def build_postmortem(
     snapshot: dict[str, Any],
     scout_result: dict[str, Any],
@@ -283,6 +413,7 @@ def build_postmortem(
         "bars_1_9": 0,
         "bars_10_29": 0,
         "visible_scored_low": 0,
+        "visible_reversal_candidate": 0,
         "visible_guardrail_rejected": 0,
         "picked": 0,
         "opening_range_reachable_count": 0,
@@ -316,6 +447,15 @@ def build_postmortem(
             reachability["bars_10_29"] += 1
         elif candidate is not None and _guardrail_reasons(candidate):
             reachability["visible_guardrail_rejected"] += 1
+        elif (
+            candidate is not None
+            and int(candidate.get("total_score", 0))
+            < int(candidate.get("threshold_points", 0))
+            and isinstance(candidate.get("reversal_score_pct"), (int, float))
+            and candidate["reversal_score_pct"]
+            >= float(load_json(REVERSAL_CONFIG_PATH)["selection_threshold_pct"])
+        ):
+            reachability["visible_reversal_candidate"] += 1
         else:
             reachability["visible_scored_low"] += 1
 
@@ -348,6 +488,9 @@ def build_postmortem(
             "was_in_scout_output": candidate is not None,
             "scout_selected": bool(item.get("scout_selected", False)),
             "scout_score_pct": candidate.get("score_pct") if candidate else None,
+            "reversal_score_pct": (
+                candidate.get("reversal_score_pct") if candidate else None
+            ),
             "miss_classification": classification,
             "failure_reason_codes": reasons,
             "component_scores": _component_scores(candidate),
@@ -476,6 +619,12 @@ def build_postmortem(
         ),
         "reachability": reachability,
         "shadow_scores": shadow_scores,
+        "reversal_cohort": _reversal_cohort(
+            candidates,
+            outcomes,
+            outcome_result,
+            strategy_capital_usd,
+        ),
         "missed_opportunities": missed,
         "execution_policy_review": execution_review,
         "execution_policy_verdict": execution_verdict,

@@ -912,17 +912,67 @@ def generate_cumulative_replay_report(
         )
     story.append(Paragraph("Top-10 mover reachability", styles["subsection"]))
     story.append(_table([
-        ["0 bars", "1-9 bars", "10-29 bars", "Visible low", "Guardrail rejected", "Picked", "Opening-range reachable"],
+        ["0 bars", "1-9 bars", "10-29 bars", "Visible low", "Reversal", "Guardrail rejected", "Picked", "Opening-range reachable"],
         [
             str(reachability["bars_0"]),
             str(reachability["bars_1_9"]),
             str(reachability["bars_10_29"]),
             str(reachability["visible_scored_low"]),
+            str(reachability["visible_reversal_candidate"]),
             str(reachability["visible_guardrail_rejected"]),
             str(reachability["picked"]),
             str(reachability["opening_range_reachable_count"]),
         ],
-    ], [0.75*inch,0.75*inch,0.85*inch,0.9*inch,1.2*inch,0.65*inch,1.35*inch], right_columns=(0,1,2,3,4,5,6), font_size=6))
+    ], [0.65*inch,0.65*inch,0.75*inch,0.75*inch,0.75*inch,1.0*inch,0.55*inch,1.15*inch], right_columns=(0,1,2,3,4,5,6,7), font_size=5.5))
+    reversal_rows = [["Date", "Candidates", "Selected", "Close > open", "Mean day MFE", "Policy returns"]]
+    all_closed: list[bool] = []
+    all_mfe: list[float] = []
+    policy_returns: Counter[str] = Counter()
+    for model in models:
+        cohort = (model.get("postmortem") or {}).get("reversal_cohort", {})
+        for candidate in cohort.get("candidates", []):
+            if candidate.get("closed_above_open") is not None:
+                all_closed.append(candidate["closed_above_open"])
+            if candidate.get("day_mfe_pct") is not None:
+                all_mfe.append(float(candidate["day_mfe_pct"]))
+        policy_returns.update(cohort.get("policy_returns", {}))
+        reversal_rows.append([
+            model["trading_date"],
+            str(cohort.get("candidate_count", 0)),
+            str(cohort.get("selected_count", 0)),
+            _fmt_number(cohort.get("close_above_open_share")),
+            _fmt_pct(cohort.get("mean_day_mfe_pct")),
+            ", ".join(
+                f"{policy_id}={_fmt_pct(value)}"
+                for policy_id, value in sorted(
+                    cohort.get("policy_returns", {}).items()
+                )
+            ) or "—",
+        ])
+    reversal_rows.append([
+        "Cumulative",
+        str(sum(
+            int(((model.get("postmortem") or {}).get("reversal_cohort", {})).get("candidate_count", 0))
+            for model in models
+        )),
+        str(sum(
+            int(((model.get("postmortem") or {}).get("reversal_cohort", {})).get("selected_count", 0))
+            for model in models
+        )),
+        _fmt_number(sum(all_closed) / len(all_closed) if all_closed else None),
+        _fmt_pct(mean(all_mfe) if all_mfe else None),
+        ", ".join(
+            f"{policy_id}={_fmt_pct(value)}"
+            for policy_id, value in sorted(policy_returns.items())
+        ) or "—",
+    ])
+    story.append(Paragraph("Reversal exploration base rates", styles["subsection"]))
+    story.append(_table(
+        reversal_rows,
+        [0.9*inch,0.7*inch,0.65*inch,0.85*inch,0.9*inch,3.1*inch],
+        right_columns=(1,2,3,4),
+        font_size=6,
+    ))
     story.append(PageBreak())
     story.append(Paragraph("Miss-category totals across completed days", styles["section"]))
     miss_totals: Counter[str] = Counter()
