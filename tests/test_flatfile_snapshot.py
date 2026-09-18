@@ -156,6 +156,9 @@ def test_nanosecond_flatfile_premarket_bar_respects_dst(
     assert all("09:15:00" not in bar["timestamp"] for bar in bars)
     assert result.bar_statistics["by_ticker"]["AAL"]["real_premarket"] == 1
     assert result.bar_statistics["by_ticker"]["AAL"]["real_premarket_60m"] == 1
+    assert result.snapshot["securities"][0]["market_data"][
+        "average_daily_volume"
+    ]["value"] == 1_000_000
 
 
 def test_regular_bars_are_sorted_and_duplicate_minutes_are_audited(

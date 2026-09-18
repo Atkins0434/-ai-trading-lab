@@ -505,6 +505,11 @@ def build_flatfile_snapshot(
             if prior_rows
             else None
         )
+        average_daily_volume = (
+            mean(float(bar["volume"]) for bar in prior_rows)
+            if prior_rows
+            else None
+        )
         average_daily_range_pct = (
             mean(
                 (float(bar["high"]) - float(bar["low"]))
@@ -547,6 +552,11 @@ def build_flatfile_snapshot(
                 average_daily_dollar_volume,
                 prior_as_of,
                 f"mean(close*volume),{lookback_sessions}_sessions",
+            ),
+            "average_daily_volume": _observation(
+                average_daily_volume,
+                prior_as_of,
+                f"mean(volume),{lookback_sessions}_sessions",
             ),
             "relative_volume": _observation(
                 relative_volume,

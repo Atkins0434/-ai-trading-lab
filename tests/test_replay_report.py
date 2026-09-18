@@ -151,6 +151,18 @@ def test_daily_report_renders_execution_policy_comparison(tmp_path: Path):
 
 def test_cumulative_report_covers_completed_days(tmp_path: Path):
     bundle = _bundle()
+    bundle["postmortem"] = {
+        "missed_opportunities": [],
+        "reachability": {
+            "bars_0": 3,
+            "bars_1_9": 2,
+            "bars_10_29": 1,
+            "visible_scored_low": 1,
+            "visible_guardrail_rejected": 1,
+            "picked": 2,
+            "opening_range_reachable_count": 4,
+        },
+    }
     _materialize(tmp_path, bundle)
     manifest = {
         "run_id": "flatfile-run-fixture",
@@ -166,4 +178,6 @@ def test_cumulative_report_covers_completed_days(tmp_path: Path):
 
     assert "Cumulative Replay Summary" in text
     assert "2024-03-15" in text
+    assert "Top-10 mover reachability" in text
+    assert "Opening-range reachable" in text
     assert "Miss-category totals across completed days" in text

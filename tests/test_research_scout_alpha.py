@@ -138,12 +138,24 @@ def test_real_bar_minimum_controls_scorability():
     scored = run_research_scout_alpha(
         snapshot_with_last_hour_count(45), threshold_pct=0
     )
-    not_scorable = run_research_scout_alpha(
+    shadow = run_research_scout_alpha(
         snapshot_with_last_hour_count(20), threshold_pct=0
+    )
+    not_scorable = run_research_scout_alpha(
+        snapshot_with_last_hour_count(5), threshold_pct=0
     )
 
     assert scored["candidates"][0]["status"] == "SCORED"
     assert scored["scorable_candidate_count"] == 1
+    assert shadow["candidates"][0]["status"] == "SHADOW_SCORED"
+    assert shadow["candidates"][0]["shadow"] is True
+    assert shadow["candidates"][0]["research_selected"] is False
+    assert shadow["shadow_scored_candidate_count"] == 1
+    assert shadow["scorable_candidate_count"] == 0
+    assert shadow["not_scorable_candidate_count"] == 1
+    assert shadow["eligible_universe_count"] == 1
+    assert shadow["qualifying_candidate_count"] == 0
+    assert shadow["selected_candidate_count"] == 0
     assert not_scorable["candidates"][0]["status"] == "NOT_SCORABLE"
     assert "INSUFFICIENT_PREMARKET_BARS" in (
         not_scorable["candidates"][0]["reason_codes"]

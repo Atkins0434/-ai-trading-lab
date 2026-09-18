@@ -10,7 +10,8 @@
     "execution_policy_version", "massive_plan", "universe_mode", "universe_manifest_hash",
     "universe_coverage", "research_evidence", "promotion_eligible", "result",
     "scout_performance", "benchmark_performance", "unreachable_mover_count",
-    "unreachable_pct", "universe_scorability", "missed_opportunities", "execution_policy_review",
+    "unreachable_pct", "universe_scorability", "reachability", "shadow_scores",
+    "missed_opportunities", "execution_policy_review",
     "execution_policy_verdict",
     "feature_failures", "feature_proposals"
   ],
@@ -32,6 +33,10 @@
     "unreachable_mover_count": {"type": "integer", "minimum": 0, "maximum": 10},
     "unreachable_pct": {"type": "number", "minimum": 0, "maximum": 100},
     "universe_scorability": {"$ref": "#/$defs/universeScorability"},
+    "reachability": {"$ref": "#/$defs/reachability"},
+    "shadow_scores": {
+      "type": "array", "items": {"$ref": "#/$defs/shadowScore"}
+    },
     "missed_opportunities": {
       "type": "array", "items": {"$ref": "#/$defs/missedOpportunity"}
     },
@@ -90,7 +95,8 @@
         "scout_score_pct", "miss_classification", "failure_reason_codes",
         "component_scores", "realized_benchmark_return_pct",
         "realized_benchmark_pnl_usd", "scout_realized_return_pct",
-        "maximum_capturable_move_pct", "scout_exit_reason"
+        "maximum_capturable_move_pct", "scout_exit_reason",
+        "premarket_real_bars_60m", "premarket_real_bars_total", "opening_range"
       ],
       "properties": {
         "ticker": {"type": "string", "minLength": 1},
@@ -101,7 +107,7 @@
         "miss_classification": {
           "enum": [
             "NOT_IN_UNIVERSE", "INVISIBLE_AT_FREEZE", "VISIBLE_SCORED_LOW",
-            "VISIBLE_GUARDRAIL_REJECT", "PICKED_EXECUTION_LOSS", "UNCLASSIFIED"
+            "VISIBLE_GUARDRAIL_REJECTED", "PICKED_EXECUTION_LOSS", "UNCLASSIFIED"
           ]
         },
         "failure_reason_codes": {
@@ -114,7 +120,35 @@
         "realized_benchmark_pnl_usd": {"$ref": "#/$defs/nullableNumber"},
         "scout_realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
         "maximum_capturable_move_pct": {"type": "number"},
-        "scout_exit_reason": {"$ref": "#/$defs/nullableString"}
+        "scout_exit_reason": {"$ref": "#/$defs/nullableString"},
+        "premarket_real_bars_60m": {"type": "integer", "minimum": 0},
+        "premarket_real_bars_total": {"type": "integer", "minimum": 0},
+        "opening_range": {"$ref": "#/$defs/openingRange"}
+      }
+    },
+    "openingRange": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "return_0930_0945_pct", "return_0930_1000_pct", "volume_0930_1000",
+        "high_0930_1000_pct", "time_first_crossed_plus_5pct", "day_high_timestamp"
+      ],
+      "properties": {
+        "return_0930_0945_pct": {"$ref": "#/$defs/nullableNumber"},
+        "return_0930_1000_pct": {"$ref": "#/$defs/nullableNumber"},
+        "volume_0930_1000": {"$ref": "#/$defs/nullableNumber"},
+        "high_0930_1000_pct": {"$ref": "#/$defs/nullableNumber"},
+        "time_first_crossed_plus_5pct": {"$ref": "#/$defs/nullableString"},
+        "day_high_timestamp": {"$ref": "#/$defs/nullableString"}
+      }
+    },
+    "shadowScore": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ticker", "benchmark_rank", "score_pct", "premarket_real_bars_60m"],
+      "properties": {
+        "ticker": {"type": "string", "minLength": 1},
+        "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10},
+        "score_pct": {"type": "number", "minimum": 0, "maximum": 100},
+        "premarket_real_bars_60m": {"type": "integer", "minimum": 0}
       }
     },
     "executionReview": {
@@ -221,6 +255,22 @@
         "zero_premarket_bar_count": {"type": "integer", "minimum": 0},
         "zero_premarket_60m_bar_count": {"type": "integer", "minimum": 0},
         "top_10_invisible_count": {"type": "integer", "minimum": 0, "maximum": 10}
+      }
+    },
+    "reachability": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "bars_0", "bars_1_9", "bars_10_29", "visible_scored_low",
+        "visible_guardrail_rejected", "picked", "opening_range_reachable_count"
+      ],
+      "properties": {
+        "bars_0": {"type": "integer", "minimum": 0, "maximum": 10},
+        "bars_1_9": {"type": "integer", "minimum": 0, "maximum": 10},
+        "bars_10_29": {"type": "integer", "minimum": 0, "maximum": 10},
+        "visible_scored_low": {"type": "integer", "minimum": 0, "maximum": 10},
+        "visible_guardrail_rejected": {"type": "integer", "minimum": 0, "maximum": 10},
+        "picked": {"type": "integer", "minimum": 0, "maximum": 10},
+        "opening_range_reachable_count": {"type": "integer", "minimum": 0, "maximum": 10}
       }
     },
     "featureFailure": {

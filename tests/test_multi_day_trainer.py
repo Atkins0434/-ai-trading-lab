@@ -181,7 +181,7 @@ def test_only_visible_score_and_guardrail_misses_generate_hypotheses(
         postmortem["missed_opportunities"].append({
             "ticker": "GUARD",
             "benchmark_rank": 4,
-            "miss_classification": "VISIBLE_GUARDRAIL_REJECT",
+            "miss_classification": "VISIBLE_GUARDRAIL_REJECTED",
             "failure_reason_codes": ["LOW_AGGREGATE_LIQUIDITY"],
             "component_scores": [],
         })
@@ -221,7 +221,7 @@ def test_only_visible_score_and_guardrail_misses_generate_hypotheses(
     }
     assert classifications == {
         "VISIBLE_SCORED_LOW",
-        "VISIBLE_GUARDRAIL_REJECT",
+        "VISIBLE_GUARDRAIL_REJECTED",
     }
     assert len(state["hypotheses"]) == 2
 
