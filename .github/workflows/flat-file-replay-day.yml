@@ -155,16 +155,17 @@ jobs:
           import json
           import os
           from pathlib import Path
+          from trainer.output_paths import daily_path
           from statistics import mean
           import time
 
           trading_date = os.environ.get("TRADING_DATE", "unknown")
           output_root = Path(os.environ.get("OUTPUT_ROOT", "missing-output-root"))
           day_root = output_root / "days" / trading_date
-          universe_path = day_root / "daily_universe_manifest.json"
+          universe_path = daily_path(day_root, day_root.name, "daily_universe_manifest")
           replay_path = output_root / "flatfile_replay_manifest.json"
-          outcome_path = day_root / "end_of_day_outcome.json"
-          benchmark_path = day_root / "benchmark_result.json"
+          outcome_path = daily_path(day_root, day_root.name, "end_of_day_outcome")
+          benchmark_path = daily_path(day_root, day_root.name, "benchmark_result")
           started_at = int(os.environ.get("REPLAY_STARTED_AT", str(int(time.time()))))
 
           print("Flat-File Replay Day summary")
@@ -459,18 +460,18 @@ jobs:
         run: |
           day_root="$OUTPUT_ROOT/days/$TRADING_DATE"
           required=(
-            "$day_root/daily_universe_manifest.json"
+            "$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" daily_universe_manifest)"
             "$OUTPUT_ROOT/flatfile_replay_manifest.json"
-            "$day_root/benchmark_result.json"
-            "$day_root/replay_report.pdf"
-            "$day_root/scorable_outcomes.csv"
-            "$day_root/eligible_outcomes.csv"
+            "$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" benchmark_result)"
+            "$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" replay_report)"
+            "$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" scorable_outcomes)"
+            "$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" eligible_outcomes)"
             "$OUTPUT_ROOT/replay_summary.pdf"
             "$OUTPUT_ROOT/scorable_outcomes.csv"
             "$OUTPUT_ROOT/eligible_outcomes.csv"
           )
           if [ -z "$MAX_TICKERS" ]; then
-            required+=("$day_root/postmortem.json")
+            required+=("$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" postmortem)")
           else
             echo "Smoke mode: postmortem is intentionally skipped because capped evidence is ineligible."
           fi

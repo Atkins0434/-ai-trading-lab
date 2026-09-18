@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from trainer.output_paths import daily_path
+
 import argparse
 from collections import Counter
 from datetime import datetime
@@ -84,12 +86,12 @@ def _required(path: Path) -> dict[str, Any]:
 def load_day_artifacts(day_dir: Path) -> dict[str, Any]:
     """Load the immutable JSON inputs used by one daily report."""
     return {
-        "universe": _required(day_dir / "daily_universe_manifest.json"),
-        "snapshot": _required(day_dir / "historical_snapshot.json"),
-        "scout": _required(day_dir / "research_alpha_output.json"),
-        "outcome": _required(day_dir / "end_of_day_outcome.json"),
-        "benchmark": _required(day_dir / "benchmark_result.json"),
-        "postmortem": _read_optional(day_dir / "postmortem.json"),
+        "universe": _required(daily_path(day_dir, day_dir.name, "daily_universe_manifest")),
+        "snapshot": _required(daily_path(day_dir, day_dir.name, "historical_snapshot")),
+        "scout": _required(daily_path(day_dir, day_dir.name, "research_alpha_output")),
+        "outcome": _required(daily_path(day_dir, day_dir.name, "end_of_day_outcome")),
+        "benchmark": _required(daily_path(day_dir, day_dir.name, "benchmark_result")),
+        "postmortem": _read_optional(daily_path(day_dir, day_dir.name, "postmortem")),
     }
 
 
@@ -839,7 +841,7 @@ def generate_daily_replay_report(
 ) -> Path:
     artifacts = load_day_artifacts(day_dir)
     model = build_daily_report_model(artifacts, day_record=day_record)
-    output_path = output_path or day_dir / "replay_report.pdf"
+    output_path = output_path or daily_path(day_dir, day_dir.name, "replay_report")
     output_path.parent.mkdir(parents=True, exist_ok=True)
     styles = _styles()
     story: list[Any] = []

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.output_paths import legacy_name
 
 from datetime import date, datetime, time
 from pathlib import Path
@@ -232,7 +233,7 @@ def run_contract_test(
         ROOT
         / "fixtures"
         / "2018-01-02"
-        / "historical_snapshot.json"
+        / legacy_name("historical_snapshot")
     )
 
     snapshot = load_historical_snapshot(fixture_path, config=config)

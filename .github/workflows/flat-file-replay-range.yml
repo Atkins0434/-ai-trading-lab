@@ -216,6 +216,7 @@ jobs:
           import json
           import os
           from pathlib import Path
+          from trainer.output_paths import daily_path
 
           output_root = Path(os.environ["OUTPUT_ROOT"])
           manifest_path = output_root / "flatfile_replay_manifest.json"
@@ -239,14 +240,14 @@ jobs:
                   continue
               day_root = output_root / "days" / day["trading_date"]
               required = [
-                  day_root / "daily_universe_manifest.json",
-                  day_root / "benchmark_result.json",
-                  day_root / "replay_report.pdf",
-                  day_root / "scorable_outcomes.csv",
-                  day_root / "eligible_outcomes.csv",
+                  daily_path(day_root, day_root.name, "daily_universe_manifest"),
+                  daily_path(day_root, day_root.name, "benchmark_result"),
+                  daily_path(day_root, day_root.name, "replay_report"),
+                  daily_path(day_root, day_root.name, "scorable_outcomes"),
+                  daily_path(day_root, day_root.name, "eligible_outcomes"),
               ]
               if not smoke_mode:
-                  required.append(day_root / "postmortem.json")
+                  required.append(daily_path(day_root, day_root.name, "postmortem"))
               for path in required:
                   if path.is_file():
                       print(f"Artifact ready: {path}")

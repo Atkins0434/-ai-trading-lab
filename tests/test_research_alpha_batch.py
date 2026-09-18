@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.output_paths import daily_path
 
 from datetime import date, datetime, time, timedelta
 import json
@@ -81,7 +82,7 @@ def test_batch_screens_scores_and_creates_auditable_artifacts(tmp_path: Path):
         threshold_pct=0,
     )
 
-    result = json.loads((output_dir / "research_alpha_output.json").read_text())
+    result = json.loads((daily_path(output_dir, "2026-09-14", "research_alpha_output")).read_text())
     assert manifest["status"] == "COMPLETE"
     assert manifest["massive_plan"]["plan"] == "DEVELOPER"
     assert manifest["massive_plan"]["rest_calls_per_minute"] is None
@@ -89,16 +90,16 @@ def test_batch_screens_scores_and_creates_auditable_artifacts(tmp_path: Path):
     assert manifest["universe_rejections"] == {"BIG": "MARKET_CAP_OUT_OF_RANGE"}
     assert result["mode"] == "RESEARCH_ONLY"
     assert result["candidates"][0]["execution_eligible"] is False
-    assert (output_dir / "research_alpha_report.pdf").read_bytes().startswith(b"%PDF")
+    assert (daily_path(output_dir, "2026-09-14", "research_alpha_report")).read_bytes().startswith(b"%PDF")
     assert manifest["universe_mode"] == "ci_fixture"
     assert manifest["research_evidence"] is False
     assert manifest["promotion_eligible"] is False
     assert result["universe_manifest_hash"] == manifest["universe_manifest_hash"]
-    assert not (output_dir / "end_of_day_outcome.json").exists()
-    assert not (output_dir / "benchmark_result.json").exists()
-    assert not (output_dir / "postmortem.json").exists()
-    assert (output_dir / "historical_news_backfill.json").exists()
-    assert (output_dir / "catalyst_shadow_metrics.json").exists()
+    assert not (daily_path(output_dir, "2026-09-14", "end_of_day_outcome")).exists()
+    assert not (daily_path(output_dir, "2026-09-14", "benchmark_result")).exists()
+    assert not (daily_path(output_dir, "2026-09-14", "postmortem")).exists()
+    assert (daily_path(output_dir, "2026-09-14", "historical_news_backfill")).exists()
+    assert (daily_path(output_dir, "2026-09-14", "catalyst_shadow_metrics")).exists()
     assert manifest["news_backfill_errors"] == {}
     assert manifest["ticker_queue"]["counts"]["COMPLETE"] == 1
-    assert (output_dir / "ticker_replay_queue.json").exists()
+    assert (daily_path(output_dir, "2026-09-14", "ticker_replay_queue")).exists()

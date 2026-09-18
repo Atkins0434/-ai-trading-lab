@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from trainer.output_paths import daily_path
+
 from datetime import date, datetime, time, timedelta, timezone
 import json
 from pathlib import Path
@@ -98,18 +100,18 @@ def run_massive_alpha_batch(
         raise ValueError("Unknown dataset partition.")
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    universe_path = output_dir / "research_universe.json"
-    universe_manifest_path = output_dir / "daily_universe_manifest.json"
-    scout_output_path = output_dir / "research_alpha_output.json"
-    pdf_path = output_dir / "research_alpha_report.pdf"
-    outcome_path = output_dir / "end_of_day_outcome.json"
-    benchmark_path = output_dir / "benchmark_result.json"
-    postmortem_path = output_dir / "postmortem.json"
-    postmortem_pdf_path = output_dir / "postmortem_report.pdf"
-    manifest_path = output_dir / "research_alpha_batch_manifest.json"
-    news_backfill_path = output_dir / "historical_news_backfill.json"
-    catalyst_metrics_path = output_dir / "catalyst_shadow_metrics.json"
-    ticker_queue_path = output_dir / "ticker_replay_queue.json"
+    universe_path = daily_path(output_dir, trading_date, "research_universe")
+    universe_manifest_path = daily_path(output_dir, trading_date, "daily_universe_manifest")
+    scout_output_path = daily_path(output_dir, trading_date, "research_alpha_output")
+    pdf_path = daily_path(output_dir, trading_date, "research_alpha_report")
+    outcome_path = daily_path(output_dir, trading_date, "end_of_day_outcome")
+    benchmark_path = daily_path(output_dir, trading_date, "benchmark_result")
+    postmortem_path = daily_path(output_dir, trading_date, "postmortem")
+    postmortem_pdf_path = daily_path(output_dir, trading_date, "postmortem_report")
+    manifest_path = daily_path(output_dir, trading_date, "research_alpha_batch_manifest")
+    news_backfill_path = daily_path(output_dir, trading_date, "historical_news_backfill")
+    catalyst_metrics_path = daily_path(output_dir, trading_date, "catalyst_shadow_metrics")
+    ticker_queue_path = daily_path(output_dir, trading_date, "ticker_replay_queue")
     ticker_result_dir = output_dir / "ticker_results"
 
     replay_id = (

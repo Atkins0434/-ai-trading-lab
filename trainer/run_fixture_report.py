@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.output_paths import legacy_name
 
 from pathlib import Path
 
@@ -16,7 +17,7 @@ FIXTURE_PATH = (
     ROOT
     / "fixtures"
     / TRADING_DATE
-    / "historical_snapshot.json"
+    / legacy_name("historical_snapshot")
 )
 
 

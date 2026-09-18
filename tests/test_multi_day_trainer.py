@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.output_paths import daily_path
 
 import json
 from pathlib import Path
@@ -101,9 +102,9 @@ def fake_day_runner(
             "reason_codes": ["EXECUTION_CAPTURE_BELOW_50_PERCENT"],
         }],
     }
-    (output_dir / "benchmark_result.json").write_text(json.dumps(benchmark))
-    (output_dir / "postmortem.json").write_text(json.dumps(postmortem))
-    (output_dir / "catalyst_shadow_metrics.json").write_text(json.dumps({
+    (daily_path(output_dir, output_dir.name, "benchmark_result")).write_text(json.dumps(benchmark))
+    (daily_path(output_dir, output_dir.name, "postmortem")).write_text(json.dumps(postmortem))
+    (daily_path(output_dir, output_dir.name, "catalyst_shadow_metrics")).write_text(json.dumps({
         "ticker_metrics": [{
             "ticker": "MISS",
             "components": [{
@@ -176,7 +177,7 @@ def test_only_visible_score_and_guardrail_misses_generate_hypotheses(
 ):
     def mixed_miss_runner(*args, **kwargs):
         manifest = fake_day_runner(*args, **kwargs)
-        path = kwargs["output_dir"] / "postmortem.json"
+        path = daily_path(kwargs["output_dir"], kwargs["output_dir"].name, "postmortem")
         postmortem = json.loads(path.read_text())
         postmortem["missed_opportunities"].append({
             "ticker": "GUARD",
@@ -193,7 +194,7 @@ def test_only_visible_score_and_guardrail_misses_generate_hypotheses(
             "component_scores": [],
         })
         path.write_text(json.dumps(postmortem))
-        benchmark_path = kwargs["output_dir"] / "benchmark_result.json"
+        benchmark_path = daily_path(kwargs["output_dir"], kwargs["output_dir"].name, "benchmark_result")
         benchmark = json.loads(benchmark_path.read_text())
         benchmark["benchmark_candidates"].append({
             "ticker": "GUARD", "benchmark_rank": 4

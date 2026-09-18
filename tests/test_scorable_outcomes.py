@@ -185,7 +185,7 @@ def test_cumulative_counts_equal_sum_of_daily_counts(tmp_path: Path):
         artifacts[0] = {**artifacts[0], "trading_date": trading_date}
         paths = export_daily_outcomes(day, *artifacts)
         for path in paths:
-            expected[path.name] += len(_read(path)[1])
+            expected[path.name.replace("_" + trading_date, "")] += len(_read(path)[1])
     cumulative = concatenate_completed_outcomes(
         tmp_path, ["2024-03-18", "2024-03-15"]
     )

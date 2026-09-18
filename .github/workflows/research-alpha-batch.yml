@@ -79,7 +79,7 @@ jobs:
         env:
           TRADING_DATE: ${{ inputs.trading_date || '2026-09-14' }}
         run: |
-          manifest="reports/$TRADING_DATE/research_alpha_batch_manifest.json"
+          manifest=$(python -c 'import sys; from pathlib import Path; from trainer.output_paths import daily_path; print(daily_path(Path("reports") / sys.argv[1], sys.argv[1], "research_alpha_batch_manifest"))' "$TRADING_DATE")
           if [ -f "$manifest" ]; then
             {
               echo "### Daily universe gate"

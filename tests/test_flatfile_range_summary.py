@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.output_paths import daily_path
 
 import json
 from pathlib import Path
@@ -16,19 +17,19 @@ def test_range_summary_handles_complete_failed_and_pending_days(
 ):
     complete_date = "2024-03-01"
     day_root = tmp_path / "days" / complete_date
-    _write_json(day_root / "research_alpha_output.json", {
+    _write_json(daily_path(day_root, day_root.name, "research_alpha_output"), {
         "candidates": [{
             "ticker": "MOVE",
             "qualification_selected": True,
             "research_selected": True,
         }],
     })
-    _write_json(day_root / "benchmark_result.json", {
+    _write_json(daily_path(day_root, day_root.name, "benchmark_result"), {
         "execution_policy_version": "execution_policy_v1.0",
         "combined_summary": {"realized_return_pct": 5.0},
         "comparison": {"result_code": "SCOUT_OUTPERFORMED"},
     })
-    _write_json(day_root / "end_of_day_outcome.json", {
+    _write_json(daily_path(day_root, day_root.name, "end_of_day_outcome"), {
         "outcomes": [{
             "ticker": "MOVE",
             "selected": True,
@@ -47,7 +48,7 @@ def test_range_summary_handles_complete_failed_and_pending_days(
             }],
         }],
     })
-    _write_json(day_root / "postmortem.json", {
+    _write_json(daily_path(day_root, day_root.name, "postmortem"), {
         "reachability": {
             "bars_0": 3,
             "bars_1_9": 2,

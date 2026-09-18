@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from trainer.output_paths import daily_path, day_file, migrate_daily_files
+
 import argparse
 from contextlib import contextmanager
 from copy import deepcopy
@@ -231,10 +233,7 @@ def _persisted_reference_cache_metrics(
     trading_date: str,
 ) -> dict[str, int]:
     path = (
-        output_root
-        / "days"
-        / trading_date
-        / "daily_universe_manifest.json"
+        day_file(output_root, trading_date, "daily_universe_manifest")
     )
     if not path.is_file():
         return {
@@ -316,15 +315,15 @@ def _run_flatfile_day_impl(
             flatfiles, trading_date, lookback_sessions
         )
         progress["files"] = cached_files
-    universe_path = day_dir / "daily_universe_manifest.json"
-    snapshot_path = day_dir / "historical_snapshot.json"
-    scout_path = day_dir / "research_alpha_output.json"
-    scout_pdf_path = day_dir / "research_alpha_report.pdf"
-    outcome_path = day_dir / "end_of_day_outcome.json"
-    benchmark_path = day_dir / "benchmark_result.json"
-    postmortem_path = day_dir / "postmortem.json"
-    postmortem_pdf_path = day_dir / "postmortem_report.pdf"
-    replay_report_path = day_dir / "replay_report.pdf"
+    universe_path = daily_path(day_dir, day_dir.name, "daily_universe_manifest")
+    snapshot_path = daily_path(day_dir, day_dir.name, "historical_snapshot")
+    scout_path = daily_path(day_dir, day_dir.name, "research_alpha_output")
+    scout_pdf_path = daily_path(day_dir, day_dir.name, "research_alpha_report")
+    outcome_path = daily_path(day_dir, day_dir.name, "end_of_day_outcome")
+    benchmark_path = daily_path(day_dir, day_dir.name, "benchmark_result")
+    postmortem_path = daily_path(day_dir, day_dir.name, "postmortem")
+    postmortem_pdf_path = daily_path(day_dir, day_dir.name, "postmortem_report")
+    replay_report_path = daily_path(day_dir, day_dir.name, "replay_report")
 
     with _tracked_phase(progress, "universe", progress_callback):
         freeze_config = {"morning_freeze_time": morning_freeze_time}
@@ -641,6 +640,8 @@ def run_flatfile_replay(
                 "Existing run manifest does not match this replay request; "
                 "use a new output directory."
             )
+    if prior:
+        migrate_daily_files(output_root, prior)
     prior_days = {
         item["trading_date"]: item for item in prior.get("days", [])
     }
@@ -678,6 +679,7 @@ def run_flatfile_replay(
             status = "FAILED"
         manifest = {
             "version": "flatfile_replay_manifest_v1.0",
+            "file_naming": "dated_v1",
             "run_id": f"flatfile-{dates[0]}-to-{dates[-1]}",
             "start_date": dates[0],
             "end_date": dates[-1],

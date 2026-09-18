@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.output_paths import legacy_name
 
 import argparse
 from datetime import datetime, timezone
@@ -8,10 +9,10 @@ from typing import Any
 
 
 ARTIFACT_NAMES = {
-    "research_alpha_batch_manifest.json",
+    legacy_name("research_alpha_batch_manifest"),
     "trainer_run_state.json",
-    "benchmark_result.json",
-    "postmortem.json",
+    legacy_name("benchmark_result"),
+    legacy_name("postmortem"),
 }
 
 
