@@ -1,0 +1,244 @@
+name: Flat-File Replay Scheduled
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      unit_id:
+        description: Optional explicit unit to run (including a FAILED unit)
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: multi-day-trainer-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      REPLAY_BACKLOG_PATH: results-branch/results/replay_backlog.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Pin the triggering main revision so code_sha describes executed code.
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Open isolated results branch
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          if git ls-remote --exit-code --heads origin replay-results; then
+            git fetch origin replay-results
+            git worktree add -b replay-results results-branch FETCH_HEAD
+          else
+            result=$?
+            if [ "$result" -ne 2 ]; then exit "$result"; fi
+            git worktree add --detach results-branch HEAD
+            git -C results-branch switch --orphan replay-results
+            git -C results-branch commit --allow-empty -m "Initialize isolated replay results"
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          from trainer.replay_backlog import read, write
+          seed = read(Path('config/replay_backlog.json'))
+          path = Path('results-branch/results/replay_backlog.json')
+          state = read(path) if path.exists() else seed
+          state['dataset_version'] = max(state['dataset_version'], seed['dataset_version'])
+          known = {unit['id'] for unit in state['units']}
+          state['units'].extend(unit for unit in seed['units'] if unit['id'] not in known)
+          write(path, state)
+          PY
+
+      - name: Select backlog unit
+        id: unit
+        env:
+          FORCE_UNIT: ${{ inputs.unit_id }}
+        run: |
+          args=()
+          if [ -n "$FORCE_UNIT" ]; then args+=(--unit-id "$FORCE_UNIT"); fi
+          python -m trainer.replay_backlog next "${args[@]}" > "$RUNNER_TEMP/selected-unit.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          unit = json.loads((Path(os.environ['RUNNER_TEMP']) / 'selected-unit.json').read_text())
+          if unit is None:
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as out:
+                  out.write('backlog empty\n')
+          else:
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+                  for key in ('id', 'start', 'end', 'status', 'last_run_id'):
+                      out.write(f"{key}={unit.get(key) or ''}\n")
+                  out.write(f"output_root=reports/flatfile_replay/{unit['id']}\n")
+                  out.write(f"cache_version={json.loads(Path('config/flatfile_replay.json').read_text())['cache_version']}\n")
+          PY
+
+      - name: Restore exact prior paused-run artifact
+        id: restore_output
+        if: steps.unit.outputs.status == 'PAUSED' && steps.unit.outputs.last_run_id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: flat-file-replay-${{ steps.unit.outputs.id }}-${{ steps.unit.outputs.last_run_id }}
+          run-id: ${{ steps.unit.outputs.last_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ steps.unit.outputs.output_root }}
+
+      - name: Validate resume and mark IN_PROGRESS
+        id: started
+        if: steps.unit.outputs.id != ''
+        env:
+          OUTPUT_ROOT: ${{ steps.unit.outputs.output_root }}
+          RESTORE_OK: ${{ steps.restore_output.outcome == 'success' }}
+          CODE_SHA: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from trainer.replay_backlog import read, write, mark
+          from trainer.replay_scheduled import prepare_resume
+          from trainer.trading_calendar import generate_trading_dates
+          selected = read(Path(os.environ['RUNNER_TEMP']) / 'selected-unit.json')
+          prepare_resume(Path(os.environ['OUTPUT_ROOT']), selected, os.environ['RESTORE_OK'] == 'true')
+          path = Path(os.environ['REPLAY_BACKLOG_PATH'])
+          backlog = read(path)
+          mark(backlog, selected['id'], 'IN_PROGRESS', {
+              'code_sha': os.environ['CODE_SHA'], 'last_run_id': os.environ['GITHUB_RUN_ID'],
+              'days_completed': selected.get('days_completed', 0),
+              'days_requested': len(generate_trading_dates(selected['start'], selected['end'])),
+          })
+          write(path, backlog)
+          PY
+          git -C results-branch add results/replay_backlog.json
+          git -C results-branch commit -m "replay ${{ steps.unit.outputs.id }}: IN_PROGRESS @${GITHUB_SHA:0:7}"
+          git -C results-branch push origin HEAD:replay-results
+
+      - name: Restore flat files
+        id: flat_restore
+        if: steps.unit.outputs.id != ''
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: data/flatfiles/
+          key: massive-flatfiles-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            massive-flatfiles-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-
+      - name: Restore reference cache
+        if: steps.unit.outputs.id != ''
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: data/reference_cache/
+          key: massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-
+
+      - name: Run replay
+        id: replay
+        if: steps.unit.outputs.id != ''
+        continue-on-error: true
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+          MASSIVE_S3_ACCESS_KEY_ID: ${{ secrets.MASSIVE_S3_ACCESS_KEY_ID }}
+          MASSIVE_S3_SECRET_ACCESS_KEY: ${{ secrets.MASSIVE_S3_SECRET_ACCESS_KEY }}
+          START: ${{ steps.unit.outputs.start }}
+          END: ${{ steps.unit.outputs.end }}
+          OUTPUT_ROOT: ${{ steps.unit.outputs.output_root }}
+        run: |
+          set -o pipefail
+          python -m trainer.flatfile_replay --start "$START" --end "$END" \
+            --output-root "$OUTPUT_ROOT" --max-wall-seconds 16200 \
+            2> >(tee "$OUTPUT_ROOT/replay_stderr.log" >&2) | tee "$OUTPUT_ROOT/replay_stdout.json"
+
+      - name: Regenerate reports
+        id: reports
+        if: always() && steps.unit.outputs.id != ''
+        continue-on-error: true
+        env:
+          OUTPUT_ROOT: ${{ steps.unit.outputs.output_root }}
+        run: python -m trainer.replay_report --output-root "$OUTPUT_ROOT"
+
+      - name: Mirror range summary
+        if: always() && steps.unit.outputs.id != ''
+        continue-on-error: true
+        env:
+          OUTPUT_ROOT: ${{ steps.unit.outputs.output_root }}
+        run: |
+          python -m trainer.flatfile_range_summary --output-root "$OUTPUT_ROOT" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload full replay artifact
+        id: artifact
+        if: always() && steps.unit.outputs.id != ''
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: flat-file-replay-${{ steps.unit.outputs.id }}-${{ github.run_id }}
+          path: ${{ steps.unit.outputs.output_root }}/
+          retention-days: 90
+          if-no-files-found: warn
+          overwrite: true
+
+      - name: Persist compact results and terminal backlog state
+        id: finalize
+        if: always() && steps.unit.outputs.id != ''
+        env:
+          UNIT_ID: ${{ steps.unit.outputs.id }}
+          OUTPUT_ROOT: ${{ steps.unit.outputs.output_root }}
+          FAILED: ${{ steps.replay.outcome != 'success' || steps.reports.outcome != 'success' || steps.artifact.outcome != 'success' || steps.started.outcome != 'success' }}
+          STEP_ERROR: replay=${{ steps.replay.outcome }} reports=${{ steps.reports.outcome }} artifact=${{ steps.artifact.outcome }}
+        run: |
+          args=()
+          if [ "$FAILED" = true ]; then args+=(--failed --error "$STEP_ERROR"); fi
+          python -m trainer.replay_scheduled finish --backlog "$REPLAY_BACKLOG_PATH" \
+            --unit-id "$UNIT_ID" --output-root "$OUTPUT_ROOT" \
+            --results results-branch/results --repository "$GITHUB_REPOSITORY" "${args[@]}" \
+            > "$RUNNER_TEMP/finished-unit.json"
+          status=$(jq -r .status "$RUNNER_TEMP/finished-unit.json")
+          days=$(jq -r '"\(.days_completed)/\(.days_requested)"' "$RUNNER_TEMP/finished-unit.json")
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          git -C results-branch add results
+          if ! git -C results-branch diff --cached --quiet; then
+            git -C results-branch commit -m "replay $UNIT_ID: $status $days @${GITHUB_SHA:0:7}"
+          fi
+          git -C results-branch push origin HEAD:replay-results
+
+      - name: Prune flat files to this unit only
+        id: prune
+        if: always() && steps.unit.outputs.id != ''
+        env:
+          START: ${{ steps.unit.outputs.start }}
+          END: ${{ steps.unit.outputs.end }}
+        run: |
+          python -m trainer.replay_scheduled prune --start "$START" --end "$END"
+          du -sh data/flatfiles data/reference_cache || true
+          echo 'Actions cache is 10 GB per repository; each run saves a new flat-file entry containing only this unit.'
+      - name: Save bounded flat-file cache
+        if: always() && steps.unit.outputs.id != '' && steps.prune.outcome == 'success'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: data/flatfiles/
+          key: massive-flatfiles-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Save reference cache
+        if: always() && steps.unit.outputs.id != ''
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: data/reference_cache/
+          key: massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Fail job for failed replay
+        if: always() && steps.unit.outputs.id != '' && steps.finalize.outputs.status != 'COMPLETE' && steps.finalize.outputs.status != 'PAUSED'
+        run: exit 1

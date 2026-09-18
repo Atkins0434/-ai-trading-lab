@@ -2,14 +2,15 @@ name: Scout Trainer Tests
 
 on:
   push:
-    branches:
-      - main
+    branches-ignore:
+      - replay-results
   pull_request:
     branches:
       - main
 
 jobs:
   test:
+    if: github.event_name != 'push' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:

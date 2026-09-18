@@ -219,3 +219,57 @@ coverage fails closed. See `docs/UNIVERSE_INTEGRITY.md`.
 - `SCOUT_TRAINER.md`
 - `SCOUT_V1_SCORING_MODEL.md`
 - `config/feature_registry_v1.json`
+# Unattended replay backlog
+
+`Flat-File Replay Scheduled` runs on main every six hours. It shares the day/range
+workflow concurrency group, processes one half-month unit per job, and pauses
+between days after 16,200 seconds. The manual day and range workflows are unchanged.
+Scheduling becomes active when this workflow is merged to main; it uses the same
+Massive secrets as the range workflow.
+
+The seed is `config/replay_backlog.json`; live state is
+`results/replay_backlog.json` on the isolated `replay-results` branch. Never merge
+that branch into main. Add units with unique IDs, inclusive start/end calendar
+dates, and `PENDING` status to the seed (new units are copied into live state), or
+directly to the results branch. Non-session endpoints are allowed: the unchanged
+engine enumerates US trading sessions inside the range.
+
+- Bump `dataset_version` in the seed after a rubric/policy revision. On the next
+  scheduled run, older unit results become PENDING and rerun from scratch. Keep
+  versions monotonically increasing. Merely changing a code SHA does not requeue
+  completed units.
+- PAUSED units are preferred over PENDING units. COMPLETE and FAILED units are
+  skipped automatically. A FAILED unit blocks nothing: the scheduler moves to the
+  next PENDING unit. `IN_PROGRESS` is persisted before compute; if a runner is
+  forcibly terminated, an operator must explicitly reset that unit.
+- Reset a failed/interrupted unit by checking out `replay-results`, setting its
+  status to PENDING in `results/replay_backlog.json`, and committing/pushing that
+  change. Or dispatch the scheduled workflow from main with its `unit_id` to
+  explicitly retry it. With code available, the equivalent state command is
+  `python -m trainer.replay_backlog --path results/replay_backlog.json mark ID PENDING`.
+- Inspect state with `python -m trainer.replay_backlog --path PATH status`; `next`
+  emits one JSON unit or `null`, and `mark ID STATUS --fields '{"last_error":null}'`
+  round-trips bookkeeping fields.
+
+PAUSED recovery downloads the exact full artifact from `last_run_id` with
+`actions/download-artifact@v4`. It must contain a matching manifest in
+`PAUSED_WALL_BUDGET` state. Missing, expired, or invalid recovery logs a warning,
+resets completed-day progress, and starts the unit cleanly. Full artifacts have
+90-day retention (subject to repository retention limits); they are not cached.
+Only the scheduled workflow grants `actions: read` alongside `contents: write`.
+
+The results branch contains the backlog, `INDEX.md`, and an explicit compact
+allowlist: run manifest/summary, cumulative CSVs, an optional run replay PDF, and
+completed-day postmortem/benchmark JSON, CSVs, and replay PDF. Daily files retain
+their dated names from #32. Snapshots, universe/scoring JSON, full outcome paths,
+and stdout/stderr are uploaded only as run artifacts, never committed. The index
+reports WIN/MISS/TIE, selection-cohort primary/ATR return sums, reachability, code
+SHA, and run links. The optional root replay PDF is copied only if it exists;
+the current engine produces daily replay PDFs and a run summary PDF.
+
+Before saving the flat-file cache, only recognized data files and sidecars outside
+the unit's range are deleted. Lookback data may be downloaded again next time.
+Actions cache has a 10 GB repository budget and each run saves a new entry; pruning
+bounds each entry to one unit, not the total retained cache usage. Existing push
+workflows explicitly exclude `replay-results`; workflows without push triggers
+cannot be activated by results commits.
