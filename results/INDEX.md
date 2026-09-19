@@ -16,3 +16,5 @@ Research diagnostics only; this branch is never merged into main.
 | 2024-08-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | — | — | — |
 | 2024-09-A | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | — | — | — |
 | 2024-09-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | — | — | — |
+| 2024-03-A | COMPLETE | 10/10 | 1/2/7 | 0.529623% | -21.005853% | bars_0=31, bars_10_29=19, bars_1_9=34, opening_range_reachable_count=5, picked=1, visible_guardrail_rejected=0, visible_reversal_candidate=0, visible_scored_low=15 | 012716fa5885868b242c948ddef0136533a3d52a | [run 35463816689](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35463816689) |
+| 2024-03-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | — | — | — |
