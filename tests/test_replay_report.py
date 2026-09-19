@@ -64,7 +64,7 @@ def test_daily_report_renders_sections_and_expected_rows(tmp_path: Path):
     model = build_daily_report_model(bundle, day_record=bundle["day_record"])
 
     assert all(heading in text for heading in SECTIONS)
-    assert "GROSS — no execution costs modeled" in text
+    assert "Gross and net shown; net uses execution_costs_v1.0" in text
     assert len(model["trade_rows"]) == 1
     assert len(model["mover_rows"]) == 3
     assert len(model["scored_candidates"]) == 1

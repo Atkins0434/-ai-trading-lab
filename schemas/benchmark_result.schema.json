@@ -34,7 +34,8 @@
     "combined_summary": {"$ref": "#/$defs/performanceSummary"},
     "benchmark_summary": {"$ref": "#/$defs/performanceSummary"},
     "return_baselines": {"$ref": "#/$defs/returnBaselines"},
-    "comparison": {"$ref": "#/$defs/comparison"}
+    "comparison": {"$ref": "#/$defs/comparison"},
+    "cost_model_id": {"type": ["string", "null"]}
   },
   "$defs": {
     "massivePlan": {
@@ -91,7 +92,21 @@
         "realized_pnl_usd": {"$ref": "#/$defs/nullableNumber"},
         "capture_ratio": {"$ref": "#/$defs/nullableNumber"},
         "maximum_position_drawdown_pct": {"$ref": "#/$defs/nullableNumber"},
-        "exit_reason": {"$ref": "#/$defs/nullableString"}
+        "exit_reason": {"$ref": "#/$defs/nullableString"},
+        "net_realized_return_pct": {"type": ["number", "null"]},
+        "net_realized_pnl_usd": {"type": ["number", "null"]},
+        "net_average_capture_ratio": {"type": ["number", "null"]},
+        "gross_realized_pnl_usd": {"type": ["number", "null"]},
+        "gross_realized_return_pct": {"type": ["number", "null"]},
+        "entry_slippage_usd": {"type": ["number", "null"]},
+        "exit_slippage_usd": {"type": ["number", "null"]},
+        "commissions_usd": {"type": ["number", "null"]},
+        "regulatory_fees_usd": {"type": ["number", "null"]},
+        "total_cost_usd": {"type": ["number", "null"]},
+        "cost_bps_of_position": {"type": ["number", "null"]},
+        "net_capture_ratio": {"type": ["number", "null"]},
+        "cost_model_id": {"type": ["string", "null"]},
+        "scout_net_realized_return_pct": {"type": ["number", "null"]}
       }
     },
     "performanceSummary": {
@@ -110,7 +125,11 @@
         "win_rate_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
         "profit_factor": {"type": ["number", "null"], "minimum": 0},
         "max_drawdown_pct": {"$ref": "#/$defs/nullableNumber"},
-        "average_capture_ratio": {"$ref": "#/$defs/nullableNumber"}
+        "average_capture_ratio": {"$ref": "#/$defs/nullableNumber"},
+        "net_realized_return_pct": {"type": ["number", "null"]},
+        "net_realized_pnl_usd": {"type": ["number", "null"]},
+        "net_average_capture_ratio": {"type": ["number", "null"]},
+        "gross_realized_pnl_usd": {"type": ["number", "null"]}
       }
     },
     "returnBaselines": {
@@ -135,7 +154,14 @@
         "random_draw_size": {"type": "integer", "minimum": 0},
         "random_seed": {"type": "integer"},
         "random_draw_mean_realized_return_pct": {"type": "number"},
-        "random_draw_mean_realized_pnl_usd": {"type": "number"}
+        "random_draw_mean_realized_pnl_usd": {"type": "number"},
+        "net_eligible_single_position_mean_return_pct": {"type": "number"},
+        "net_eligible_ticker_mean_realized_pnl_usd": {"type": "number"},
+        "net_eligible_basket_expected_return_pct": {"type": "number"},
+        "net_eligible_basket_expected_pnl_usd": {"type": "number"},
+        "net_random_draw_mean_realized_return_pct": {"type": "number"},
+        "net_random_draw_mean_realized_pnl_usd": {"type": "number"},
+        "cost_model_id": {"type": "string"}
       }
     },
     "comparison": {
@@ -151,7 +177,7 @@
       ],
       "properties": {
         "scout_won": {"type": "boolean"},
-        "scout_net_realized_return_pct": {"type": "number"},
+        "scout_net_realized_return_pct": {"type": ["number", "null"]},
         "eligible_ticker_mean_return_difference_pct": {"type": "number"},
         "random_draw_mean_return_difference_pct": {"type": "number"},
         "return_difference_pct": {"type": "number"},
@@ -161,7 +187,12 @@
         "combined_top_10_capture_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
         "result_code": {
           "enum": ["SCOUT_OUTPERFORMED", "SCOUT_TIED", "SCOUT_UNDERPERFORMED"]
-        }
+        },
+        "net_result_code": {"enum": ["SCOUT_OUTPERFORMED", "SCOUT_TIED", "SCOUT_UNDERPERFORMED", null]},
+        "gross_result_code": {"enum": ["SCOUT_OUTPERFORMED", "SCOUT_TIED", "SCOUT_UNDERPERFORMED"]},
+        "net_scout_won": {"type": ["boolean", "null"]},
+        "net_return_difference_pct": {"type": ["number", "null"]},
+        "verdict_basis": {"enum": ["GROSS", "NET"]}
       }
     }
   }

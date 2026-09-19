@@ -7,6 +7,21 @@ gates pass.
 
 ## Current contract
 
+Historical execution reports gross fills and post-fill net results using
+`config/execution_costs.json` (`execution_costs_v1.0`). Slippage uses each side's
+fill-price tier; exits before 09:35 New York time use the opening tier, later
+exits use the later tier, and `SESSION_END` liquidations use the session-end tier
+(including early-close sessions). Commission minima apply independently to both
+orders; regulatory fees apply only to shares sold. Costs never alter sizing,
+stops, targets, or fill timestamps/prices. Net capture uses day MFE from the open.
+`config/benchmark.json` keeps `verdict_basis` at `GROSS`; the parallel net verdict
+is diagnostic. Changing the primary basis to `NET` requires a later reviewed PR.
+Archived results without costs display unavailable net values; cumulative tables
+identify costed days, and additive CSV cost columns remain empty for older days.
+The previously mislabeled gross `net_realized_pnl_usd` in policy summaries now
+holds net P&L; its old value is retained as `realized_pnl_usd` and
+`gross_realized_pnl_usd`. No backlog dataset-version bump is required.
+
 - Scout V1 has exactly 30 metrics scored from 0 through 4.
 - The denominator is always 120 points.
 - `0` means an observed metric supplied no positive evidence.

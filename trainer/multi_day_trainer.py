@@ -140,6 +140,10 @@ def _aggregate(
     execution_policy_review: list[dict[str, Any]] = []
     unreachable_count = 0
     top_mover_count = 0
+    net_returns = {name: [] for name in ("scout", "exploration", "combined", "benchmark")}
+    net_pnls = {name: [] for name in net_returns}
+    net_results = defaultdict(int)
+    net_flips = 0
 
     for record in sorted(day_records, key=lambda item: item["trading_date"]):
         day_dir = root / record["artifact_directory"]
@@ -155,6 +159,15 @@ def _aggregate(
         exploration_summary = benchmark["exploration_summary"]
         combined_summary = benchmark["combined_summary"]
         baselines = benchmark["return_baselines"]
+        for name, summary in (("scout", scout_summary), ("exploration", exploration_summary), ("combined", combined_summary)):
+            if summary.get("net_realized_return_pct") is not None:
+                net_returns[name].append(summary["net_realized_return_pct"])
+                net_pnls[name].append(summary["net_realized_pnl_usd"])
+        if baselines.get("net_random_draw_mean_realized_return_pct") is not None:
+            net_returns["benchmark"].append(baselines["net_random_draw_mean_realized_return_pct"])
+            net_pnls["benchmark"].append(baselines["net_random_draw_mean_realized_pnl_usd"])
+        net_results[postmortem.get("net_result")] += 1
+        net_flips += postmortem["result"] == "WIN" and postmortem.get("net_result") in {"TIE", "MISS"}
         scout_returns.append(float(scout_summary["realized_return_pct"]))
         exploration_returns.append(
             float(exploration_summary["realized_return_pct"])
@@ -361,6 +374,14 @@ def _aggregate(
         ),
         "execution_policy_review_count": len(execution_policy_review),
     }
+    aggregate.update({"net_scout_wins": net_results["WIN"], "net_ties": net_results["TIE"], "net_misses": net_results["MISS"], "gross_win_to_net_non_win_count": net_flips})
+    for name, values in net_returns.items():
+        aggregate.update({
+            f"net_{name}_days_processed": len(values),
+            f"net_{name}_total_realized_pnl_usd": round(sum(net_pnls[name]), 4) if values else None,
+            f"net_{name}_average_daily_return_pct": round(sum(values) / len(values), 6) if values else None,
+            f"net_{name}_cumulative_return_pct": _compounded_return(values) if values else None,
+        })
     return (
         aggregate,
         hypotheses,

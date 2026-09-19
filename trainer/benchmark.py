@@ -11,6 +11,9 @@ from trainer.evidence_eligibility import EvidenceEligibilityError, assert_matchi
 from trainer.rate_control import load_massive_plan
 from trainer.trade_engine import load_execution_policy, simulate_trade
 from trainer.validate_contracts import ContractError, validate_contract
+from trainer.execution_costs import load_execution_costs, net_summary
+from trainer.validate_contracts import load_json
+from pathlib import Path
 
 
 RANDOM_BASELINE_SEED = 20260916
@@ -46,6 +49,7 @@ def _summary(
         if item.get("maximum_position_drawdown_pct") is not None
     ]
     return {
+        **net_summary(completed, strategy_capital),
         "candidate_count": candidate_count,
         "trades_executed": len(completed),
         "realized_return_pct": sum(pnls) / strategy_capital * 100,
@@ -82,7 +86,7 @@ def _universe_eligibility(
 
 
 def _simulate_outcome(
-    outcome: dict[str, Any], strategy_capital: float
+    outcome: dict[str, Any], strategy_capital: float, policy=None, atr_14_usd=None,
 ) -> dict[str, Any]:
     bars = outcome["intraday_path"]
     if not bars or outcome.get("execution_exclusion_reason"):
@@ -96,8 +100,11 @@ def _simulate_outcome(
             "maximum_position_drawdown_pct": None,
         }
     raw = simulate_trade(
-        outcome["ticker"], float(bars[0]["open"]), bars, strategy_capital
+        outcome["ticker"], float(bars[0]["open"]), bars, strategy_capital,
+        policy=policy, atr_14_usd=atr_14_usd,
     )
+    if not raw["trade_executed"]:
+        return {**raw, "capture_ratio": None, "maximum_position_drawdown_pct": None}
     maximum_move = float(outcome["maximum_capturable_move_pct"])
     exit_at = datetime.fromisoformat(
         raw["exit_timestamp"].replace("Z", "+00:00")
@@ -128,15 +135,17 @@ def _return_baselines(
     eligible_outcomes: list[dict[str, Any]],
     selected_count: int,
     strategy_capital: float,
+    policy=None,
+    atr_values=None,
 ) -> dict[str, Any]:
     """Build deterministic same-policy baselines from the eligible universe."""
-    policy = load_execution_policy()
+    policy = policy or load_execution_policy()
     ordered = sorted(eligible_outcomes, key=lambda item: item["ticker"])
     executions = []
     started = time.perf_counter()
     total = len(ordered)
     for completed, item in enumerate(ordered, start=1):
-        executions.append(_simulate_outcome(item, strategy_capital))
+        executions.append(_simulate_outcome(item, strategy_capital, policy, (atr_values or {}).get(item["ticker"])))
         if completed == total or completed % 250 == 0:
             elapsed = time.perf_counter() - started
             rate = completed / elapsed if elapsed > 0 else 0.0
@@ -167,20 +176,32 @@ def _return_baselines(
 
     rng = random.Random(RANDOM_BASELINE_SEED)
     draw_pnls: list[float] = []
+    net_draw_pnls: list[float] = []
     for _ in range(RANDOM_BASELINE_DRAWS):
         if selected_count == 0:
             draw_pnls.append(0.0)
+            net_draw_pnls.append(0.0)
             continue
         draw = rng.sample(executions, selected_count)
         # The draw contains N names, but the same execution policy still caps
         # the number of positions that can actually consume capital.
         executed_draw = draw[: policy.max_positions]
+        net_draw_pnls.append(sum(float(item.get("net_realized_pnl_usd") or 0.0) for item in executed_draw))
         draw_pnls.append(
             sum(float(item["realized_pnl_usd"]) for item in executed_draw)
         )
     random_mean_pnl = mean(draw_pnls)
     random_mean_return = random_mean_pnl / strategy_capital * 100
+    net_eligible = mean([float(item.get("net_realized_pnl_usd") or 0.0) for item in executions]) if executions else 0.0
+    net_basket = net_eligible * min(selected_count, policy.max_positions)
     return {
+        "cost_model_id": load_execution_costs()["cost_model_id"],
+        "net_eligible_ticker_mean_realized_pnl_usd": net_eligible,
+        "net_eligible_single_position_mean_return_pct": net_eligible / strategy_capital * 100,
+        "net_eligible_basket_expected_pnl_usd": net_basket,
+        "net_eligible_basket_expected_return_pct": net_basket / strategy_capital * 100,
+        "net_random_draw_mean_realized_pnl_usd": mean(net_draw_pnls),
+        "net_random_draw_mean_realized_return_pct": mean(net_draw_pnls) / strategy_capital * 100,
         "return_basis": "GROSS_STRATEGY_RETURN_PCT",
         "eligible_ticker_count": len(executions),
         "eligible_single_position_mean_return_pct": (
@@ -277,6 +298,13 @@ def build_same_universe_benchmark(
         scout_execution = outcome["execution_result"]
         benchmark_candidates.append(
             {
+                **{key: execution.get(key) if execution else None for key in (
+                    "gross_realized_pnl_usd", "gross_realized_return_pct",
+                    "net_realized_pnl_usd", "net_realized_return_pct", "net_capture_ratio",
+                    "entry_slippage_usd", "exit_slippage_usd", "commissions_usd",
+                    "regulatory_fees_usd", "total_cost_usd", "cost_bps_of_position",
+                )},
+                "scout_net_realized_return_pct": scout_execution.get("net_realized_return_pct"),
                 "ticker": outcome["ticker"],
                 "benchmark_rank": rank,
                 "raw_move_pct": outcome.get(
@@ -428,7 +456,19 @@ def build_same_universe_benchmark(
     else:
         result_code = "SCOUT_TIED"
 
+    gross_result_code = result_code
+    net_difference = (scout_summary["net_realized_return_pct"] - baselines["net_random_draw_mean_realized_return_pct"]
+                      if scout_summary["net_realized_return_pct"] is not None else None)
+    net_result_code = (None if net_difference is None else "SCOUT_OUTPERFORMED" if net_difference > tolerance else
+                       "SCOUT_UNDERPERFORMED" if net_difference < -tolerance else "SCOUT_TIED")
+    verdict_basis = load_verdict_basis()
+    if verdict_basis == "NET":
+        if net_result_code is None:
+            raise BenchmarkError("NET verdict requires costed outcomes; rerun the day")
+        result_code = net_result_code
+
     result = {
+        "cost_model_id": load_execution_costs()["cost_model_id"],
         "replay_id": snapshot["replay_id"],
         "trading_date": snapshot["trading_date"],
         "universe_version": snapshot["universe_version"],
@@ -443,9 +483,14 @@ def build_same_universe_benchmark(
         "benchmark_summary": benchmark_summary,
         "return_baselines": baselines,
         "comparison": {
+            "verdict_basis": verdict_basis,
+            "gross_result_code": gross_result_code,
+            "net_result_code": net_result_code,
+            "net_scout_won": net_result_code == "SCOUT_OUTPERFORMED" if net_result_code else None,
+            "net_return_difference_pct": net_difference,
             "scout_won": result_code == "SCOUT_OUTPERFORMED",
             "scout_net_realized_return_pct": scout_summary[
-                "realized_return_pct"
+                "net_realized_return_pct"
             ],
             "eligible_ticker_mean_return_difference_pct": eligible_difference,
             "random_draw_mean_return_difference_pct": return_difference,
@@ -464,3 +509,11 @@ def build_same_universe_benchmark(
             f"Benchmark contract validation failed: {exc}"
         ) from exc
     return result
+
+
+def load_verdict_basis(path=None):
+    config = load_json(Path(path) if path else Path(__file__).resolve().parent.parent / "config" / "benchmark.json")
+    basis = config["verdict_basis"]
+    if basis not in {"GROSS", "NET"}:
+        raise BenchmarkError("benchmark.verdict_basis must be GROSS or NET")
+    return basis

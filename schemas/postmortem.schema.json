@@ -51,7 +51,11 @@
     "feature_proposals": {
       "type": "array", "items": {"$ref": "#/$defs/featureProposalReference"}
     },
-    "notes": {"type": "array", "items": {"type": "string"}}
+    "notes": {"type": "array", "items": {"type": "string"}},
+    "cost_model_id": {"type": ["string", "null"]},
+    "net_result": {"enum": ["WIN", "TIE", "MISS", null]},
+    "net_result_code": {"type": ["string", "null"]},
+    "net_scout_won": {"type": ["boolean", "null"]}
   },
   "$defs": {
     "massivePlan": {
@@ -77,7 +81,11 @@
         "realized_pnl_usd": {"type": "number"},
         "max_drawdown_pct": {"$ref": "#/$defs/nullableNumber"},
         "win_rate_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
-        "average_capture_ratio": {"$ref": "#/$defs/nullableNumber"}
+        "average_capture_ratio": {"$ref": "#/$defs/nullableNumber"},
+        "net_realized_return_pct": {"type": ["number", "null"]},
+        "net_realized_pnl_usd": {"type": ["number", "null"]},
+        "net_average_capture_ratio": {"type": ["number", "null"]},
+        "gross_realized_pnl_usd": {"type": ["number", "null"]}
       }
     },
     "componentScore": {
@@ -131,7 +139,11 @@
         "scout_exit_reason": {"$ref": "#/$defs/nullableString"},
         "premarket_real_bars_60m": {"type": "integer", "minimum": 0},
         "premarket_real_bars_total": {"type": "integer", "minimum": 0},
-        "opening_range": {"$ref": "#/$defs/openingRange"}
+        "opening_range": {"$ref": "#/$defs/openingRange"},
+        "scout_net_realized_return_pct": {"type": ["number", "null"]},
+        "net_realized_benchmark_return_pct": {"type": ["number", "null"]},
+        "net_realized_benchmark_pnl_usd": {"type": ["number", "null"]},
+        "net_scout_realized_return_pct": {"type": ["number", "null"]}
       }
     },
     "openingRange": {
@@ -175,7 +187,8 @@
         },
         "candidates": {
           "type": "array", "items": {"$ref": "#/$defs/reversalCandidate"}
-        }
+        },
+        "net_policy_returns": {"type": "object", "additionalProperties": {"type": ["number", "null"]}}
       }
     },
     "reversalCandidate": {
@@ -221,7 +234,12 @@
             "realized_return_pct": {"$ref": "#/$defs/nullableNumber"},
             "maximum_capturable_move_pct": {"type": "number"},
             "exit_reason": {"$ref": "#/$defs/nullableString"},
-            "reason_codes": {"type": "array", "items": {"type": "string"}}
+            "reason_codes": {"type": "array", "items": {"type": "string"}},
+            "net_realized_return_pct": {"type": ["number", "null"]},
+            "net_realized_pnl_usd": {"type": ["number", "null"]},
+            "net_average_capture_ratio": {"type": ["number", "null"]},
+            "realized_pnl_usd": {"type": ["number", "null"]},
+            "gross_realized_pnl_usd": {"type": ["number", "null"]}
           }
         }
       ]
@@ -236,7 +254,7 @@
       "properties": {
         "trades_executed": {"type": "integer", "minimum": 0},
         "realized_return_pct": {"type": "number"},
-        "net_realized_pnl_usd": {"type": "number"},
+        "net_realized_pnl_usd": {"type": ["number", "null"]},
         "average_capture_ratio": {"$ref": "#/$defs/nullableNumber"},
         "win_rate_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
         "max_drawdown_pct": {"$ref": "#/$defs/nullableNumber"},
@@ -259,7 +277,11 @@
             "return_pct": {"$ref": "#/$defs/nullableNumber"},
             "capture_ratio": {"$ref": "#/$defs/nullableNumber"}
           }
-        }
+        },
+        "net_realized_return_pct": {"type": ["number", "null"]},
+        "net_average_capture_ratio": {"type": ["number", "null"]},
+        "realized_pnl_usd": {"type": ["number", "null"]},
+        "gross_realized_pnl_usd": {"type": ["number", "null"]}
       }
     },
     "executionPolicyVerdict": {

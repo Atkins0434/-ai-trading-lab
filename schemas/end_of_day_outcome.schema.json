@@ -57,7 +57,8 @@
     "policy_comparisons": {
       "type": "array",
       "items": {"$ref": "#/$defs/policyComparison"}
-    }
+    },
+    "cost_model_id": {"type": ["string", "null"]}
   },
 
   "$defs": {
@@ -347,7 +348,20 @@
             "MAX_POSITIONS_REACHED",
             null
           ]
-        }
+        },
+        "net_realized_return_pct": {"type": ["number", "null"]},
+        "net_realized_pnl_usd": {"type": ["number", "null"]},
+        "net_average_capture_ratio": {"type": ["number", "null"]},
+        "gross_realized_pnl_usd": {"type": ["number", "null"]},
+        "gross_realized_return_pct": {"type": ["number", "null"]},
+        "entry_slippage_usd": {"type": ["number", "null"]},
+        "exit_slippage_usd": {"type": ["number", "null"]},
+        "commissions_usd": {"type": ["number", "null"]},
+        "regulatory_fees_usd": {"type": ["number", "null"]},
+        "total_cost_usd": {"type": ["number", "null"]},
+        "cost_bps_of_position": {"type": ["number", "null"]},
+        "net_capture_ratio": {"type": ["number", "null"]},
+        "cost_model_id": {"type": ["string", "null"]}
       }
     },
 
@@ -365,7 +379,8 @@
           "type": "array",
           "items": {"$ref": "#/$defs/comparisonExecution"}
         },
-        "summary": {"$ref": "#/$defs/policySummary"}
+        "summary": {"$ref": "#/$defs/policySummary"},
+        "return_baselines": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/returnBaselines"}]}
       }
     },
 
@@ -392,14 +407,18 @@
         "max_drawdown_pct", "exit_reason_counts"
       ],
       "properties": {
-        "net_realized_pnl_usd": {"type": "number"},
+        "net_realized_pnl_usd": {"type": ["number", "null"]},
         "realized_return_pct": {"type": "number"},
         "win_rate_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
         "average_winner_pct": {"type": ["number", "null"]},
         "average_loser_pct": {"type": ["number", "null"]},
         "average_capture_ratio": {"type": ["number", "null"]},
         "max_drawdown_pct": {"type": ["number", "null"]},
-        "exit_reason_counts": {"$ref": "#/$defs/exitReasonCounts"}
+        "exit_reason_counts": {"$ref": "#/$defs/exitReasonCounts"},
+        "net_realized_return_pct": {"type": ["number", "null"]},
+        "net_average_capture_ratio": {"type": ["number", "null"]},
+        "realized_pnl_usd": {"type": ["number", "null"]},
+        "gross_realized_pnl_usd": {"type": ["number", "null"]}
       }
     },
 
@@ -418,6 +437,7 @@
           "additionalProperties": {"type": "integer", "minimum": 0}
         }
       }
-    }
+    },
+    "returnBaselines": {"type": "object", "additionalProperties": false, "required": ["return_basis", "eligible_ticker_count", "eligible_single_position_mean_return_pct", "eligible_ticker_mean_realized_pnl_usd", "eligible_basket_expected_return_pct", "eligible_basket_expected_pnl_usd", "random_draw_count", "random_draw_size", "random_seed", "random_draw_mean_realized_return_pct", "random_draw_mean_realized_pnl_usd"], "properties": {"return_basis": {"const": "GROSS_STRATEGY_RETURN_PCT"}, "eligible_ticker_count": {"type": "integer", "minimum": 0}, "eligible_single_position_mean_return_pct": {"type": "number"}, "eligible_ticker_mean_realized_pnl_usd": {"type": "number"}, "eligible_basket_expected_return_pct": {"type": "number"}, "eligible_basket_expected_pnl_usd": {"type": "number"}, "random_draw_count": {"const": 200}, "random_draw_size": {"type": "integer", "minimum": 0}, "random_seed": {"type": "integer"}, "random_draw_mean_realized_return_pct": {"type": "number"}, "random_draw_mean_realized_pnl_usd": {"type": "number"}, "net_eligible_single_position_mean_return_pct": {"type": "number"}, "net_eligible_ticker_mean_realized_pnl_usd": {"type": "number"}, "net_eligible_basket_expected_return_pct": {"type": "number"}, "net_eligible_basket_expected_pnl_usd": {"type": "number"}, "net_random_draw_mean_realized_return_pct": {"type": "number"}, "net_random_draw_mean_realized_pnl_usd": {"type": "number"}, "cost_model_id": {"type": "string"}}}
   }
 }

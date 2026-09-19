@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from trainer.validate_contracts import ContractError, load_json
+from trainer.execution_costs import cost_fields
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -321,7 +322,7 @@ def simulate_trade(
         / entry_price
     ) * 100
 
-    return {
+    result = {
         "ticker": ticker,
         **_policy_fields(
             policy,
@@ -341,6 +342,9 @@ def simulate_trade(
         "realized_return_pct": realized_return_pct,
         "highest_price_since_entry": highest_price,
     }
+    day_mfe_pct = (max(bar["high"] for bar in intraday_bars) / entry_price - 1) * 100
+    result.update(cost_fields(result, day_mfe_pct))
+    return result
 
 
 def _policy_fields(
@@ -381,7 +385,7 @@ def _rejected_trade(
     stop_distance: float | None = None,
     target_distance: float | None = None,
 ) -> dict[str, Any]:
-    return {
+    result = {
         "ticker": ticker,
         **_policy_fields(
             policy, entry_price, 0, stop_distance, target_distance
@@ -398,3 +402,5 @@ def _rejected_trade(
         "realized_return_pct": 0.0,
         "highest_price_since_entry": entry_price,
     }
+    result.update(cost_fields(result))
+    return result

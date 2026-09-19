@@ -1,0 +1,62 @@
+{
+  "bars": [
+    {
+      "timestamp": "2024-03-15T09:30:00-04:00",
+      "open": 12.5,
+      "high": 13.25,
+      "low": 12.45,
+      "close": 13
+    },
+    {
+      "timestamp": "2024-03-15T09:31:00-04:00",
+      "open": 13,
+      "high": 13.2,
+      "low": 12.5,
+      "close": 12.9
+    }
+  ],
+  "results": {
+    "config/execution_policy.json": {
+      "ticker": "CDLX",
+      "policy_id": "execution_policy_v1.0",
+      "exit_mode": "PERCENT",
+      "sizing_mode": "FIXED_FRACTION",
+      "stop_distance_usd": 0.125,
+      "stop_distance_pct": 1.0,
+      "target_distance_usd": 2.5,
+      "target_distance_pct": 20.0,
+      "risk_usd_at_entry": 20.0,
+      "trade_executed": true,
+      "entry_price": 12.5,
+      "position_size_shares": 160,
+      "position_value_usd": 2000.0,
+      "exit_timestamp": "2024-03-15T09:31:00-04:00",
+      "exit_price": 13.1175,
+      "exit_reason": "TRAILING_STOP",
+      "realized_pnl_usd": 98.79999999999995,
+      "realized_return_pct": 4.939999999999998,
+      "highest_price_since_entry": 13.25
+    },
+    "config/execution_policy_atr.json": {
+      "ticker": "CDLX",
+      "policy_id": "execution_policy_atr_v1.0",
+      "exit_mode": "ATR",
+      "sizing_mode": "RISK_PER_TRADE",
+      "stop_distance_usd": 0.375,
+      "stop_distance_pct": 3.0,
+      "target_distance_usd": 1.0,
+      "target_distance_pct": 8.0,
+      "risk_usd_at_entry": 60.0,
+      "trade_executed": true,
+      "entry_price": 12.5,
+      "position_size_shares": 160,
+      "position_value_usd": 2000.0,
+      "exit_timestamp": "2024-03-15T09:31:00-04:00",
+      "exit_price": 12.875,
+      "exit_reason": "TRAILING_STOP",
+      "realized_pnl_usd": 60.0,
+      "realized_return_pct": 3.0,
+      "highest_price_since_entry": 13.25
+    }
+  }
+}

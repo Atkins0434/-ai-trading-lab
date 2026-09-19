@@ -9,7 +9,7 @@ from trainer.scorable_outcomes import (
     export_daily_outcomes,
 )
 from trainer.scorable_outcomes_schema import (
-    ELIGIBLE_OUTCOMES_COLUMNS,
+    eligible_outcomes_columns,
     METRIC_IDS,
     scorable_outcomes_columns,
 )
@@ -163,7 +163,7 @@ def test_daily_exports_cover_scorable_and_eligible_universes(tmp_path: Path):
     assert by_ticker["SHADOW"]["premarket_range_expansion_raw"] == "1.500000"
 
     eligible_fields, eligible_rows = _read(eligible)
-    assert eligible_fields == list(ELIGIBLE_OUTCOMES_COLUMNS)
+    assert eligible_fields == list(eligible_outcomes_columns((PRIMARY, ATR)))
     assert len(eligible_rows) == len(_artifacts()[0]["securities"])
     assert {row["ticker"] for row in eligible_rows} == {
         "SELECTED", "REJECTED", "SHADOW", "NOPATH", "UNSCORABLE"

@@ -43,14 +43,14 @@ SCORABLE_OUTCOME_COLUMNS = (
     "top_10_mover", "benchmark_rank", "open_0930", "day_high",
     "day_low", "close", "day_mfe_pct", "day_mae_pct",
     "close_vs_open_pct", "time_of_day_high", "high_0930_1000_pct",
-    "return_0930_1000_pct", "no_regular_session_path",
+    "return_0930_1000_pct", "no_regular_session_path", "cost_model_id",
 )
 
 ELIGIBLE_OUTCOMES_COLUMNS = (
     "trading_date", "ticker", "stable_security_id",
     "premarket_real_bars_60m", "scorable", "open_0930", "close",
     "day_mfe_pct", "close_vs_open_pct", "top_10_mover",
-    "realized_return_pct",
+    "realized_return_pct", "cost_model_id",
 )
 
 
@@ -63,6 +63,9 @@ def policy_columns(policy_ids: Iterable[str]) -> tuple[str, ...]:
             f"{policy_id}_realized_return_pct",
             f"{policy_id}_capture_ratio",
             f"{policy_id}_stop_distance_pct",
+            f"{policy_id}_net_realized_return_pct",
+            f"{policy_id}_cost_bps",
+            f"{policy_id}_net_capture_ratio",
         )
     )
 
@@ -73,4 +76,11 @@ def scorable_outcomes_columns(policy_ids: Iterable[str]) -> tuple[str, ...]:
         + SCORABLE_SCORE_COLUMNS
         + SCORABLE_OUTCOME_COLUMNS
         + policy_columns(policy_ids)
+    )
+
+
+def eligible_outcomes_columns(policy_ids: Iterable[str]) -> tuple[str, ...]:
+    return ELIGIBLE_OUTCOMES_COLUMNS + tuple(
+        f"{policy_id}_{field}" for policy_id in policy_ids
+        for field in ("net_realized_return_pct", "cost_bps", "net_capture_ratio")
     )

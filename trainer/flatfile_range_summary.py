@@ -88,6 +88,8 @@ def _day_evidence(
 
     policies = {
         primary_id: {
+            "net_return_pct": primary_summary.get("net_realized_return_pct"),
+            "net_captures": [item["execution_result"]["net_capture_ratio"] for item in outcome.get("outcomes", []) if item.get("selected") and item.get("execution_result", {}).get("net_capture_ratio") is not None],
             "return_pct": (
                 float(primary_return) if primary_return is not None else None
             ),
@@ -105,6 +107,8 @@ def _day_evidence(
         ]
         value = comparison.get("summary", {}).get("realized_return_pct")
         policies[policy_id] = {
+            "net_return_pct": comparison.get("summary", {}).get("net_realized_return_pct"),
+            "net_captures": [item["execution_result"]["net_capture_ratio"] for item in comparison.get("executions", []) if item.get("cohort") == "SCOUT_SELECTION" and item.get("execution_result", {}).get("net_capture_ratio") is not None],
             "return_pct": float(value) if value is not None else None,
             "captures": captures,
         }
@@ -118,6 +122,7 @@ def _day_evidence(
         "atr_policy_id": atr_id,
         "policies": policies,
         "verdict": VERDICT_LABELS.get(result_code),
+        "net_verdict": VERDICT_LABELS.get(benchmark.get("comparison", {}).get("net_result_code")),
         "reachability": postmortem.get("reachability", {}),
         "reversal_cohort": postmortem.get("reversal_cohort", {}),
     }
@@ -146,6 +151,9 @@ def render_range_summary(
             f"reversal_candidates={int(evidence['reversal_cohort'].get('candidate_count', 0))} "
             f"primary_return={_fmt(primary.get('return_pct'), suffix='%')} "
             f"atr_return={_fmt(atr.get('return_pct'), suffix='%')} "
+            f"primary_net_return={_fmt(primary.get('net_return_pct'), suffix='%')} "
+            f"atr_net_return={_fmt(atr.get('net_return_pct'), suffix='%')} "
+            f"gross_verdict={evidence['verdict']} net_verdict={evidence['net_verdict']} "
             f"excluded_tickers={len(day.get('excluded_tickers', []))} "
             f"wall_seconds={_fmt(_day_wall_seconds(day))}"
         )
@@ -161,17 +169,27 @@ def render_range_summary(
         if date_value in completed and evidence["verdict"] is not None
     )
     policy_returns: dict[str, float] = Counter()
+    net_policy_returns: dict[str, list[float]] = {}
+    net_policy_captures: dict[str, list[float]] = {}
+    net_verdicts = Counter()
+    flips = 0
     policy_captures: dict[str, list[float]] = {}
     reachability: Counter[str] = Counter()
     reversal_candidates_by_day: list[str] = []
     reversal_closed_above: list[bool] = []
     reversal_day_mfe: list[float] = []
     reversal_policy_returns: Counter[str] = Counter()
+    net_reversal_returns: dict[str, list[float]] = {}
     for date_value in completed:
         evidence = evidence_by_date.get(date_value)
         if evidence is None:
             evidence = _day_evidence(output_root, date_value)
+        net_verdicts[evidence.get("net_verdict")] += 1
+        flips += evidence["verdict"] == "WIN" and evidence.get("net_verdict") in {"TIE", "MISS"}
         for policy_id, values in evidence["policies"].items():
+            if values.get("net_return_pct") is not None:
+                net_policy_returns.setdefault(policy_id, []).append(values["net_return_pct"])
+            net_policy_captures.setdefault(policy_id, []).extend(values.get("net_captures", []))
             if values["return_pct"] is not None:
                 policy_returns[policy_id] += float(values["return_pct"])
             policy_captures.setdefault(policy_id, []).extend(values["captures"])
@@ -180,6 +198,9 @@ def render_range_summary(
             for key, value in evidence.get("reachability", {}).items()
         })
         cohort = evidence.get("reversal_cohort", {})
+        for policy_id, value in cohort.get("net_policy_returns", {}).items():
+            if value is not None:
+                net_reversal_returns.setdefault(policy_id, []).append(value)
         reversal_candidates_by_day.append(
             f"{date_value}={int(cohort.get('candidate_count', 0))}"
         )
@@ -208,6 +229,12 @@ def render_range_summary(
     total_wall = sum(_day_wall_seconds(day) for day in manifest.get("days", []))
     lines.extend([
         "Cumulative",
+        "Net reversal exploration return sums (costed days): " + (
+            "; ".join(f"{key}={_fmt(sum(values), suffix='%')} ({len(values)} days)" for key, values in sorted(net_reversal_returns.items())) or "n/a"
+        ),
+        f"Net WIN/TIE/MISS: {net_verdicts['WIN']}/{net_verdicts['TIE']}/{net_verdicts['MISS']}",
+        f"Gross WIN to net TIE/MISS: {flips}",
+        *[f"{policy_id} net cumulative return: {_fmt(sum(values), suffix='%')} (costed days={len(values)}); net capture ratio: {_fmt(mean(net_policy_captures[policy_id]) if net_policy_captures[policy_id] else None)}" for policy_id, values in sorted(net_policy_returns.items())],
         f"Days completed/requested: {len(completed)}/{len(requested)}",
         "Days remaining: " + (", ".join(remaining) if remaining else "none"),
         (

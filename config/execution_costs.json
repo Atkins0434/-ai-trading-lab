@@ -1,0 +1,14 @@
+{
+  "cost_model_id": "execution_costs_v1.0",
+  "commission_per_share_usd": 0.0,
+  "commission_minimum_per_order_usd": 0.0,
+  "regulatory_fees_per_share_sold_usd": 0.000166,
+  "slippage": {
+    "mode": "TIERED_BY_PRICE_AND_TIME",
+    "entry_at_open_bps": {"under_2": 150, "2_to_5": 100, "5_to_10": 60, "10_to_25": 35, "25_plus": 20},
+    "exit_first_5_minutes_bps": {"under_2": 150, "2_to_5": 100, "5_to_10": 60, "10_to_25": 35, "25_plus": 20},
+    "exit_after_5_minutes_bps": {"under_2": 75, "2_to_5": 50, "5_to_10": 30, "10_to_25": 18, "25_plus": 10},
+    "session_end_exit_bps": {"under_2": 50, "2_to_5": 35, "5_to_10": 20, "10_to_25": 12, "25_plus": 8}
+  },
+  "notes": "Research assumptions for a small retail account on a zero-commission broker. Slippage is per side, applied against the simulated fill price. Tiers are by fill price. Entry at the 09:30 open and exits inside the first five minutes are the most expensive; session-end exits the cheapest."
+}
