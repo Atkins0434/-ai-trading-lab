@@ -354,6 +354,8 @@ def _evaluate_record(
         "stable_security_id": stable_id,
         "ticker": ticker,
         "listing_venue": venue,
+        "sic_code": record.get("sic_code"),
+        "sic_description": record.get("sic_description"),
         "security_type": security_type,
         "listing_date": listing.isoformat() if listing else None,
         "delisting_date": (

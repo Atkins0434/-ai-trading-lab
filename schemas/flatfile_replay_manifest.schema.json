@@ -14,6 +14,9 @@
     "completed_dates", "remaining_dates", "failed_dates", "reference_cache_summary", "days"
   ],
   "properties": {
+    "reachable_metric_count": {"type": ["integer", "null"], "minimum": 0},
+    "unavailable_metrics": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+
     "provenance": {"type": "object", "additionalProperties": false, "required": ["scout_id", "rubric_version", "feature_registry_id", "metric_count", "dataset_version", "comparison_policy_paths", "cost_model_id", "git_sha"], "properties": {"scout_id": {"type": "string"}, "rubric_version": {"type": "string"}, "feature_registry_id": {"type": "string"}, "metric_count": {"type": "integer", "minimum": 1}, "dataset_version": {"type": "integer", "minimum": 1}, "comparison_policy_paths": {"type": "array", "items": {"type": "string"}}, "cost_model_id": {"type": "string"}, "git_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}}},
     "forced_resume": {"type": "boolean"},
     "previous_provenance": {"type": ["object", "null"]},
@@ -135,6 +138,8 @@
         "listed_after_lagged_date"
       ],
       "properties": {
+        "sic_code_coverage": {"type": "object", "additionalProperties": false, "required": ["with", "without"], "properties": {"with": {"type": "integer", "minimum": 0}, "without": {"type": "integer", "minimum": 0}}},
+
         "hits": {"type": "integer", "minimum": 0},
         "fetches": {"type": "integer", "minimum": 0},
         "quarter_reuse_hits": {"type": "integer", "minimum": 0},
@@ -156,6 +161,12 @@
         "reference_cache", "artifacts", "error"
       ],
       "properties": {
+        "reachable_metric_count": {"type": ["integer", "null"], "minimum": 0},
+        "unavailable_metrics": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "spy_premarket_return_pct": {"type": ["number", "null"]},
+        "scorable_count": {"type": ["integer", "null"], "minimum": 0},
+        "reference_cache_summary": {"type": "object", "properties": {"sic_code_coverage": {"type": "object", "additionalProperties": false, "required": ["with", "without"], "properties": {"with": {"type": "integer", "minimum": 0}, "without": {"type": "integer", "minimum": 0}}}}},
+
         "trading_date": {"type": "string", "format": "date"},
         "status": {"enum": ["IN_PROGRESS", "COMPLETE", "UNSUPPORTED", "FAILED"]},
         "current_phase": {

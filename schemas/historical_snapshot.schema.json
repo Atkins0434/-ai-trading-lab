@@ -25,6 +25,8 @@
   ],
 
   "properties": {
+    "market_benchmarks": {"type": "object", "additionalProperties": false, "properties": {"SPY": {"$ref": "#/$defs/marketBenchmark"}, "QQQ": {"$ref": "#/$defs/marketBenchmark"}, "IWM": {"$ref": "#/$defs/marketBenchmark"}}},
+
     "replay_id": {
       "type": "string"
     },
@@ -92,6 +94,30 @@
   },
 
   "$defs": {
+    "marketBenchmark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "market_data",
+        "premarket_bars"
+      ],
+      "properties": {
+        "market_data": {
+          "type": "object",
+          "properties": {
+            "previous_close": {
+              "$ref": "#/$defs/marketObservation"
+            }
+          }
+        },
+        "premarket_bars": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bar"
+          }
+        }
+      }
+    },
     "massivePlan": {
       "type": "object",
       "additionalProperties": false,
@@ -116,6 +142,9 @@
       ],
 
       "properties": {
+        "sic_code": {"type": ["string", "integer", "null"]},
+        "sic_description": {"type": ["string", "null"]},
+
         "ticker": {
           "type": "string",
           "minLength": 1

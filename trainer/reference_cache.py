@@ -447,6 +447,8 @@ class TickerOverviewCache:
             provider_retries = int(
                 getattr(overview, "transient_retries", 0)
             )
+            # Preserve all provider fields, including SIC code/description.
+            # Older cache hits are never refetched just to enrich classification.
             normalized_overview = dict(overview)
             self._write(
                 self._path(ticker, lagged_date),

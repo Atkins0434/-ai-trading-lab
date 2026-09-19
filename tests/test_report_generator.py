@@ -25,8 +25,8 @@ def test_visual_report_supports_research_alpha(tmp_path: Path):
     assert output.stat().st_size > 5000
     from pypdf import PdfReader
     text = '\n'.join(page.extract_text() for page in PdfReader(output).pages)
-    assert 'of 76 points' in text
-    assert 'of 19 signals observed' in text
+    assert 'of 88 points' in text
+    assert 'of 22 signals observed' in text
     assert 'Relative Strength Index 60 min' in text
     assert 'Premarket Dollar Volume Quality' in text
     assert 'Alpha12' in text

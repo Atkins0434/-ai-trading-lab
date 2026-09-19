@@ -16,6 +16,9 @@
     "feature_failures", "feature_proposals"
   ],
   "properties": {
+    "reachable_metric_count": {"type": ["integer", "null"], "minimum": 0},
+    "unavailable_metrics": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+
     "replay_id": {"type": "string"},
     "trading_date": {"type": "string", "format": "date"},
     "scout_version": {"type": "string"},
@@ -110,6 +113,10 @@
         "premarket_real_bars_60m", "premarket_real_bars_total", "opening_range"
       ],
       "properties": {
+        "score_pct_reachable": {"type": ["number", "null"]},
+        "score_pct_fixed120": {"type": ["number", "null"]},
+        "benchmark_symbol": {"type": ["string", "null"]},
+
         "ticker": {"type": "string", "minLength": 1},
         "benchmark_rank": {"type": "integer", "minimum": 1, "maximum": 10},
         "was_in_scout_output": {"type": "boolean"},
@@ -117,7 +124,7 @@
         "scout_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
         "alpha12_total_score": {"type": ["integer", "null"], "minimum": 0, "maximum": 48},
         "alpha12_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
-        "rubric_version": {"enum": ["alpha_v1.1_19m", null]},
+        "rubric_version": {"enum": ["alpha_v1.1_19m", "alpha_v1.2_22m", null]},
         "reversal_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
         "miss_classification": {
           "enum": [
