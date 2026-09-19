@@ -13,6 +13,7 @@ import time
 from typing import Any, Callable
 
 from trainer.benchmark import build_same_universe_benchmark
+from trainer.replay_provenance import current_provenance, check_resume, provenance_differences
 from trainer.execution_costs import load_execution_costs
 from trainer.flatfile_snapshot import (
     build_flatfile_snapshot,
@@ -569,6 +570,7 @@ def run_flatfile_replay(
     comparison_policy_paths: list[Path | str] | None = None,
     reference_cache_root: Path = Path("data/reference_cache"),
     resume: bool = True,
+    force_resume: bool = False,
     max_wall_seconds: float | None = None,
     day_runner: DayRunner = run_flatfile_day,
 ) -> dict[str, Any]:
@@ -605,6 +607,9 @@ def run_flatfile_replay(
     normalized_comparison_paths = [
         str(value) for value in (comparison_policy_paths or [])
     ]
+    provenance = current_provenance(normalized_comparison_paths)
+    forced_resume = False
+    previous_provenance = None
     active_plan = load_massive_plan()
     universe_config = load_universe_config()
     universe_policy = {
@@ -622,7 +627,20 @@ def run_flatfile_replay(
         )
     prior: dict[str, Any] = {}
     if resume and manifest_path.exists():
-        prior = json.loads(manifest_path.read_text(encoding="utf-8"))
+        try:
+            prior = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except ValueError:
+            prior = {}
+        if not isinstance(prior, dict):
+            prior = {}
+        differences = provenance_differences(prior, provenance)
+        if not check_resume(output_root, prior, provenance, force=force_resume):
+            prior = {}
+            output_root.mkdir(parents=True, exist_ok=True)
+        elif differences and force_resume:
+            forced_resume = True
+            previous_provenance = prior.get("previous_provenance") or prior.get("provenance")
+    if prior:
         identity = (
             prior.get("requested_dates") == dates
             and prior.get("massive_plan") == active_plan
@@ -630,8 +648,8 @@ def run_flatfile_replay(
             and prior.get("strategy_capital_usd") == strategy_capital
             and prior.get("morning_freeze_time") == morning_freeze_time
             and prior.get("selection_policy") == selection_policy
-            and prior.get("comparison_policy_paths", [])
-            == normalized_comparison_paths
+            and (force_resume or prior.get("comparison_policy_paths", [])
+                 == normalized_comparison_paths)
             and prior.get("universe_policy") == universe_policy
             and prior.get("smoke_mode", False) is smoke_mode
             and prior.get("max_tickers") == max_tickers
@@ -679,6 +697,9 @@ def run_flatfile_replay(
         else:
             status = "FAILED"
         manifest = {
+            "provenance": provenance,
+            "forced_resume": forced_resume,
+            "previous_provenance": previous_provenance,
             "cost_model_id": load_execution_costs()["cost_model_id"],
             "version": "flatfile_replay_manifest_v1.0",
             "file_naming": "dated_v1",
@@ -864,6 +885,7 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument("--no-resume", action="store_true")
+    parser.add_argument("--force-resume", action="store_true", help="DEBUG ONLY: override provenance mismatch; mark outputs forced_resume.")
     parser.add_argument(
         "--max-wall-seconds",
         type=float,
@@ -906,6 +928,7 @@ def main() -> None:
         max_tickers=args.max_tickers,
         reference_cache_root=args.reference_cache_root,
         resume=not args.no_resume,
+        force_resume=args.force_resume,
         max_wall_seconds=args.max_wall_seconds,
     )
     print(json.dumps(result, indent=2, sort_keys=True))

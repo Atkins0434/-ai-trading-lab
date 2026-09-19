@@ -11,6 +11,7 @@ import shutil
 
 from trainer.output_paths import day_file, legacy_name
 from trainer.replay_backlog import effective_status, mark, read, write
+from trainer.replay_provenance import current_provenance, check_resume
 
 RUN_FILES = (
     "flatfile_replay_manifest.json", "replay_summary.pdf", legacy_name("replay_report"),
@@ -61,6 +62,8 @@ def prepare_resume(output_root: Path, unit: dict, download_ok: bool) -> bool:
                 valid = manifest.get("requested_dates") == generate_trading_dates(unit["start"], unit["end"])
         except (OSError, ValueError, TypeError):
             pass
+    if valid:
+        valid = check_resume(output_root, manifest, current_provenance())
     if not valid:
         print(f"[replay_backlog] {unit['id']}: no valid paused artifact; starting PENDING from scratch", flush=True)
         # This directory is explicitly resolved by the workflow for one unit.

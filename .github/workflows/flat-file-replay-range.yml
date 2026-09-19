@@ -38,6 +38,7 @@ jobs:
         run: |
           cache_version="$(jq -er .cache_version config/flatfile_replay.json)"
           echo "version=$cache_version" >> "$GITHUB_OUTPUT"
+          python -m trainer.replay_provenance >> "$GITHUB_OUTPUT"
 
       - name: Validate replay range and resolve paths
         id: replay
@@ -108,9 +109,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ steps.replay.outputs.output_root }}/
-          key: replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-${{ github.run_id }}
+          key: replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.cache_config.outputs.scout_id }}-${{ steps.cache_config.outputs.metric_count }}-${{ steps.cache_config.outputs.dataset_version }}-${{ steps.cache_config.outputs.provenance_key }}-${{ steps.replay.outputs.max_tickers }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-${{ github.run_id }}
           restore-keys: |
-            replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-
+            replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.cache_config.outputs.scout_id }}-${{ steps.cache_config.outputs.metric_count }}-${{ steps.cache_config.outputs.dataset_version }}-${{ steps.cache_config.outputs.provenance_key }}-${{ steps.replay.outputs.max_tickers }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-
 
       - run: pip install -r requirements.txt
 
@@ -290,7 +291,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ steps.replay.outputs.output_root }}/
-          key: replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-${{ github.run_id }}
+          key: replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.cache_config.outputs.scout_id }}-${{ steps.cache_config.outputs.metric_count }}-${{ steps.cache_config.outputs.dataset_version }}-${{ steps.cache_config.outputs.provenance_key }}-${{ steps.replay.outputs.max_tickers }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-${{ github.run_id }}
 
       - name: Upload replay range artifact
         if: always()

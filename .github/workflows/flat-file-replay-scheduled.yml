@@ -97,7 +97,7 @@ jobs:
           github-token: ${{ github.token }}
           path: ${{ steps.unit.outputs.output_root }}
 
-      - name: Validate resume and mark IN_PROGRESS
+      - name: Validate resume provenance and mark IN_PROGRESS
         id: started
         if: steps.unit.outputs.id != ''
         env:
