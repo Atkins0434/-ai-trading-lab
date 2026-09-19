@@ -14,6 +14,9 @@
     "completed_dates", "remaining_dates", "failed_dates", "reference_cache_summary", "days"
   ],
   "properties": {
+    "provenance": {"type": "object", "additionalProperties": false, "required": ["scout_id", "rubric_version", "feature_registry_id", "metric_count", "dataset_version", "comparison_policy_paths", "cost_model_id", "git_sha"], "properties": {"scout_id": {"type": "string"}, "rubric_version": {"type": "string"}, "feature_registry_id": {"type": "string"}, "metric_count": {"type": "integer", "minimum": 1}, "dataset_version": {"type": "integer", "minimum": 1}, "comparison_policy_paths": {"type": "array", "items": {"type": "string"}}, "cost_model_id": {"type": "string"}, "git_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}}},
+    "forced_resume": {"type": "boolean"},
+    "previous_provenance": {"type": ["object", "null"]},
     "file_naming": {"const": "dated_v1"},
     "version": {"const": "flatfile_replay_manifest_v1.0"},
     "run_id": {"type": "string", "minLength": 1},

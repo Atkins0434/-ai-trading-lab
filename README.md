@@ -7,6 +7,19 @@ gates pass.
 
 ## Current contract
 
+Replay manifests include a top-level `provenance` object recording the Scout ID,
+rubric version, feature registry ID/count, backlog dataset version, comparison
+policy paths, execution-cost model ID, and checkout git SHA. Before resuming,
+the engine and scheduled artifact restore compare every field against current
+configuration. Missing or mismatched provenance archives the entire output root
+as `<output_root>.stale-<UTC timestamp>/` and starts fresh; the log lists every
+differing field. Any git SHA change also invalidates resume, even if unrelated
+to scoring. Day/range output-cache keys include Scout ID, metric count, dataset
+version, and a fingerprint of all provenance fields; data/reference cache keys
+are unchanged. `--force-resume` is for debugging only: it records
+`forced_resume=true` and the previous provenance. Such outputs require the debug
+override again on subsequent resumes. No workflow sets this flag.
+
 Historical execution reports gross fills and post-fill net results using
 `config/execution_costs.json` (`execution_costs_v1.0`). Slippage uses each side's
 fill-price tier; exits before 09:35 New York time use the opening tier, later

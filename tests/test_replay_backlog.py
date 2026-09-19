@@ -6,6 +6,7 @@ import sys
 
 import pytest
 
+from trainer.replay_provenance import current_provenance
 from trainer.output_paths import DAY_FILE_KINDS, day_file
 from trainer.replay_backlog import mark, next_unit, read, write
 from trainer.replay_scheduled import (
@@ -96,7 +97,7 @@ def test_restore_validates_manifest_or_restarts(tmp_path, status, download_ok, e
     root = tmp_path / 'flatfile_replay' / unit['id']
     root.mkdir(parents=True)
     if status:
-        write(root / 'flatfile_replay_manifest.json', {'status': status, 'start_date': unit['start'], 'end_date': unit['end']})
+        write(root / 'flatfile_replay_manifest.json', {'status': status, 'start_date': unit['start'], 'end_date': unit['end'], 'provenance': current_provenance()})
     assert prepare_resume(root, unit, download_ok) is expected
     if not expected:
         assert unit['status'] == 'PENDING'

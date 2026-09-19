@@ -30,6 +30,7 @@ jobs:
         run: |
           cache_version="$(jq -er .cache_version config/flatfile_replay.json)"
           echo "version=$cache_version" >> "$GITHUB_OUTPUT"
+          python -m trainer.replay_provenance >> "$GITHUB_OUTPUT"
       - name: Restore Massive flat-file cache
         uses: actions/cache@v4
         with:
@@ -85,6 +86,14 @@ jobs:
           echo "output_root=${output_root}" >> "$GITHUB_OUTPUT"
           echo "max_tickers=${MAX_TICKERS}" >> "$GITHUB_OUTPUT"
           echo "REPLAY_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Restore replay output
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ steps.replay.outputs.output_root }}/
+          key: replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.cache_config.outputs.scout_id }}-${{ steps.cache_config.outputs.metric_count }}-${{ steps.cache_config.outputs.dataset_version }}-${{ steps.cache_config.outputs.provenance_key }}-${{ steps.replay.outputs.max_tickers }}-${{ steps.replay.outputs.trading_date }}-${{ github.run_id }}
+          restore-keys: |
+            replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.cache_config.outputs.scout_id }}-${{ steps.cache_config.outputs.metric_count }}-${{ steps.cache_config.outputs.dataset_version }}-${{ steps.cache_config.outputs.provenance_key }}-${{ steps.replay.outputs.max_tickers }}-${{ steps.replay.outputs.trading_date }}-
 
       - name: Report cached flat-file coverage
         shell: bash
@@ -501,6 +510,13 @@ jobs:
             fi
             echo "$directory: $human_size ($byte_size bytes)"
           done
+
+      - name: Save replay output
+        if: always() && steps.replay.outputs.output_root != ''
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ steps.replay.outputs.output_root }}/
+          key: replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.cache_config.outputs.scout_id }}-${{ steps.cache_config.outputs.metric_count }}-${{ steps.cache_config.outputs.dataset_version }}-${{ steps.cache_config.outputs.provenance_key }}-${{ steps.replay.outputs.max_tickers }}-${{ steps.replay.outputs.trading_date }}-${{ github.run_id }}
 
       - uses: actions/upload-artifact@v4
         if: always()
