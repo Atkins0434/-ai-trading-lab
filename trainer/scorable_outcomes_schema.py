@@ -16,6 +16,13 @@ METRIC_IDS = (
     "premarket_trend_consistency",
     "price_volume_confirmation",
     "premarket_range_expansion",
+    "relative_strength_index_15m",
+    "relative_strength_index_30m",
+    "relative_strength_index_60m",
+    "atr_pct_opportunity",
+    "current_range_pct_opportunity",
+    "average_daily_dollar_volume_quality",
+    "premarket_dollar_volume_quality",
 )
 
 SCORABLE_PREFIX_COLUMNS = (
@@ -30,7 +37,8 @@ SCORABLE_SCORE_COLUMNS = tuple(
     for column in (f"{metric_id}_raw", f"{metric_id}_score")
 )
 SCORABLE_OUTCOME_COLUMNS = (
-    "total_score", "score_pct", "reversal_score_pct", "selected",
+    "total_score", "score_pct", "alpha12_total_score", "alpha12_score_pct",
+    "rubric_version", "reversal_score_pct", "selected",
     "selection_basis", "rejection_reasons", "liquidity_action",
     "top_10_mover", "benchmark_rank", "open_0930", "day_high",
     "day_low", "close", "day_mfe_pct", "day_mae_pct",

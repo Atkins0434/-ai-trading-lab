@@ -153,7 +153,7 @@ def build_massive_alpha_snapshot(
         "freeze_timestamp": freeze.isoformat(),
         "timezone": "America/New_York",
         "universe_version": "research_alpha_input_v1.0",
-        "scout_version": "research_scout_alpha_v1.0",
+        "scout_version": "research_scout_alpha_v1.1",
         "execution_policy_version": "execution_disabled",
         "feature_registry_version": "feature_registry_alpha_v1.0",
         "data_source": {"provider": "MASSIVE", "feed_version": MassiveClient.feed_version},

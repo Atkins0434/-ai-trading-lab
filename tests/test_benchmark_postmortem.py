@@ -188,6 +188,8 @@ def test_not_in_universe_classification_includes_component_scores():
         "metric_id": "premarket_gap_strength",
         "score": 1,
         "raw_value": 2.0,
+        "status": "OBSERVED",
+        "calculation_version": None,
     }
 
 

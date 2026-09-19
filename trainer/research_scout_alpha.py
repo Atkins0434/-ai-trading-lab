@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from trainer.price_volume import PriceVolumeError, calculate_price_volume_metrics
+from trainer.extended_alpha_metrics import EXTENDED_METRIC_IDS, extended_components
 from trainer.rate_control import load_massive_plan
 from trainer.replay_engine import ReplayError, validate_freeze_timestamp, validate_point_in_time_inputs
 from trainer.scout_engine import (
@@ -22,7 +23,9 @@ ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "config" / "scout_alpha_v1.json"
 REVERSAL_CONFIG_PATH = ROOT / "config" / "scout_reversal_v1.json"
 REGISTRY_PATH = ROOT / "config" / "feature_registry_alpha_v1.json"
-MAXIMUM_POINTS = 48
+MAXIMUM_POINTS = 76
+ALPHA12_MAXIMUM_POINTS = 48
+RUBRIC_VERSION = "alpha_v1.1_19m"
 
 
 class ResearchScoutError(Exception):
@@ -39,8 +42,10 @@ def _load_contract() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         config.get("execution_allowed") is not False
         or config.get("scoring", {}).get("maximum_points") != MAXIMUM_POINTS
         or registry.get("maximum_points") != MAXIMUM_POINTS
-        or len(metrics) != 12
-        or len(set(ids)) != 12
+        or len(metrics) != 19
+        or len(set(ids)) != 19
+        or config["scoring"].get("denominator_policy") != "FIXED_76"
+        or registry.get("denominator_policy") != "FIXED_76"
         or not 0 <= int(config.get("shadow_min_premarket_bars", -1))
         < int(config["minimum_real_bars_60m"])
         or reversal.get("pattern_id") != "research_reversal_v1.0"
@@ -51,9 +56,10 @@ def _load_contract() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         or reversal.get("liquidity") != config["liquidity"]
         or reversal.get("spread") != config["spread"]
         or reversal.get("order_book_depth") != config["order_book_depth"]
-        or set(reversal.get("scoring", {}).get("metrics", {})) != set(ids)
+        or set(reversal.get("scoring", {}).get("metrics", {})) != set(ids[:12])
+        or set(ids[12:]) != set(EXTENDED_METRIC_IDS)
     ):
-        raise ResearchScoutError("Alpha must remain a 12-metric, 48-point research contract.")
+        raise ResearchScoutError("Alpha requires 19 metrics/76 points and reversal requires the original 12.")
     return config, registry, reversal
 
 
@@ -206,6 +212,11 @@ def _score_security(
     component_scores = {
         metric["id"]: _missing_component() for metric in registry["metrics"]
     }
+    for metric_id in EXTENDED_METRIC_IDS:
+        component_scores[metric_id]["calculation_version"] = (
+            "rsi_cutler_window_v1.0" if metric_id.startswith("relative_strength_index_")
+            else "research_alpha_extended_v1.0"
+        )
     market_data = security["market_data"]
     real_bar_observation = market_data.get("real_bar_count_60m", {})
     real_bar_count_60m = real_bar_observation.get("value")
@@ -244,7 +255,13 @@ def _score_security(
             "reversal_status": "NOT_SCORABLE",
             "reversal_total_score": None,
             "reversal_score_pct": None,
-            "reversal_component_scores": deepcopy(component_scores),
+            "alpha12_total_score": 0,
+            "alpha12_score_pct": 0.0,
+            "rubric_version": RUBRIC_VERSION,
+            "reversal_component_scores": {
+                key: deepcopy(value) for key, value in component_scores.items()
+                if key not in EXTENDED_METRIC_IDS
+            },
             "guardrails": {},
             "reason_codes": [
                 "INSUFFICIENT_PREMARKET_BARS",
@@ -299,13 +316,19 @@ def _score_security(
     if not security["eligible"]:
         rejection_reasons.extend(security.get("eligibility_reasons", ["UNIVERSE_INELIGIBLE"]))
 
+    alpha12_components = {
+        key: value for key, value in component_scores.items()
+        if key not in EXTENDED_METRIC_IDS
+    }
+    alpha12_total_score = sum(item["score"] or 0 for item in alpha12_components.values())
+    component_scores.update(extended_components(security, config, timestamp))
     total_score = sum(item["score"] or 0 for item in component_scores.values())
     (
         reversal_status,
         reversal_total_score,
         reversal_score_pct,
         reversal_component_scores,
-    ) = _reversal_score(component_scores, reversal_config)
+    ) = _reversal_score(alpha12_components, reversal_config)
     threshold_points = ceil(threshold_pct / 100 * MAXIMUM_POINTS)
     research_eligible = security["eligible"] and not rejection_reasons
     research_selected = (
@@ -338,6 +361,9 @@ def _score_security(
         "execution_eligible": False,
         "rank": None,
         "total_score": total_score,
+        "alpha12_total_score": alpha12_total_score,
+        "alpha12_score_pct": alpha12_total_score / ALPHA12_MAXIMUM_POINTS * 100,
+        "rubric_version": RUBRIC_VERSION,
         "maximum_possible_score": MAXIMUM_POINTS,
         "score_pct": total_score / MAXIMUM_POINTS * 100,
         "threshold_points": threshold_points,
@@ -358,7 +384,7 @@ def run_research_scout_alpha(
     threshold_pct: float | None = None,
     exploration_top_k: int = 0,
 ) -> dict[str, Any]:
-    """Run the isolated 48-point Alpha; it can never authorize execution."""
+    """Run the isolated 76-point Alpha; it can never authorize execution."""
     try:
         validate_contract("historical_snapshot", snapshot)
         validate_point_in_time_inputs(snapshot)
@@ -455,6 +481,7 @@ def run_research_scout_alpha(
     result = {
         "replay_id": snapshot["replay_id"],
         "scout_version": config["scout_id"],
+        "rubric_version": RUBRIC_VERSION,
         "mode": "RESEARCH_ONLY",
         "snapshot_timestamp": snapshot["freeze_timestamp"],
         "massive_plan": snapshot.get("massive_plan", load_massive_plan()),

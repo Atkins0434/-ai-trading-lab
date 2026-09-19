@@ -105,7 +105,7 @@ def _score_color(score: int | None):
 def _coverage(candidate: dict[str, Any]) -> tuple[int, int]:
     components = candidate["component_scores"].values()
     total = len(candidate["component_scores"])
-    observed = sum(component["status"] == "OBSERVED" for component in components)
+    observed = sum(component["status"] in {"OBSERVED", "SCORED"} for component in components)
     return observed, total
 
 
@@ -621,7 +621,7 @@ def generate_scout_pdf_report(
     selected_count = sum(_candidate_selected(candidate) for candidate in candidates)
     rejected_count = sum(not _candidate_eligible(candidate) for candidate in candidates)
     observed_count = sum(
-        component["status"] == "OBSERVED"
+        component["status"] in {"OBSERVED", "SCORED"}
         for candidate in candidates
         for component in candidate["component_scores"].values()
     )
@@ -750,7 +750,8 @@ def generate_scout_pdf_report(
         ))
         story.append(Paragraph(
             f"Rank {fmt(candidate['rank'])}  |  {candidate['total_score']} of "
-            f"{candidate['maximum_possible_score']} points  |  {observed} of {total} signals observed",
+            f"{candidate['maximum_possible_score']} points  |  {observed} of {total} signals observed"
+            + (f"  |  Alpha12 {candidate['alpha12_score_pct']:.2f}%" if "alpha12_score_pct" in candidate else ""),
             subtitle_style,
         ))
         story.append(_score_bar(candidate["score_pct"], 10.1 * inch))

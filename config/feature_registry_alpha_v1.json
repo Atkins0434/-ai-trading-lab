@@ -1,10 +1,11 @@
 {
   "feature_registry_id": "feature_registry_alpha_v1.0",
   "status": "research_only_not_promoted",
-  "metric_count": 12,
+  "metric_count": 19,
   "points_per_metric": 4,
-  "maximum_points": 48,
-  "denominator_policy": "FIXED_48",
+  "maximum_points": 76,
+  "denominator_policy": "FIXED_76",
+  "missing_data_policy": "MISSING_WITH_NO_POINTS_FIXED_DENOMINATOR",
   "metrics": [
     {"id": "relative_volume", "number": 1},
     {"id": "price_slope_15m", "number": 2},
@@ -17,6 +18,13 @@
     {"id": "price_vs_premarket_vwap", "number": 9},
     {"id": "premarket_trend_consistency", "number": 10},
     {"id": "price_volume_confirmation", "number": 11},
-    {"id": "premarket_range_expansion", "number": 12}
+    {"id": "premarket_range_expansion", "number": 12},
+    {"id": "relative_strength_index_15m", "number": 13},
+    {"id": "relative_strength_index_30m", "number": 14},
+    {"id": "relative_strength_index_60m", "number": 15},
+    {"id": "atr_pct_opportunity", "number": 25},
+    {"id": "current_range_pct_opportunity", "number": 26},
+    {"id": "average_daily_dollar_volume_quality", "number": 29},
+    {"id": "premarket_dollar_volume_quality", "number": 30}
   ]
 }

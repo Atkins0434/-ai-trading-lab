@@ -31,6 +31,7 @@ from trainer.universe_manifest import (
 )
 from trainer.validate_contracts import load_json
 from trainer.scorable_outcomes import concatenate_completed_outcomes
+from trainer.scorable_outcomes_schema import METRIC_IDS
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -52,20 +53,6 @@ SECTIONS = (
     "5. Scorability and universe",
     "6. Scored candidates",
     "7. Postmortem",
-)
-METRIC_IDS = (
-    "relative_volume",
-    "price_slope_15m",
-    "price_slope_30m",
-    "price_slope_60m",
-    "volume_slope_15m",
-    "volume_slope_30m",
-    "volume_slope_60m",
-    "premarket_gap_strength",
-    "price_vs_premarket_vwap",
-    "premarket_trend_consistency",
-    "price_volume_confirmation",
-    "premarket_range_expansion",
 )
 
 
@@ -738,7 +725,8 @@ def _candidate_block(candidate: dict[str, Any], styles: dict[str, ParagraphStyle
     reasons = ", ".join(candidate.get("rejection_reasons", [])) or "None"
     header = Paragraph(
         f"<b>{candidate['ticker']}</b> — {_fmt_pct(candidate.get('score_pct'))} "
-        f"({candidate.get('total_score', 0)}/{candidate.get('maximum_possible_score', 48)}) "
+        f"({candidate.get('total_score', 0)}/{candidate.get('maximum_possible_score', 76)}) "
+        f"| Alpha12: {_fmt_pct(candidate.get('alpha12_score_pct'))} "
         f"| Guardrails: {guards} | Rejections: {reasons}",
         styles["small"],
     )
@@ -750,6 +738,7 @@ def _candidate_block(candidate: dict[str, Any], styles: dict[str, ParagraphStyle
             component = components.get(metric_id, {})
             score = component.get("score")
             row.extend([metric_id, "—" if score is None else str(score), _fmt_raw(component.get("raw_value"))])
+        row.extend([""] * (9 - len(row)))
         metric_rows.append(row)
     widths = []
     for _ in range(3):
