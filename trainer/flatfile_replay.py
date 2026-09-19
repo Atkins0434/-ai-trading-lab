@@ -13,6 +13,7 @@ import time
 from typing import Any, Callable
 
 from trainer.benchmark import build_same_universe_benchmark
+from trainer.execution_costs import load_execution_costs
 from trainer.flatfile_snapshot import (
     build_flatfile_snapshot,
     load_flatfile_replay_config,
@@ -678,6 +679,7 @@ def run_flatfile_replay(
         else:
             status = "FAILED"
         manifest = {
+            "cost_model_id": load_execution_costs()["cost_model_id"],
             "version": "flatfile_replay_manifest_v1.0",
             "file_naming": "dated_v1",
             "run_id": f"flatfile-{dates[0]}-to-{dates[-1]}",

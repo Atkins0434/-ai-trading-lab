@@ -176,7 +176,8 @@ def test_comparison_policy_does_not_change_primary_outcomes(capsys):
     assert len(compared["policy_comparisons"]) == 1
     comparison = compared["policy_comparisons"][0]
     assert comparison["policy_id"] == "execution_policy_atr_v1.0"
-    assert comparison["summary"]["net_realized_pnl_usd"] == 40.0
+    assert comparison["summary"]["realized_pnl_usd"] == 40.0
+    assert comparison["summary"]["net_realized_pnl_usd"] == pytest.approx(37.91917)
     assert {
         item["cohort"] for item in comparison["executions"]
     } == {"SCOUT_SELECTION", "TOP_10_MOVER"}

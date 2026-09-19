@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.execution_costs import net_summary
 
 from trainer.output_paths import daily_path
 
@@ -44,7 +45,7 @@ NAVY = colors.HexColor("#111827")
 LIGHT_GRAY = colors.HexColor("#F3F4F6")
 GRID = colors.HexColor("#9CA3AF")
 MUTED = colors.HexColor("#4B5563")
-GROSS_FOOTER = "GROSS — no execution costs modeled"
+GROSS_FOOTER = "Gross and net shown; net uses execution_costs_v1.0"
 SECTIONS = (
     "1. Day summary",
     "2. Scout trades",
@@ -219,6 +220,7 @@ def _zero_selection_reason(scout: dict[str, Any]) -> str:
 def _policy_summary(
     executions: list[dict[str, Any]],
     realized_return_pct: float,
+    net_realized_return_pct: float | None = None,
 ) -> dict[str, Any]:
     completed = [item for item in executions if item.get("trade_executed")]
     returns = [float(item["realized_return_pct"]) for item in completed]
@@ -247,7 +249,9 @@ def _policy_summary(
         if item.get("exit_reason") == "ENTRY_REJECTED"
     )
     return {
-        "net_realized_pnl_usd": sum(
+        **net_summary(completed),
+        "net_realized_return_pct": net_realized_return_pct,
+        "realized_pnl_usd": sum(
             float(item.get("realized_pnl_usd") or 0) for item in completed
         ),
         "realized_return_pct": realized_return_pct,
@@ -296,9 +300,15 @@ def _execution_matrix(
         "summary": _policy_summary(
             primary_executions,
             float(combined["realized_return_pct"]),
+            combined.get("net_realized_return_pct"),
         ),
     }]
-    policies.extend(outcome.get("policy_comparisons", []))
+    for comparison in outcome.get("policy_comparisons", []):
+        summary = dict(comparison["summary"])
+        if summary.get("net_realized_return_pct") is None:
+            summary.setdefault("realized_pnl_usd", summary.get("net_realized_pnl_usd"))
+            summary["net_realized_pnl_usd"] = None
+        policies.append({**comparison, "summary": summary})
 
     rows: dict[tuple[str, str, int | None], dict[str, Any]] = {}
     primary_id = policies[0]["policy_id"]
@@ -313,6 +323,7 @@ def _execution_matrix(
         key = ("TOP_10_MOVER", item["ticker"], item["benchmark_rank"])
         rows.setdefault(key, {"cohort": key[0], "ticker": key[1], "rank": key[2], "executions": {}})
         rows[key]["executions"][primary_id] = {
+            **{key: item.get(key) for key in ("net_realized_return_pct", "net_realized_pnl_usd", "cost_bps_of_position", "net_capture_ratio")},
             "entry_timestamp": item.get("entry_timestamp"),
             "entry_price": item.get("entry_price"),
             "exit_timestamp": item.get("exit_timestamp"),
@@ -432,6 +443,9 @@ def build_daily_report_model(
         "selected_count": len(selected),
         "verdict": _verdict(benchmark),
         "scout_return_pct": benchmark["scout_summary"]["realized_return_pct"],
+        "net_scout_return_pct": benchmark["scout_summary"].get("net_realized_return_pct"),
+        "net_baseline_return_pct": benchmark["return_baselines"].get("net_random_draw_mean_realized_return_pct"),
+        "net_verdict": {"SCOUT_OUTPERFORMED": "WIN", "SCOUT_TIED": "TIE", "SCOUT_UNDERPERFORMED": "MISS"}.get(benchmark["comparison"].get("net_result_code")),
         "baseline_return_pct": benchmark["return_baselines"][
             "random_draw_mean_realized_return_pct"
         ],
@@ -538,8 +552,9 @@ def _day_summary(story: list[Any], model: dict[str, Any], styles: dict[str, Para
         ["Massive plan", model["plan"], "Mode", model["mode"]],
         ["Eligible universe", str(model["universe_count"]), "Scorable", f"{model['scorable_count']} ({model['scorable_share'] * 100:.2f}%)"],
         ["Qualifying", str(model["qualifying_count"]), "Selected", str(model["selected_count"])],
-        ["Verdict", model["verdict"], "Gross return basis", "Strategy capital; no costs"],
+        ["Gross verdict", model["verdict"], "Net verdict", model.get("net_verdict") or "N/A"],
         ["Scout gross return", _fmt_pct(model["scout_return_pct"]), "Random-draw baseline", _fmt_pct(model["baseline_return_pct"])],
+        ["Scout net return", _fmt_pct(model.get("net_scout_return_pct")), "Net random baseline", _fmt_pct(model.get("net_baseline_return_pct"))],
     ]
     story.append(_table([["Measure", "Value", "Measure", "Value"], *rows], [1.45*inch, 2.2*inch, 1.45*inch, 2.2*inch], right_columns=(1, 3), font_size=7.2))
     story.append(Spacer(1, 10))
@@ -679,7 +694,7 @@ def _movers(story: list[Any], model: dict[str, Any], styles: dict[str, Paragraph
     story.append(_table(rows, [0.45*inch,0.8*inch,1.0*inch,0.85*inch,0.85*inch,1.0*inch,1.55*inch,2.45*inch], right_columns=(0,2,5), font_size=6.5))
     summary = model["benchmark_summary"]
     story.append(Paragraph("Benchmark summary", styles["subsection"]))
-    summary_rows = [["Trades", "Win rate", "Profit factor", "Net P&L", "Average capture"] , [
+    summary_rows = [["Trades", "Win rate", "Profit factor", "Gross P&L", "Average capture"] , [
         str(summary["trades_executed"]), _fmt_pct(summary["win_rate_pct"]), _fmt_number(summary["profit_factor"]),
         _fmt_money(summary["realized_pnl_usd"]), _fmt_pct(None if summary["average_capture_ratio"] is None else float(summary["average_capture_ratio"]) * 100),
     ]]
@@ -837,6 +852,7 @@ def generate_daily_replay_report(
     _day_summary(story, model, styles)
     _scout_trades(story, model, styles)
     _execution_policy_comparison(story, model, styles)
+    _cost_tables(story, model, styles)
     _movers(story, model, styles)
     _scorability(story, model, styles)
     _candidates(story, model, styles)
@@ -849,6 +865,25 @@ def generate_daily_replay_report(
     draw = _footer(model["replay_id"], model["universe_manifest_hash"])
     document.build(story, onFirstPage=draw, onLaterPages=draw)
     return output_path
+
+
+def _cost_tables(story, model, styles):
+    _page(story, "Gross and net execution results", styles)
+    summaries = [["Policy", "Gross return", "Net return", "Net P&L"]]
+    for policy in model["execution_policies"]:
+        summary = policy["summary"]
+        summaries.append([policy["policy_id"], _fmt_pct(summary["realized_return_pct"]),
+                          _fmt_pct(summary.get("net_realized_return_pct")), _fmt_money(summary.get("net_realized_pnl_usd"))])
+    story.append(_table(summaries, [2.6*inch,1.3*inch,1.3*inch,1.3*inch], font_size=7))
+    rows = [["Cohort", "Ticker", "Policy", "Gross return", "Cost bps", "Net return"]]
+    for item in model["execution_comparison_rows"]:
+        for policy, execution in item["executions"].items():
+            rows.append([item["cohort"], item["ticker"], policy,
+                         _fmt_pct(execution.get("realized_return_pct")),
+                         _fmt_number(execution.get("cost_bps_of_position")),
+                         _fmt_pct(execution.get("net_realized_return_pct"))])
+    story.append(Spacer(1, 10))
+    story.append(_table(rows, [1.35*inch,0.65*inch,2.5*inch,1.0*inch,0.8*inch,1.0*inch], font_size=6.5))
 
 
 def _completed_day_models(output_root: Path) -> list[dict[str, Any]]:
@@ -878,6 +913,34 @@ def generate_cumulative_replay_report(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     styles = _styles()
     story: list[Any] = [Paragraph("Cumulative Replay Summary", styles["title"])]
+    net_rows = [["Date", "Gross verdict", "Net verdict", "Scout net", "Baseline net"]]
+    for model in models:
+        net_rows.append([model["trading_date"], model["verdict"], model.get("net_verdict") or "N/A",
+                         _fmt_pct(model.get("net_scout_return_pct")), _fmt_pct(model.get("net_baseline_return_pct"))])
+    net_rows.append(["Sum (costed days)", "", "", *[
+        _fmt_pct(sum(m[key] for m in models if m.get(key) is not None) if any(m.get(key) is not None for m in models) else None)
+        for key in ("net_scout_return_pct", "net_baseline_return_pct")
+    ]])
+    story.append(_table(net_rows, [1.3*inch]*5, font_size=7))
+    flips = sum(item["verdict"] == "WIN" and item.get("net_verdict") in {"TIE", "MISS"} for item in models)
+    story.append(Paragraph(f"Gross WIN to net TIE/MISS: {flips}", styles["body"]))
+    gross_verdicts = Counter(m["verdict"] for m in models)
+    net_verdicts = Counter(m.get("net_verdict") for m in models)
+    story.append(Paragraph(
+        f"Gross WIN/TIE/MISS: {gross_verdicts['WIN']}/{gross_verdicts['TIE']}/{gross_verdicts['MISS']}; "
+        f"Net WIN/TIE/MISS: {net_verdicts['WIN']}/{net_verdicts['TIE']}/{net_verdicts['MISS']}", styles["body"]))
+    cost_totals = [["Policy", "Gross return sum", "Net return sum", "Net capture", "Costed days"]]
+    policy_ids = sorted({p["policy_id"] for m in models for p in m["execution_policies"]})
+    for policy_id in policy_ids:
+        summaries = [p["summary"] for m in models for p in m["execution_policies"] if p["policy_id"] == policy_id]
+        costed = [s for s in summaries if s.get("net_realized_return_pct") is not None]
+        captures = [row["executions"][policy_id]["net_capture_ratio"] for m in models
+                    for row in m["execution_comparison_rows"] if row["cohort"] == "SCOUT_SELECTION"
+                    and row["executions"].get(policy_id, {}).get("net_capture_ratio") is not None]
+        cost_totals.append([policy_id, _fmt_pct(sum(s["realized_return_pct"] for s in summaries)),
+                            _fmt_pct(sum(s["net_realized_return_pct"] for s in costed) if costed else None),
+                            _fmt_number(mean(captures) if captures else None), str(len(costed))])
+    story.append(_table(cost_totals, [2.5*inch,1.3*inch,1.3*inch,1.1*inch,0.9*inch], font_size=7))
     rows = [["Date", "Universe", "Scorable", "Selected", "Scout return", "Baseline return", "Verdict"]]
     for model in models:
         rows.append([
@@ -923,6 +986,7 @@ def generate_cumulative_replay_report(
     all_closed: list[bool] = []
     all_mfe: list[float] = []
     policy_returns: Counter[str] = Counter()
+    net_reversal_returns: dict[str, list[float]] = {}
     for model in models:
         cohort = (model.get("postmortem") or {}).get("reversal_cohort", {})
         for candidate in cohort.get("candidates", []):
@@ -931,6 +995,9 @@ def generate_cumulative_replay_report(
             if candidate.get("day_mfe_pct") is not None:
                 all_mfe.append(float(candidate["day_mfe_pct"]))
         policy_returns.update(cohort.get("policy_returns", {}))
+        for policy_id, value in cohort.get("net_policy_returns", {}).items():
+            if value is not None:
+                net_reversal_returns.setdefault(policy_id, []).append(value)
         reversal_rows.append([
             model["trading_date"],
             str(cohort.get("candidate_count", 0)),
@@ -962,6 +1029,9 @@ def generate_cumulative_replay_report(
         ) or "—",
     ])
     story.append(Paragraph("Reversal exploration base rates", styles["subsection"]))
+    story.append(Paragraph("Net reversal exploration return sums (costed days): " + (
+        "; ".join(f"{key}: {_fmt_pct(sum(values))} ({len(values)} days)" for key, values in sorted(net_reversal_returns.items())) or "N/A"
+    ), styles["body"]))
     story.append(_table(
         reversal_rows,
         [0.9*inch,0.7*inch,0.65*inch,0.85*inch,0.9*inch,3.1*inch],

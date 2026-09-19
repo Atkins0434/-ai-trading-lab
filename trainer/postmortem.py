@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.execution_costs import net_summary
 
 from datetime import datetime, time
 from collections import Counter
@@ -270,9 +271,12 @@ def _policy_return(
     executions: list[dict[str, Any]],
     tickers: set[str],
     strategy_capital_usd: float,
+    field: str = "realized_pnl_usd",
 ) -> float:
+    if field.startswith("net_") and any(item.get("execution_result", {}).get(field) is None for item in executions if item.get("ticker") in tickers):
+        return None
     pnl = sum(
-        float(item.get("execution_result", {}).get("realized_pnl_usd") or 0.0)
+        float(item.get("execution_result", {}).get(field) or 0.0)
         for item in executions
         if item.get("ticker") in tickers
     )
@@ -337,6 +341,7 @@ def _reversal_cohort(
         item["ticker"] for item in rows if item["selected"]
     }
     policy_returns: dict[str, float] = {}
+    net_policy_returns = {}
     if outcome_result is not None:
         champion_executions = [
             {
@@ -356,7 +361,12 @@ def _reversal_cohort(
         policy_returns[champion_id] = _policy_return(
             champion_executions, selected_tickers, strategy_capital_usd
         )
+        net_policy_returns[champion_id] = _policy_return(champion_executions, selected_tickers, strategy_capital_usd, "net_realized_pnl_usd")
         for comparison in outcome_result.get("policy_comparisons", []):
+            net_policy_returns[comparison["policy_id"]] = _policy_return(
+                [item for item in comparison.get("executions", []) if item.get("cohort") == "SCOUT_SELECTION"],
+                selected_tickers, strategy_capital_usd, "net_realized_pnl_usd",
+            )
             policy_returns[comparison["policy_id"]] = _policy_return(
                 [
                     item
@@ -376,6 +386,7 @@ def _reversal_cohort(
         ),
         "mean_day_mfe_pct": mean(observed_mfe) if observed_mfe else None,
         "policy_returns": policy_returns,
+        "net_policy_returns": net_policy_returns,
         "candidates": rows,
     }
 
@@ -500,6 +511,9 @@ def build_postmortem(
             "failure_reason_codes": reasons,
             "component_scores": _component_scores(candidate),
             "realized_benchmark_return_pct": item["realized_return_pct"],
+            "net_realized_benchmark_return_pct": item.get("net_realized_return_pct"),
+            "net_realized_benchmark_pnl_usd": item.get("net_realized_pnl_usd"),
+            "net_scout_realized_return_pct": item.get("scout_net_realized_return_pct"),
             "realized_benchmark_pnl_usd": item["realized_pnl_usd"],
             "scout_realized_return_pct": item.get("scout_realized_return_pct"),
             "maximum_capturable_move_pct": item[
@@ -580,6 +594,12 @@ def build_postmortem(
     baselines = benchmark_result["return_baselines"]
     code = benchmark_result["comparison"]["result_code"]
     result = {
+        "cost_model_id": benchmark_result.get("cost_model_id"),
+        "net_result_code": benchmark_result["comparison"].get("net_result_code"),
+        "net_scout_won": benchmark_result["comparison"].get("net_scout_won"),
+        "net_result": {
+            "SCOUT_OUTPERFORMED": "WIN", "SCOUT_TIED": "TIE", "SCOUT_UNDERPERFORMED": "MISS",
+        }.get(benchmark_result["comparison"].get("net_result_code")),
         "replay_id": snapshot["replay_id"],
         "trading_date": snapshot["trading_date"],
         "scout_version": scout_result["scout_version"],
@@ -597,12 +617,17 @@ def build_postmortem(
             for key in (
                 "realized_return_pct",
                 "realized_pnl_usd",
+                "net_realized_return_pct",
+                "net_realized_pnl_usd",
+                "net_average_capture_ratio",
                 "max_drawdown_pct",
                 "win_rate_pct",
                 "average_capture_ratio",
             )
         },
         "benchmark_performance": {
+            "net_realized_return_pct": baselines.get("net_random_draw_mean_realized_return_pct"),
+            "net_realized_pnl_usd": baselines.get("net_random_draw_mean_realized_pnl_usd"),
             "realized_return_pct": baselines[
                 "random_draw_mean_realized_return_pct"
             ],
@@ -682,7 +707,9 @@ def _execution_summary(
     return {
         "trades_executed": len(completed),
         "realized_return_pct": mean(returns) if returns else 0.0,
-        "net_realized_pnl_usd": net_pnl,
+        "realized_pnl_usd": net_pnl,
+        "gross_realized_pnl_usd": net_pnl,
+        **net_summary(completed),
         "average_capture_ratio": mean(captures) if captures else None,
         "win_rate_pct": (
             sum(value > 0 for value in returns) / len(returns) * 100
@@ -720,6 +747,7 @@ def _execution_policy_review(
     mover_tickers = [item["ticker"] for item in mover_candidates]
     champion_movers = [
         {
+            **{key: item.get(key) for key in ("net_realized_return_pct", "net_realized_pnl_usd", "net_capture_ratio")},
             "trade_executed": bool(item.get("trade_executed")),
             "realized_return_pct": item.get("realized_return_pct") or 0.0,
             "realized_pnl_usd": item.get("realized_pnl_usd") or 0.0,

@@ -1,5 +1,15 @@
 # Changelog
 
+## PR #35 — execution_costs_v1.0
+
+Historical fills now carry additive commission, regulatory-fee, and tiered
+slippage costs with net P&L, return, capture, and parallel net verdicts across
+policies and cohorts. Gross fills and the default gross verdict are unchanged.
+Reports and CSVs show costs alongside gross and net returns. Older results remain
+readable with unavailable net values; dataset_version and rubric_version do not
+change. Previously mislabeled policy-summary net P&L is now cost-adjusted, with
+the original gross value retained under explicit gross fields.
+
 ## PR #34 — alpha_v1.1_19m
 
 Research Scout Alpha v1.1 adds seven research-only metrics from already-loaded

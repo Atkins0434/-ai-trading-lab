@@ -14,6 +14,7 @@ from trainer.trade_engine import (
     simulate_trade,
 )
 from trainer.rate_control import load_massive_plan
+from trainer.execution_costs import COST_FIELDS, cost_fields, load_execution_costs, net_summary
 from trainer.validate_contracts import ContractError, validate_contract
 
 
@@ -181,6 +182,7 @@ def _execution_contract(
         execution.get("exit_timestamp"),
     )
     return {
+        **{key: execution[key] for key in COST_FIELDS if key in execution},
         "trade_executed": execution["trade_executed"],
         "entry_timestamp": (
             entry_timestamp if execution["trade_executed"] else None
@@ -215,7 +217,7 @@ def _no_trade_contract(
     *,
     rejection_reason: str | None = None,
 ) -> dict[str, Any]:
-    return {
+    result = {
         "trade_executed": False,
         "entry_timestamp": None,
         "entry_price": None,
@@ -240,6 +242,8 @@ def _no_trade_contract(
         "risk_usd_at_entry": None,
         "entry_rejection_reason": rejection_reason,
     }
+    result.update(cost_fields(result))
+    return result
 
 
 def _atr_by_ticker(snapshot: dict[str, Any]) -> dict[str, float | None]:
@@ -313,7 +317,9 @@ def _execution_summary(
     )
     net_pnl = sum(float(item["realized_pnl_usd"]) for item in completed)
     return {
-        "net_realized_pnl_usd": net_pnl,
+        "realized_pnl_usd": net_pnl,
+        "gross_realized_pnl_usd": net_pnl,
+        **net_summary(completed, strategy_capital),
         "realized_return_pct": net_pnl / strategy_capital * 100,
         "win_rate_pct": (
             sum(value > 0 for value in returns) / len(returns) * 100
@@ -581,7 +587,15 @@ def grade_replay_outcomes(
                 "execution_result": execution,
             })
 
+        from trainer.benchmark import _return_baselines
+        eligible_tickers = {item["ticker"] for item in snapshot.get("securities", []) if item.get("eligible")}
+        comparison_baselines = _return_baselines(
+            [item for item in outcomes if item["ticker"] in eligible_tickers],
+            len(qualifying_in_rank_order), strategy_capital,
+            comparison_policy, atr_values,
+        ) if eligible_tickers else None
         policy_comparisons.append({
+            "return_baselines": comparison_baselines,
             "policy_id": comparison_policy.policy_id,
             "exit_mode": comparison_policy.exit_mode,
             "sizing_mode": comparison_policy.sizing_mode,
@@ -601,6 +615,7 @@ def grade_replay_outcomes(
         )
 
     result = {
+        "cost_model_id": load_execution_costs()["cost_model_id"],
         "replay_id": snapshot["replay_id"],
         "trading_date": snapshot["trading_date"],
         "scout_version": snapshot["scout_version"],

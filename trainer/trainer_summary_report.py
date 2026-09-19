@@ -107,6 +107,8 @@ def generate_trainer_summary_pdf(state: dict[str, Any], output_path: Path) -> Pa
     story += [card_table, Spacer(1, 0.2 * inch), Paragraph("Cumulative comparison", h2)]
     comparison = [
         ["Measure", "Qualifying", "Exploration", "Combined", "Baseline"],
+        ["Net cumulative return", *[_pct(agg.get(f"net_{name}_cumulative_return_pct")) for name in ("scout", "exploration", "combined", "benchmark")]],
+        ["Net verdict count", f"{agg.get('net_scout_wins', 0)}W / {agg.get('net_ties', 0)}T / {agg.get('net_misses', 0)}M", "Gross WIN flips", str(agg.get("gross_win_to_net_non_win_count", 0)), ""],
         ["Avg daily return", f"{agg['scout_average_daily_return_pct']:.3f}%", f"{agg['exploration_average_daily_return_pct']:.3f}%", f"{agg['combined_average_daily_return_pct']:.3f}%", f"{agg['benchmark_average_daily_return_pct']:.3f}%"],
         ["Cumulative return", f"{agg['scout_cumulative_return_pct']:.3f}%", f"{agg['exploration_cumulative_return_pct']:.3f}%", f"{agg['combined_cumulative_return_pct']:.3f}%", f"{agg['benchmark_cumulative_return_pct']:.3f}%"],
         ["Total realized P&L", f"${agg['scout_total_realized_pnl_usd']:,.2f}", f"${agg['exploration_total_realized_pnl_usd']:,.2f}", f"${agg['combined_total_realized_pnl_usd']:,.2f}", f"${agg['benchmark_total_realized_pnl_usd']:,.2f}"],

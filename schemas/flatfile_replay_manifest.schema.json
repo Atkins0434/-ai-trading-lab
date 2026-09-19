@@ -86,7 +86,8 @@
     "days": {
       "type": "array",
       "items": {"$ref": "#/$defs/day"}
-    }
+    },
+    "cost_model_id": {"type": "string"}
   },
   "$defs": {
     "massivePlan": {

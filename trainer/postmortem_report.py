@@ -9,7 +9,7 @@ from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from trainer.replay_report import _execution_matrix
+from trainer.replay_report import _execution_matrix, _cost_tables, _styles, _fmt_money, GROSS_FOOTER
 
 
 def _pct(value: Any) -> str:
@@ -61,6 +61,9 @@ def generate_postmortem_pdf(
     kpi.setStyle(TableStyle([("BACKGROUND", (0, 0), (0, 0), result_color), ("BACKGROUND", (1, 0), (-1, -1), pale), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BFDBFE")), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
     comparison_rows = [
         ["Performance", "Scout", "Random baseline"],
+        ["Gross / net verdict", postmortem["result"], postmortem.get("net_result") or "N/A"],
+        ["Net realized return", _pct(scout.get("net_realized_return_pct")), _pct(bench.get("net_realized_return_pct"))],
+        ["Net realized P&L", _fmt_money(scout.get("net_realized_pnl_usd")), _fmt_money(bench.get("net_realized_pnl_usd"))],
         ["Selected / draw size", scout["candidate_count"], baselines["random_draw_size"]],
         ["Realized P&L", f"${scout['realized_pnl_usd']:.2f}", f"${bench['realized_pnl_usd']:.2f}"],
         ["Gross realized return", _pct(scout["realized_return_pct"]), _pct(bench["realized_return_pct"])],
@@ -159,7 +162,7 @@ def generate_postmortem_pdf(
             summary = policy["summary"]
             policy_rows.append([
                 policy["policy_id"], policy["exit_mode"], policy["sizing_mode"],
-                f"${summary['net_realized_pnl_usd']:.2f}",
+                _fmt_money(summary.get("net_realized_pnl_usd")),
                 _pct(summary["realized_return_pct"]),
                 _pct(summary["win_rate_pct"]),
                 _pct(summary["average_winner_pct"]),
@@ -256,4 +259,8 @@ def generate_postmortem_pdf(
     missed = Table(missed_rows, colWidths=[0.55*inch,0.75*inch,0.95*inch,1.85*inch,6.0*inch], repeatRows=1)
     missed.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),blue),("TEXTCOLOR",(0,0),(-1,0),colors.white),("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),("FONTSIZE",(0,0),(-1,-1),7),("GRID",(0,0),(-1,-1),0.35,colors.HexColor("#D1D5DB")),("VALIGN",(0,0),(-1,-1),"MIDDLE")]))
     story.extend([missed, Spacer(1, 8), Paragraph("Trainer boundary: diagnoses are hypotheses only. No weights, thresholds, guardrails, or Production Scout files were changed.", small)])
+    if outcome_result is not None:
+        policies, rows = _execution_matrix(outcome_result, benchmark)
+        _cost_tables(story, {"execution_policies": policies, "execution_comparison_rows": rows}, _styles())
+    story.append(Paragraph(GROSS_FOOTER, small))
     doc.build(story)

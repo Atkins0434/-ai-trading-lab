@@ -1,4 +1,5 @@
 from __future__ import annotations
+from trainer.scorable_outcomes_schema import eligible_outcomes_columns
 
 from trainer.output_paths import daily_path, day_file, legacy_name
 
@@ -9,7 +10,6 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from trainer.scorable_outcomes_schema import (
-    ELIGIBLE_OUTCOMES_COLUMNS,
     METRIC_IDS,
     scorable_outcomes_columns,
 )
@@ -151,6 +151,7 @@ def export_daily_outcomes(
         security = securities[ticker]
         observed = outcomes.get(ticker, {})
         row = {
+            "cost_model_id": outcome.get("cost_model_id"),
             "trading_date": trading_date,
             "ticker": ticker,
             "stable_security_id": security.get("stable_security_id"),
@@ -192,6 +193,10 @@ def export_daily_outcomes(
             row[f"{policy_id}_realized_return_pct"] = execution.get("realized_return_pct")
             row[f"{policy_id}_capture_ratio"] = execution.get("capture_ratio")
             row[f"{policy_id}_stop_distance_pct"] = execution.get("stop_distance_pct")
+            execution = execution if observed.get("intraday_path") else {}
+            row[f"{policy_id}_net_realized_return_pct"] = execution.get("net_realized_return_pct")
+            row[f"{policy_id}_cost_bps"] = execution.get("cost_bps_of_position")
+            row[f"{policy_id}_net_capture_ratio"] = execution.get("net_capture_ratio")
         scorable_rows.append(row)
 
     eligible_rows = []
@@ -200,6 +205,7 @@ def export_daily_outcomes(
         path = _path_fields(observed.get("intraday_path", []))
         candidate = candidates.get(ticker, {})
         eligible_rows.append({
+            "cost_model_id": outcome.get("cost_model_id"),
             "trading_date": trading_date,
             "ticker": ticker,
             "stable_security_id": security.get("stable_security_id"),
@@ -212,6 +218,12 @@ def export_daily_outcomes(
             "top_10_mover": ticker in ranks,
             "realized_return_pct": observed.get("execution_result", {}).get("realized_return_pct"),
         })
+        executions = {policy_ids[0]: observed.get("execution_result", {})}
+        executions.update({key: values.get(ticker, {}) for key, values in comparisons.items()})
+        for policy_id, execution in executions.items():
+            execution = execution if observed.get("intraday_path") else {}
+            for column, field in (("net_realized_return_pct", "net_realized_return_pct"), ("cost_bps", "cost_bps_of_position"), ("net_capture_ratio", "net_capture_ratio")):
+                eligible_rows[-1][f"{policy_id}_{column}"] = execution.get(field)
 
     key = lambda row: (row["trading_date"], row["ticker"])
     scorable_rows.sort(key=key)
@@ -224,7 +236,7 @@ def export_daily_outcomes(
         ),
         _write_csv(
             daily_path(day_dir, trading_date, "eligible_outcomes"),
-            ELIGIBLE_OUTCOMES_COLUMNS,
+            eligible_outcomes_columns(policy_ids),
             eligible_rows,
         ),
     )
@@ -258,7 +270,14 @@ def concatenate_completed_outcomes(output_root: Path, completed_dates: list[str]
                 if header is None:
                     header = list(reader.fieldnames or [])
                 elif list(reader.fieldnames or []) != header:
-                    raise ValueError(f"Outcome export schema changed across days: {path}")
+                    incoming = list(reader.fieldnames or [])
+                    changed = set(incoming) ^ set(header)
+                    if any(name != "cost_model_id" and not name.endswith(("_net_realized_return_pct", "_cost_bps", "_net_capture_ratio")) for name in changed):
+                        raise ValueError(f"Outcome export schema changed across days: {path}")
+                    if set(header) <= set(incoming):
+                        header = incoming
+                    else:
+                        header += [name for name in incoming if name not in header]
                 rows.extend(reader)
         destination = output_root / filename
         _write_csv(destination, header or (), rows)

@@ -115,7 +115,27 @@
         "average_top_10_capture_rate_pct": {"type": "number", "minimum": 0, "maximum": 100},
         "unreachable_mover_count": {"type": "integer", "minimum": 0},
         "unreachable_pct": {"type": "number", "minimum": 0, "maximum": 100},
-        "execution_policy_review_count": {"type": "integer", "minimum": 0}
+        "execution_policy_review_count": {"type": "integer", "minimum": 0},
+        "net_scout_days_processed": {"type": ["number", "null"]},
+        "net_scout_total_realized_pnl_usd": {"type": ["number", "null"]},
+        "net_scout_average_daily_return_pct": {"type": ["number", "null"]},
+        "net_scout_cumulative_return_pct": {"type": ["number", "null"]},
+        "net_exploration_days_processed": {"type": ["number", "null"]},
+        "net_exploration_total_realized_pnl_usd": {"type": ["number", "null"]},
+        "net_exploration_average_daily_return_pct": {"type": ["number", "null"]},
+        "net_exploration_cumulative_return_pct": {"type": ["number", "null"]},
+        "net_combined_days_processed": {"type": ["number", "null"]},
+        "net_combined_total_realized_pnl_usd": {"type": ["number", "null"]},
+        "net_combined_average_daily_return_pct": {"type": ["number", "null"]},
+        "net_combined_cumulative_return_pct": {"type": ["number", "null"]},
+        "net_benchmark_days_processed": {"type": ["number", "null"]},
+        "net_benchmark_total_realized_pnl_usd": {"type": ["number", "null"]},
+        "net_benchmark_average_daily_return_pct": {"type": ["number", "null"]},
+        "net_benchmark_cumulative_return_pct": {"type": ["number", "null"]},
+        "net_scout_wins": {"type": "integer", "minimum": 0},
+        "net_ties": {"type": "integer", "minimum": 0},
+        "net_misses": {"type": "integer", "minimum": 0},
+        "gross_win_to_net_non_win_count": {"type": "integer", "minimum": 0}
       }
     },
     "hypothesis": {
