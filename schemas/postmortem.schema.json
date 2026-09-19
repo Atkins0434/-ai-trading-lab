@@ -85,6 +85,8 @@
       "required": ["metric_id", "score", "raw_value"],
       "properties": {
         "metric_id": {"type": "string", "minLength": 1},
+        "status": {"enum": ["OBSERVED", "SCORED", "MISSING", null]},
+        "calculation_version": {"type": ["string", "null"]},
         "score": {"type": ["integer", "null"], "minimum": 0, "maximum": 4},
         "raw_value": {}
       }
@@ -105,6 +107,9 @@
         "was_in_scout_output": {"type": "boolean"},
         "scout_selected": {"type": "boolean"},
         "scout_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "alpha12_total_score": {"type": ["integer", "null"], "minimum": 0, "maximum": 48},
+        "alpha12_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "rubric_version": {"enum": ["alpha_v1.1_19m", null]},
         "reversal_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
         "miss_classification": {
           "enum": [

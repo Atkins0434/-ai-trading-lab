@@ -252,7 +252,7 @@ def test_snapshot_records_real_bar_counts():
     assert real_count["as_of_timestamp"] == snapshot["freeze_timestamp"]
 
 
-def test_alpha_is_48_points_and_never_execution_eligible():
+def test_alpha_is_76_points_and_never_execution_eligible():
     daily, intraday = alpha_inputs()
     snapshot = build_massive_alpha_snapshot(
         "TEST", "2026-09-14", daily, intraday, exchange="NASDAQ"
@@ -261,9 +261,9 @@ def test_alpha_is_48_points_and_never_execution_eligible():
     candidate = result["candidates"][0]
 
     assert result["mode"] == "RESEARCH_ONLY"
-    assert result["scout_version"] == "research_scout_alpha_v1.0"
-    assert len(candidate["component_scores"]) == 12
-    assert candidate["maximum_possible_score"] == 48
+    assert result["scout_version"] == "research_scout_alpha_v1.1"
+    assert len(candidate["component_scores"]) == 19
+    assert candidate["maximum_possible_score"] == 76
     assert candidate["research_selected"] is True
     assert candidate["execution_eligible"] is False
     assert "HISTORICAL_SPREAD" in candidate["unavailable_execution_checks"]

@@ -1,5 +1,6 @@
 {
-  "scout_id": "research_scout_alpha_v1.0",
+  "scout_id": "research_scout_alpha_v1.1",
+  "rubric_version": "alpha_v1.1_19m",
   "status": "research_only_not_promoted",
   "execution_allowed": false,
   "morning_freeze_time": "09:15:00",
@@ -8,11 +9,26 @@
   "selection_threshold_pct": 70,
   "validation_thresholds_pct": [60, 70, 80, 85],
   "scoring": {
-    "metric_count": 12,
+    "metric_count": 19,
     "points_per_metric": 4,
-    "maximum_points": 48,
-    "denominator_policy": "FIXED_48",
+    "maximum_points": 76,
+    "denominator_policy": "FIXED_76",
+    "missing_data_policy": "MISSING_WITH_NO_POINTS_FIXED_DENOMINATOR",
     "feature_registry_path": "config/feature_registry_alpha_v1.json"
+  },
+  "extended_metric_thresholds": {
+    "research_thresholds": true,
+    "rsi_method": "cutler_window",
+    "rsi_period": "number_of_real_close_to_close_changes_in_window",
+    "rsi_note": "Arithmetic mean gains/losses including zero changes. Real bars only; minimum bars follow price_momentum. No smoothing or carry-forward padding. Both means zero yields 50.",
+    "relative_strength_index_15m": {"1": 50, "2": 55, "3": 62, "4": 70},
+    "relative_strength_index_30m": {"1": 50, "2": 55, "3": 62, "4": 70},
+    "relative_strength_index_60m": {"1": 50, "2": 55, "3": 62, "4": 70},
+    "atr_pct_opportunity": {"1": 2, "2": 4, "3": 7, "4": 10},
+    "current_range_pct_opportunity": {"1": 3, "2": 6, "3": 10, "4": 15},
+    "average_daily_dollar_volume_quality": {"1": 5000000, "2": 10000000, "3": 25000000, "4": 50000000},
+    "premarket_dollar_volume_quality": {"1": 250000, "2": 500000, "3": 1000000, "4": 2500000},
+    "range_note": "Metric 26 grades absolute premarket range as percent of prior close. Metric 12 grades the ratio to the historical 20-session average range; these distinct measurements do not duplicate points under premarket_price_volume_composite.double_counting_allowed=false."
   },
   "liquidity": {
     "minimum_average_daily_dollar_volume_usd": 5000000,

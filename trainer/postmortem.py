@@ -55,6 +55,8 @@ def _component_scores(candidate: dict[str, Any] | None) -> list[dict[str, Any]]:
             "metric_id": metric_id,
             "score": component.get("score"),
             "raw_value": component.get("raw_value"),
+            "status": component.get("status"),
+            "calculation_version": component.get("calculation_version"),
         }
         for metric_id, component in sorted(candidate["component_scores"].items())
     ]
@@ -488,6 +490,9 @@ def build_postmortem(
             "was_in_scout_output": candidate is not None,
             "scout_selected": bool(item.get("scout_selected", False)),
             "scout_score_pct": candidate.get("score_pct") if candidate else None,
+            "alpha12_total_score": candidate.get("alpha12_total_score") if candidate else None,
+            "alpha12_score_pct": candidate.get("alpha12_score_pct") if candidate else None,
+            "rubric_version": candidate.get("rubric_version") if candidate else None,
             "reversal_score_pct": (
                 candidate.get("reversal_score_pct") if candidate else None
             ),
