@@ -51,7 +51,16 @@
       "id": "2024-05-B",
       "start": "2024-05-16",
       "end": "2024-05-31",
-      "status": "PENDING"
+      "status": "IN_PROGRESS",
+      "code_sha": "e50b1dc6837af20c9d3fd45ced01df6606ae0258",
+      "dataset_version_run": 2,
+      "attempts": 1,
+      "last_run_id": "35467171974",
+      "started_at": "2026-09-19T22:03:59.599069+00:00",
+      "completed_at": null,
+      "days_completed": 0,
+      "days_requested": 11,
+      "last_error": null
     },
     {
       "id": "2024-06-A",
