@@ -1,0 +1,87 @@
+{
+  "version": "replay_backlog_v1.0",
+  "dataset_version": 2,
+  "units": [
+    {
+      "id": "2024-04-A",
+      "start": "2024-04-01",
+      "end": "2024-04-15",
+      "status": "IN_PROGRESS",
+      "code_sha": "a6fcd54b26fbfb85d88f3afc4f9636e5a9f86d02",
+      "dataset_version_run": 2,
+      "attempts": 1,
+      "last_run_id": "35420330654",
+      "started_at": "2026-09-19T04:05:16.378485+00:00",
+      "completed_at": null,
+      "days_completed": 0,
+      "days_requested": 11,
+      "last_error": null
+    },
+    {
+      "id": "2024-04-B",
+      "start": "2024-04-16",
+      "end": "2024-04-30",
+      "status": "PENDING"
+    },
+    {
+      "id": "2024-05-A",
+      "start": "2024-05-01",
+      "end": "2024-05-15",
+      "status": "PENDING"
+    },
+    {
+      "id": "2024-05-B",
+      "start": "2024-05-16",
+      "end": "2024-05-31",
+      "status": "PENDING"
+    },
+    {
+      "id": "2024-06-A",
+      "start": "2024-06-01",
+      "end": "2024-06-15",
+      "status": "PENDING"
+    },
+    {
+      "id": "2024-06-B",
+      "start": "2024-06-16",
+      "end": "2024-06-30",
+      "status": "PENDING"
+    },
+    {
+      "id": "2024-07-A",
+      "start": "2024-07-01",
+      "end": "2024-07-15",
+      "status": "PENDING"
+    },
+    {
+      "id": "2024-07-B",
+      "start": "2024-07-16",
+      "end": "2024-07-31",
+      "status": "PENDING"
+    },
+    {
+      "id": "2024-08-A",
+      "start": "2024-08-01",
+      "end": "2024-08-15",
+      "status": "PENDING"
+    },
+    {
+      "id": "2024-08-B",
+      "start": "2024-08-16",
+      "end": "2024-08-31",
+      "status": "PENDING"
+    },
+    {
+      "id": "2024-09-A",
+      "start": "2024-09-01",
+      "end": "2024-09-15",
+      "status": "PENDING"
+    },
+    {
+      "id": "2024-09-B",
+      "start": "2024-09-16",
+      "end": "2024-09-30",
+      "status": "PENDING"
+    }
+  ]
+}
