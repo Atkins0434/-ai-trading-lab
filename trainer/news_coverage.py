@@ -16,7 +16,8 @@ def price_tier(price):
 def empty_counts():
     return {'scorable_count': 0, 'with_any_article': 0, 'with_admitted_event': 0,
             'top_10_movers_with_admitted_event': 0, 'selections_with_admitted_event': 0,
-            'fetch_errors': 0, 'by_source_tier': {}, 'by_event_type': {}}
+            'fetch_errors': 0, 'by_source_tier': {}, 'by_event_type': {},
+            'freshest_relevant_event_ages_minutes': []}
 
 
 def count_news_coverage(candidates, securities, top_movers):
@@ -35,13 +36,16 @@ def count_news_coverage(candidates, securities, top_movers):
             if (candidate.get('admitted_event_count') or 0) == 0:
                 continue
             target['with_admitted_event'] += 1
+            age = candidate.get('freshest_event_age_minutes')
+            if age is not None:
+                target['freshest_relevant_event_ages_minutes'].append(float(age))
             target['top_10_movers_with_admitted_event'] += candidate['ticker'] in top_movers
             target['selections_with_admitted_event'] += bool(candidate.get('research_selected') or candidate.get('qualification_selected'))
             # One best event per scored ticker, matching the flat CSV columns.
             for field, key in (('source_tier', 'by_source_tier'), ('best_event_type', 'by_event_type')):
                 label = candidate[field]
                 target[key][label] = target[key].get(label, 0) + 1
-    return result
+    return finalize_coverage(result)
 
 
 def rollup_news_coverage(coverages):
@@ -49,7 +53,9 @@ def rollup_news_coverage(coverages):
     result['by_price_tier'] = {tier: empty_counts() for tier in PRICE_TIERS}
     def add(target, source):
         for key in empty_counts():
-            if key.startswith('by_'):
+            if key == 'freshest_relevant_event_ages_minutes':
+                target[key].extend(source.get(key, []))
+            elif key.startswith('by_'):
                 counts = Counter(target[key]); counts.update(source.get(key, {}))
                 target[key] = dict(sorted(counts.items()))
             else:
@@ -58,4 +64,28 @@ def rollup_news_coverage(coverages):
         add(result, coverage)
         for tier in PRICE_TIERS:
             add(result['by_price_tier'][tier], coverage.get('by_price_tier', {}).get(tier, {}))
-    return result
+    return finalize_coverage(result)
+
+
+def finalize_coverage(coverage):
+    # Preserve samples so cumulative quantiles pool ticker-days exactly rather
+    # than averaging daily percentiles. Linear interpolation at (n - 1) * p.
+    for row in (coverage, *coverage['by_price_tier'].values()):
+        ages = sorted(row['freshest_relevant_event_ages_minutes'])
+        row['freshest_relevant_event_ages_minutes'] = ages
+        for hours in (12, 24):
+            count = sum(age < hours * 60 for age in ages)
+            row[f'share_with_relevant_event_under_{hours}h'] = (
+                count / row['scorable_count'] if row['scorable_count'] else None
+            )
+        quantiles = {}
+        for label, fraction in (('p25', .25), ('p50', .5), ('p75', .75)):
+            if not ages:
+                quantiles[label] = None
+            else:
+                position = (len(ages) - 1) * fraction
+                lower = int(position)
+                upper = min(lower + 1, len(ages) - 1)
+                quantiles[label] = ages[lower] + (ages[upper] - ages[lower]) * (position - lower)
+        row['freshest_relevant_event_age_minutes'] = quantiles
+    return coverage

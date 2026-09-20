@@ -61,6 +61,7 @@
         "source_tier": {"type": ["string", "null"]},
         "verification_status": {"type": ["string", "null"]},
         "freshest_event_age_minutes": {"type": ["number", "null"]},
+        "keyword_sentiment_hint": {"type": ["string", "null"]},
         "sentiment": {"type": ["string", "null"]},
 
         "reachable_metric_count": {"type": ["integer", "null"], "minimum": 0},

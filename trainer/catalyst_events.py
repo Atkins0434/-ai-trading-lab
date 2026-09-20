@@ -351,6 +351,17 @@ def calculate_shadow_catalyst_metrics(
     }
 
 
+def relevant_for_freshness(event: dict[str, Any], policy: dict[str, Any]) -> bool:
+    rules = policy["freshness_relevance"]
+    event_type = event["event_type"]
+    if event_type in rules["never_relevant"]:
+        return False
+    return event_type in rules["always_relevant"] or (
+        event_type in rules["sentiment_dependent"]
+        and event["sentiment"] in rules["allowed_sentiments"]
+    )
+
+
 def calculate_research_catalyst_metrics(
     snapshot: dict[str, Any], ticker: str, policy: dict[str, Any]
 ) -> dict[str, Any]:
@@ -380,7 +391,7 @@ def calculate_research_catalyst_metrics(
     )
     relevant = [
         event for event in events
-        if event.get("positive_relevance", 0) >= policy["positive_relevance_minimum"]
+        if relevant_for_freshness(event, policy)
     ]
     freshest = max(
         relevant,
@@ -426,5 +437,6 @@ def calculate_research_catalyst_metrics(
         "source_tier": best["source_tier"] if best else None,
         "verification_status": verification,
         "freshest_event_age_minutes": age,
+        "keyword_sentiment_hint": best.get("keyword_sentiment_hint") if best else None,
         "sentiment": best["sentiment"] if best else None,
     }

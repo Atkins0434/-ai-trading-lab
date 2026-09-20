@@ -82,7 +82,7 @@ def test_freshness_uses_most_recent_positive_relevance():
     result=score([article(360),article(20,title='Newer story',insights=[{'ticker':'TEST','sentiment':'negative'}])])
     assert result['freshest_event_age_minutes']==360
     assert result['components']['catalyst_freshness_relevance']['score']==3
-    assert score([article(insights=[{'ticker':'TEST','sentiment':'negative'}])])['components']['catalyst_freshness_relevance']['score']==0
+    assert score([article(insights=[{'ticker':'TEST','sentiment':'negative'}])])['components']['catalyst_freshness_relevance']['score']==4
 
 
 def test_no_catalyst_is_observed_zero_and_fetch_failure_is_missing():
@@ -98,8 +98,9 @@ def test_no_catalyst_is_observed_zero_and_fetch_failure_is_missing():
 def test_insights_keyword_sources_and_no_sec_filing_events():
     events=context([article(title='Company raises guidance',insights=[]),article(title='Company files 8-K',insights=[{'ticker':'TEST','sentiment':'negative'}])])['snapshot']['events']
     indexed={e['headline']:e for e in events}
-    assert indexed['Company raises guidance']['sentiment_source']=='KEYWORDS'
-    assert indexed['Company raises guidance']['sentiment']=='POSITIVE'
+    assert indexed['Company raises guidance']['sentiment_source']=='UNAVAILABLE'
+    assert indexed['Company raises guidance']['sentiment']=='UNKNOWN'
+    assert indexed['Company raises guidance']['keyword_sentiment_hint']=='POSITIVE'
     assert indexed['Company files 8-K']['sentiment_source']=='MASSIVE_INSIGHTS'
     assert indexed['Company files 8-K']['sentiment']=='NEGATIVE'
     assert all(e['event_type']!='SEC_FILING' for e in events)

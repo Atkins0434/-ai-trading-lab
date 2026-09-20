@@ -972,6 +972,15 @@ def generate_cumulative_replay_report(
     for label, row in [("All", news), *news['by_price_tier'].items()]:
         news_rows.append([label, *[str(row[k]) for k in ('scorable_count', 'with_any_article', 'with_admitted_event', 'top_10_movers_with_admitted_event', 'selections_with_admitted_event', 'fetch_errors')]])
     story.append(_table(news_rows, [1.1*inch] + [.8*inch]*6, font_size=7))
+    freshness_rows = [["Price tier", "Share <12h", "Share <24h", "p25 min", "p50 min", "p75 min"]]
+    for label, row in [("All", news), *news['by_price_tier'].items()]:
+        freshness_rows.append([label, *[
+            "n/a" if row[f"share_with_relevant_event_under_{hours}h"] is None
+            else f"{row[f'share_with_relevant_event_under_{hours}h'] * 100:.2f}%"
+            for hours in (12, 24)
+        ], *[_fmt_number(row['freshest_relevant_event_age_minutes'][key]) for key in ('p25', 'p50', 'p75')]])
+    story.append(Paragraph("Freshest relevant admitted event (pooled ticker-days)", styles['body']))
+    story.append(_table(freshness_rows, [1.1*inch] + [.95*inch]*5, font_size=7))
     for label, row in [("All", news), *news['by_price_tier'].items()]:
         for key in ('by_source_tier', 'by_event_type'):
             description = "; ".join(f"{name}={count}" for name, count in sorted(row[key].items())) or "none"
