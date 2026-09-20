@@ -142,6 +142,8 @@
       ],
 
       "properties": {
+        "news_context": {"type": "object", "additionalProperties": false, "required": ["status", "article_count"], "properties": {"status": {"enum": ["AVAILABLE", "MISSING"]}, "article_count": {"type": ["integer", "null"], "minimum": 0}, "error": {"type": "string"}, "snapshot": {"type": "object"}}},
+
         "sic_code": {"type": ["string", "integer", "null"]},
         "sic_description": {"type": ["string", "null"]},
 

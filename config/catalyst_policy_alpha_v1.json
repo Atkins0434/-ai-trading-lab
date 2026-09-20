@@ -1,13 +1,14 @@
 {
   "policy_version": "catalyst_alpha_v1.0",
-  "mode": "SHADOW_ONLY",
+  "mode": "SCORED_RESEARCH",
   "freeze_timezone": "America/New_York",
   "freeze_time": "09:15:00",
   "admission": {
     "published_by_freeze_required": true,
     "provider_available_by_freeze_required": true,
-    "unknown_provider_availability_action": "EXCLUDE",
-    "syndicated_duplicate_action": "COUNT_ONCE"
+    "unknown_provider_availability_action": "ASSUME_AVAILABLE_WITH_LATENCY",
+    "syndicated_duplicate_action": "COUNT_ONCE",
+    "provider_latency_minutes": 15
   },
   "positive_relevance_minimum": 0.5,
   "metrics": [
@@ -15,19 +16,19 @@
       "metric_id": "catalyst_quality",
       "production_metric_number": 19,
       "max_points": 4,
-      "included_in_alpha_score": false
+      "included_in_alpha_score": true
     },
     {
       "metric_id": "catalyst_verification_confidence",
       "production_metric_number": 20,
       "max_points": 4,
-      "included_in_alpha_score": false
+      "included_in_alpha_score": true
     },
     {
       "metric_id": "catalyst_freshness_relevance",
       "production_metric_number": 21,
       "max_points": 4,
-      "included_in_alpha_score": false
+      "included_in_alpha_score": true
     }
   ],
   "freshness_hours": {
@@ -40,5 +41,7 @@
     "production_score_changes": false,
     "execution_authority": false,
     "dilution_enforcement": "OBSERVE_ONLY"
-  }
+  },
+  "lookback_days": 3,
+  "notes": "Massive exposes publish time, not ingestion time, so a 15-minute latency buffer stands in for provider availability. SEC filings are out of scope; SEC_FILING remains defined but is not emitted by this news adapter. Positive relevance is ticker relevance when sentiment is POSITIVE, otherwise zero."
 }

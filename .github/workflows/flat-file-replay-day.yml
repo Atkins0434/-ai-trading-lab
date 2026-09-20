@@ -41,7 +41,9 @@ jobs:
       - name: Restore Massive reference cache
         uses: actions/cache@v4
         with:
-          path: data/reference_cache/
+          path: |
+            data/reference_cache/
+            data/news_cache/
           key: massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}
           restore-keys: |
             massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
@@ -500,7 +502,7 @@ jobs:
         shell: bash
         run: |
           echo "GitHub Actions cache storage is limited to 10 GB per repository."
-          for directory in data/flatfiles data/reference_cache; do
+          for directory in data/flatfiles data/reference_cache data/news_cache; do
             if [ -d "$directory" ]; then
               human_size="$(du -sh "$directory" | cut -f1)"
               byte_size="$(du -sb "$directory" | cut -f1)"

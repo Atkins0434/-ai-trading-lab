@@ -9,6 +9,7 @@ import runpy
 import pytest
 
 from trainer.research_scout_alpha import _load_contract, run_research_scout_alpha
+from trainer.news_alpha import CATALYST_METRIC_IDS
 from trainer.sector_metrics import (
     SECTOR_METRIC_IDS, availability_metadata, benchmark_symbol,
     build_sector_context, premarket_return, sector_components, sector_key,
@@ -94,19 +95,19 @@ def test_availability_denominator_and_exports(tmp_path):
     snapshot=fixture_snapshot()
     scout=run_research_scout_alpha(snapshot)
     candidate=scout['candidates'][0]
-    assert candidate['reachable_metric_count']==22
-    assert candidate['score_pct']==candidate['score_pct_reachable']==candidate['total_score']/88*100
+    assert candidate['reachable_metric_count']==25
+    assert candidate['score_pct']==candidate['score_pct_reachable']==candidate['total_score']/100*100
     assert candidate['score_pct_fixed120']==candidate['total_score']/120*100
-    assert candidate['maximum_possible_score']==88
-    assert len(candidate['unavailable_metrics'])==8
-    assert len(METRIC_IDS)==22
+    assert candidate['maximum_possible_score']==100
+    assert len(candidate['unavailable_metrics'])==5
+    assert len(METRIC_IDS)==25
     paths=export_daily_outcomes(tmp_path,snapshot,scout,{'outcomes':[],'policy_comparisons':[]},{})
     with paths[0].open() as handle:
         reader=csv.DictReader(handle)
         assert reader.fieldnames==list(scorable_outcomes_columns(['execution_policy_v1.0']))
         row=next(reader)
     assert row['score_pct_fixed120']==f"{candidate['score_pct_fixed120']:.6f}"
-    assert row['reachable_metric_count']=='22'
+    assert row['reachable_metric_count']=='25'
     assert row['unavailable_metrics']=='|'.join(candidate['unavailable_metrics'])
     assert row['benchmark_symbol']=='IWM'
     assert all(row[f'{metric}_raw']=='' for metric in SECTOR_METRIC_IDS)
@@ -133,7 +134,7 @@ def test_march_synthetic_existing_nineteen_components_byte_identical(ticker,gap,
     item=snapshot['securities'][0]; item['ticker']=ticker
     item['market_data']['previous_close']['value']=item['premarket_bars'][-1]['close']/(1+gap/100)
     candidate=run_research_scout_alpha(snapshot)['candidates'][0]
-    components={k:v for k,v in candidate['component_scores'].items() if k not in SECTOR_METRIC_IDS}
+    components={k:v for k,v in candidate['component_scores'].items() if k not in SECTOR_METRIC_IDS + CATALYST_METRIC_IDS}
     assert hashlib.sha256(json.dumps(components,sort_keys=True).encode()).hexdigest()==expected
     assert candidate['alpha12_total_score']==alpha12
     assert len(candidate['reversal_component_scores'])==12
@@ -203,11 +204,11 @@ def test_scorer_records_market_context_alongside_unchanged_components():
     for candidate in scored['candidates']:
         assert all(candidate['component_scores'][m]['status']=='SCORED' for m in SECTOR_METRIC_IDS)
         assert candidate['component_scores']['broad_market_regime_alignment']['score']==1
-        assert candidate['score_pct']==candidate['total_score']/88*100
-        assert candidate['threshold_points']==62
+        assert candidate['score_pct']==candidate['total_score']/100*100
+        assert candidate['threshold_points']==70
     baseline=run_research_scout_alpha(dict(snapshot,market_benchmarks={}))
     for before,after in zip(baseline['candidates'],scored['candidates']):
-        assert {k:v for k,v in before['component_scores'].items() if k not in SECTOR_METRIC_IDS}=={k:v for k,v in after['component_scores'].items() if k not in SECTOR_METRIC_IDS}
+        assert {k:v for k,v in before['component_scores'].items() if k not in SECTOR_METRIC_IDS + CATALYST_METRIC_IDS}=={k:v for k,v in after['component_scores'].items() if k not in SECTOR_METRIC_IDS + CATALYST_METRIC_IDS}
         assert before['reversal_component_scores']==after['reversal_component_scores']
 
 

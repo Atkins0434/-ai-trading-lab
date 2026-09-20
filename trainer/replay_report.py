@@ -1,9 +1,12 @@
 from __future__ import annotations
+
+from trainer.news_coverage import rollup_news_coverage
 from trainer.execution_costs import net_summary
 
 from trainer.output_paths import daily_path
 
 import argparse
+from html import escape
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -963,6 +966,17 @@ def generate_cumulative_replay_report(
         ["Completed days", "Universe observations", "Scorable", "Selected", "Scout return sum", "Baseline return sum"],
         [str(len(models)), str(totals["universe"]), str(totals["scorable"]), str(totals["selected"]), _fmt_pct(totals["scout_return"]), _fmt_pct(totals["baseline_return"])],
     ], [1.1*inch,1.35*inch,0.9*inch,0.9*inch,1.25*inch,1.35*inch], right_columns=(0,1,2,3,4,5), font_size=6.5))
+    news = rollup_news_coverage((m.get("postmortem") or {}).get("news_coverage", {}) for m in models)
+    story.append(Paragraph("News coverage (scored and shadow tickers)", styles["subsection"]))
+    news_rows = [["Price tier", "Scored", "Articles", "Admitted", "Movers", "Selections", "Errors"]]
+    for label, row in [("All", news), *news['by_price_tier'].items()]:
+        news_rows.append([label, *[str(row[k]) for k in ('scorable_count', 'with_any_article', 'with_admitted_event', 'top_10_movers_with_admitted_event', 'selections_with_admitted_event', 'fetch_errors')]])
+    story.append(_table(news_rows, [1.1*inch] + [.8*inch]*6, font_size=7))
+    for label, row in [("All", news), *news['by_price_tier'].items()]:
+        for key in ('by_source_tier', 'by_event_type'):
+            description = "; ".join(f"{name}={count}" for name, count in sorted(row[key].items())) or "none"
+            story.append(Paragraph(escape(f"{label} {key} (best event per ticker): {description}"), styles['body']))
+
     reachability: Counter[str] = Counter()
     for model in models:
         reachability.update(

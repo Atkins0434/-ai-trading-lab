@@ -141,7 +141,9 @@ jobs:
         continue-on-error: true
         uses: actions/cache/restore@v4
         with:
-          path: data/reference_cache/
+          path: |
+            data/reference_cache/
+            data/news_cache/
           key: massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-
@@ -223,7 +225,7 @@ jobs:
           END: ${{ steps.unit.outputs.end }}
         run: |
           python -m trainer.replay_scheduled prune --start "$START" --end "$END"
-          du -sh data/flatfiles data/reference_cache || true
+          du -sh data/flatfiles data/reference_cache data/news_cache || true
           echo 'Actions cache is 10 GB per repository; each run saves a new flat-file entry containing only this unit.'
       - name: Save bounded flat-file cache
         if: always() && steps.unit.outputs.id != '' && steps.prune.outcome == 'success'
@@ -237,7 +239,9 @@ jobs:
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
-          path: data/reference_cache/
+          path: |
+            data/reference_cache/
+            data/news_cache/
           key: massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Fail job for failed replay
         if: always() && steps.unit.outputs.id != '' && steps.finalize.outputs.status != 'COMPLETE' && steps.finalize.outputs.status != 'PAUSED'

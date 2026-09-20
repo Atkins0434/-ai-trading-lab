@@ -13,6 +13,7 @@ import time
 from typing import Any, Callable
 
 from trainer.benchmark import build_same_universe_benchmark
+from trainer.news_cache import enrich_snapshot_news
 from trainer.sector_metrics import availability_metadata
 from trainer.replay_provenance import current_provenance, check_resume, provenance_differences
 from trainer.execution_costs import load_execution_costs
@@ -379,6 +380,11 @@ def _run_flatfile_day_impl(
             snapshot_result, "excluded_tickers", []
         )
     with _tracked_phase(progress, "scoring", progress_callback):
+        progress["news_cache"] = enrich_snapshot_news(
+            snapshot_result.snapshot, reference_client,
+            cache_root=reference_cache_root.parent / "news_cache",
+        )
+        _write_json(snapshot_path, snapshot_result.snapshot)
         scout = run_research_scout_alpha(
             snapshot_result.snapshot,
             threshold_pct=threshold_pct,

@@ -5,6 +5,7 @@ from math import ceil
 from pathlib import Path
 from typing import Any
 
+from trainer.news_alpha import CATALYST_METRIC_IDS, NEWS_FIELDS, news_scores
 from trainer.price_volume import PriceVolumeError, calculate_price_volume_metrics
 from trainer.extended_alpha_metrics import EXTENDED_METRIC_IDS, extended_components
 from trainer.sector_metrics import (
@@ -27,9 +28,9 @@ ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "config" / "scout_alpha_v1.json"
 REVERSAL_CONFIG_PATH = ROOT / "config" / "scout_reversal_v1.json"
 REGISTRY_PATH = ROOT / "config" / "feature_registry_alpha_v1.json"
-MAXIMUM_POINTS = 88
+MAXIMUM_POINTS = 100
 ALPHA12_MAXIMUM_POINTS = 48
-RUBRIC_VERSION = "alpha_v1.2_22m"
+RUBRIC_VERSION = "alpha_v1.3_25m"
 
 
 class ResearchScoutError(Exception):
@@ -46,12 +47,12 @@ def _load_contract() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         config.get("execution_allowed") is not False
         or config.get("scoring", {}).get("maximum_points") != MAXIMUM_POINTS
         or registry.get("maximum_points") != MAXIMUM_POINTS
-        or registry.get("metric_count") != 22
+        or registry.get("metric_count") != 25
         or [m.get("number") for m in registry["metrics"]] != list(range(1, 31))
         or len({m.get("id") for m in registry["metrics"]}) != 30
         or any(m.get("availability") not in {"AVAILABLE", "DATA_DEPENDENT", "UNAVAILABLE"} for m in registry["metrics"])
-        or len(metrics) != 22
-        or len(set(ids)) != 22
+        or len(metrics) != 25
+        or len(set(ids)) != 25
         or config["scoring"].get("denominator_policy") != "DATA_AVAILABILITY"
         or registry.get("denominator_policy") != "DATA_AVAILABILITY"
         or not 0 <= int(config.get("shadow_min_premarket_bars", -1))
@@ -65,9 +66,9 @@ def _load_contract() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         or reversal.get("spread") != config["spread"]
         or reversal.get("order_book_depth") != config["order_book_depth"]
         or set(reversal.get("scoring", {}).get("metrics", {})) != set(ids[:12])
-        or set(ids[12:]) != set(EXTENDED_METRIC_IDS) | set(SECTOR_METRIC_IDS)
+        or set(ids[12:]) != set(EXTENDED_METRIC_IDS) | set(SECTOR_METRIC_IDS) | set(CATALYST_METRIC_IDS)
     ):
-        raise ResearchScoutError("Alpha requires 22 reachable metrics/88 points and reversal requires the original 12.")
+        raise ResearchScoutError("Alpha requires 25 reachable metrics/100 points and reversal requires the original 12.")
     return config, registry, reversal
 
 
@@ -231,6 +232,8 @@ def _score_security(
         )
     for metric_id in SECTOR_METRIC_IDS:
         component_scores[metric_id]["calculation_version"] = "sector_context_v1.0"
+    for metric_id in CATALYST_METRIC_IDS:
+        component_scores[metric_id]["calculation_version"] = "research_catalyst_v1.0"
     market_data = security["market_data"]
     real_bar_observation = market_data.get("real_bar_count_60m", {})
     real_bar_count_60m = real_bar_observation.get("value")
@@ -255,6 +258,8 @@ def _score_security(
             "timestamp": timestamp,
             "status": "NOT_SCORABLE",
             "shadow": False,
+            **{key: None for key in NEWS_FIELDS},
+            "news_fetch_status": "NOT_REQUESTED",
             "research_eligible": bool(security["eligible"]),
             "qualification_selected": False,
             "research_selected": False,
@@ -341,6 +346,8 @@ def _score_security(
     alpha12_total_score = sum(item["score"] or 0 for item in alpha12_components.values())
     component_scores.update(extended_components(security, config, timestamp))
     component_scores.update(sector_components(security, config, timestamp, sector_context))
+    news = news_scores(security, timestamp)
+    component_scores.update(news["components"])
     total_score = sum(item["score"] or 0 for item in component_scores.values())
     (
         reversal_status,
@@ -373,6 +380,7 @@ def _score_security(
         "timestamp": timestamp,
         "status": "SHADOW_SCORED" if shadow else "SCORED",
         "shadow": shadow,
+        **{key: news[key] for key in NEWS_FIELDS},
         "research_eligible": research_eligible,
         "qualification_selected": research_selected,
         "research_selected": research_selected,

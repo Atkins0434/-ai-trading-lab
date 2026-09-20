@@ -6,3 +6,4 @@ reports/**/*.pdf
 data/cache/
 data/flatfiles/
 data/reference_cache/
+data/news_cache/

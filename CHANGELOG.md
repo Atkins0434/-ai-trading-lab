@@ -1,3 +1,7 @@
+## Research Alpha v1.3 — scored news catalysts
+
+Massive news is cached once per ticker/day for scorable and shadow-scored names, admitted with a documented 15-minute publication latency assumption, and scored through catalyst metrics 19–21. The reachable rubric is now 25 metrics / 100 points; alpha12_score_pct remains the original 12-metric comparison and score_pct_fixed120 remains points / 120. News coverage is reported by event, source, and price tier; the backlog dataset version increases. Existing 22 metrics, reversal, guardrails, execution, benchmark, and classification logic are unchanged. SEC filings remain out of scope.
+
 ## Research Alpha v1.2 — sector context and availability
 
 Alpha adds metrics 16–18 using cached SIC major groups and flat-file SPY/QQQ/IWM bars. Selection now uses the reachable denominator (22 implemented metrics, 88 points), with missing ticker data still earning no points; score_pct_fixed120 remains a reference and alpha12_score_pct remains comparable across rubric versions. Sector labels and thresholds are research assumptions. The backlog dataset version is incremented; reversal retains its original 12 metrics.

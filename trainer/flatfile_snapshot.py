@@ -440,7 +440,7 @@ def build_flatfile_snapshot(
         "freeze_timestamp": freeze.isoformat(),
         "timezone": "America/New_York",
         "universe_version": universe_manifest["ruleset"]["version"],
-        "scout_version": "research_scout_alpha_v1.2",
+        "scout_version": "research_scout_alpha_v1.3",
         "execution_policy_version": "execution_disabled",
         "feature_registry_version": "feature_registry_alpha_v1.0",
         "data_source": {

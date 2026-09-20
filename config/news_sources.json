@@ -1,0 +1,39 @@
+{
+  "version": "news_sources_v1.0",
+  "publisher_tiers": {
+    "GlobeNewswire": "PRIMARY",
+    "PR Newswire": "PRIMARY",
+    "Business Wire": "PRIMARY",
+    "Accesswire": "PRIMARY",
+    "Newsfile": "PRIMARY",
+    "Benzinga": "HIGH_QUALITY_WIRE",
+    "MarketWatch": "HIGH_QUALITY_WIRE",
+    "Reuters": "HIGH_QUALITY_WIRE",
+    "Bloomberg": "HIGH_QUALITY_WIRE",
+    "Investing.com": "HIGH_QUALITY_WIRE"
+  },
+  "default_tier": "OTHER",
+  "notes": "Case/punctuation-insensitive exact publisher matching. Wire tiers are research proxies, not independent confirmation that a story was issued by the company.",
+  "sentiment_keywords": {
+    "negative": [
+      "offering",
+      "dilution",
+      "downgrade",
+      "misses estimates",
+      "cuts guidance",
+      "lawsuit",
+      "investigation"
+    ],
+    "positive": [
+      "raises guidance",
+      "beats estimates",
+      "earnings beat",
+      "approval",
+      "approved",
+      "awarded contract",
+      "upgrade",
+      "record revenue",
+      "product launch"
+    ]
+  }
+}

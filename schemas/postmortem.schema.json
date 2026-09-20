@@ -16,6 +16,8 @@
     "feature_failures", "feature_proposals"
   ],
   "properties": {
+    "news_coverage": {"$ref": "#/$defs/newsCoverage"},
+
     "reachable_metric_count": {"type": ["integer", "null"], "minimum": 0},
     "unavailable_metrics": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
 
@@ -61,6 +63,8 @@
     "net_scout_won": {"type": ["boolean", "null"]}
   },
   "$defs": {
+    "newsCoverageCounts": {"type": "object", "additionalProperties": false, "required": ["scorable_count", "with_any_article", "with_admitted_event", "top_10_movers_with_admitted_event", "selections_with_admitted_event", "fetch_errors", "by_source_tier", "by_event_type"], "properties": {"scorable_count": {"type": "integer", "minimum": 0}, "with_any_article": {"type": "integer", "minimum": 0}, "with_admitted_event": {"type": "integer", "minimum": 0}, "top_10_movers_with_admitted_event": {"type": "integer", "minimum": 0}, "selections_with_admitted_event": {"type": "integer", "minimum": 0}, "fetch_errors": {"type": "integer", "minimum": 0}, "by_source_tier": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}, "by_event_type": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}}},
+    "newsCoverage": {"type": "object", "additionalProperties": false, "required": ["scorable_count", "with_any_article", "with_admitted_event", "top_10_movers_with_admitted_event", "selections_with_admitted_event", "fetch_errors", "by_source_tier", "by_event_type", "by_price_tier"], "properties": {"scorable_count": {"type": "integer", "minimum": 0}, "with_any_article": {"type": "integer", "minimum": 0}, "with_admitted_event": {"type": "integer", "minimum": 0}, "top_10_movers_with_admitted_event": {"type": "integer", "minimum": 0}, "selections_with_admitted_event": {"type": "integer", "minimum": 0}, "fetch_errors": {"type": "integer", "minimum": 0}, "by_source_tier": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}, "by_event_type": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}, "by_price_tier": {"type": "object", "additionalProperties": {"$ref": "#/$defs/newsCoverageCounts"}}}},
     "massivePlan": {
       "type": "object", "additionalProperties": false,
       "required": ["plan", "rest_calls_per_minute", "history_years", "flat_files"],
@@ -96,7 +100,7 @@
       "required": ["metric_id", "score", "raw_value"],
       "properties": {
         "metric_id": {"type": "string", "minLength": 1},
-        "status": {"enum": ["OBSERVED", "SCORED", "MISSING", null]},
+        "status": {"enum": ["OBSERVED", "SCORED", "MISSING", "NO_CATALYST", null]},
         "calculation_version": {"type": ["string", "null"]},
         "score": {"type": ["integer", "null"], "minimum": 0, "maximum": 4},
         "raw_value": {}
@@ -124,7 +128,7 @@
         "scout_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
         "alpha12_total_score": {"type": ["integer", "null"], "minimum": 0, "maximum": 48},
         "alpha12_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
-        "rubric_version": {"enum": ["alpha_v1.1_19m", "alpha_v1.2_22m", null]},
+        "rubric_version": {"enum": ["alpha_v1.1_19m", "alpha_v1.2_22m", "alpha_v1.3_25m", null]},
         "reversal_score_pct": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
         "miss_classification": {
           "enum": [

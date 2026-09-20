@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from trainer.news_coverage import rollup_news_coverage
+
 from trainer.output_paths import daily_path
 
 import argparse
@@ -123,6 +125,7 @@ def _day_evidence(
         "policies": policies,
         "verdict": VERDICT_LABELS.get(result_code),
         "net_verdict": VERDICT_LABELS.get(benchmark.get("comparison", {}).get("net_result_code")),
+        "news_coverage": postmortem.get("news_coverage", {}),
         "reachability": postmortem.get("reachability", {}),
         "reversal_cohort": postmortem.get("reversal_cohort", {}),
     }
@@ -283,6 +286,8 @@ def render_range_summary(
         ),
         f"Total wall time: {_fmt(total_wall)} seconds",
     ])
+    news = rollup_news_coverage(_day_evidence(output_root, day).get("news_coverage", {}) for day in completed)
+    lines.append("News coverage (scored and shadow rows; best event source/type): " + json.dumps(news, sort_keys=True))
     return "\n".join(lines) + "\n"
 
 

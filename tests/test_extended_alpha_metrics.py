@@ -86,8 +86,8 @@ def test_missing_atr_keeps_fixed_denominator_and_alpha12_bytes():
     component = candidate['component_scores']['atr_pct_opportunity']
     assert component['status'] == 'MISSING'
     assert component['score'] is None
-    assert candidate['maximum_possible_score'] == 88
-    assert candidate['score_pct'] == candidate['total_score'] / 88 * 100
+    assert candidate['maximum_possible_score'] == 100
+    assert candidate['score_pct'] == candidate['total_score'] / 100 * 100
     # Captured from main at 477f59f before implementing the new metrics.
     score_bytes = json.dumps({'total_score': candidate['alpha12_total_score'], 'score_pct': candidate['alpha12_score_pct']}, sort_keys=True).encode()
     assert score_bytes == b'{"score_pct": 27.083333333333332, "total_score": 13}'
@@ -131,9 +131,9 @@ def test_cdlx_synthetic_march15_exports_both_scores(tmp_path):
     security['market_data']['previous_close']['value'] = security['premarket_bars'][-1]['close'] / 1.52
     result = run_research_scout_alpha(snapshot)
     candidate = result['candidates'][0]
-    assert candidate['rubric_version'] == 'alpha_v1.2_22m'
+    assert candidate['rubric_version'] == 'alpha_v1.3_25m'
     assert candidate['alpha12_total_score'] is not None
-    assert candidate['score_pct'] == candidate['total_score'] / 88 * 100
+    assert candidate['score_pct'] == candidate['total_score'] / 100 * 100
     assert candidate['alpha12_score_pct'] == candidate['alpha12_total_score'] / 48 * 100
     assert len(candidate['reversal_component_scores']) == 12
     paths = export_daily_outcomes(tmp_path, snapshot, result, {'outcomes': [], 'policy_comparisons': []}, {})
@@ -141,10 +141,10 @@ def test_cdlx_synthetic_march15_exports_both_scores(tmp_path):
     with paths[0].open() as handle:
         reader = csv.DictReader(handle)
         assert reader.fieldnames == list(scorable_outcomes_columns(['execution_policy_v1.0']))
-        assert len([key for key in reader.fieldnames if key.endswith('_raw')]) == 22
+        assert len([key for key in reader.fieldnames if key.endswith('_raw')]) == 25
         row = next(reader)
     assert row['ticker'] == 'CDLX'
-    assert row['rubric_version'] == 'alpha_v1.2_22m'
+    assert row['rubric_version'] == 'alpha_v1.3_25m'
     assert row['alpha12_total_score'] == str(candidate['alpha12_total_score'])
     assert row['alpha12_score_pct'] == f"{candidate['alpha12_score_pct']:.6f}"
 
@@ -155,16 +155,16 @@ def test_registry_numbers_and_research_only_thresholds():
     added = [m for m in primary['metrics'] if m['id'] in EXTENDED_METRIC_IDS]
     assert [m['number'] for m in added] == [13,14,15,25,26,29,30]
     assert all(m['implemented'] and m['research_thresholds'] for m in added)
-    assert len(METRIC_IDS) == 22
-    assert registry['maximum_points'] == 88
+    assert len(METRIC_IDS) == 25
+    assert registry['maximum_points'] == 100
     assert config['selection_threshold_pct'] == 70
     assert reversal['scoring']['maximum_points'] == 48
 
 
-def test_postmortem_components_include_all_twenty_two():
+def test_postmortem_components_include_all_twenty_five():
     from trainer.postmortem import _component_scores
     candidate = run_research_scout_alpha(snapshot_fixture())['candidates'][0]
     exported = _component_scores(candidate)
     assert {item['metric_id'] for item in exported} == set(METRIC_IDS)
-    assert len(exported) == 22
+    assert len(exported) == 25
     assert next(item for item in exported if item['metric_id'] == 'relative_strength_index_60m')['calculation_version'] == 'rsi_cutler_window_v1.0'

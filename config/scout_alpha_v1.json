@@ -1,6 +1,6 @@
 {
-  "scout_id": "research_scout_alpha_v1.2",
-  "rubric_version": "alpha_v1.2_22m",
+  "scout_id": "research_scout_alpha_v1.3",
+  "rubric_version": "alpha_v1.3_25m",
   "status": "research_only_not_promoted",
   "execution_allowed": false,
   "morning_freeze_time": "09:15:00",
@@ -9,9 +9,9 @@
   "selection_threshold_pct": 70,
   "validation_thresholds_pct": [60, 70, 80, 85],
   "scoring": {
-    "metric_count": 22,
+    "metric_count": 25,
     "points_per_metric": 4,
-    "maximum_points": 88,
+    "maximum_points": 100,
     "denominator_policy": "DATA_AVAILABILITY",
     "missing_data_policy": "MISSING_WITH_NO_POINTS_REACHABLE_DENOMINATOR",
     "feature_registry_path": "config/feature_registry_alpha_v1.json"
