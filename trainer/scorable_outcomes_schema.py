@@ -19,6 +19,7 @@ METRIC_IDS = (
     "relative_strength_index_15m",
     "relative_strength_index_30m",
     "relative_strength_index_60m",
+    "sector_strength", "stock_leadership_vs_sector", "broad_market_regime_alignment",
     "atr_pct_opportunity",
     "current_range_pct_opportunity",
     "average_daily_dollar_volume_quality",
@@ -37,7 +38,8 @@ SCORABLE_SCORE_COLUMNS = tuple(
     for column in (f"{metric_id}_raw", f"{metric_id}_score")
 )
 SCORABLE_OUTCOME_COLUMNS = (
-    "total_score", "score_pct", "alpha12_total_score", "alpha12_score_pct",
+    "total_score", "score_pct", "score_pct_reachable", "score_pct_fixed120",
+    "reachable_metric_count", "unavailable_metrics", "benchmark_symbol", "alpha12_total_score", "alpha12_score_pct",
     "rubric_version", "reversal_score_pct", "selected",
     "selection_basis", "rejection_reasons", "liquidity_action",
     "top_10_mover", "benchmark_rank", "open_0930", "day_high",

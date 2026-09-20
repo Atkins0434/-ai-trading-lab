@@ -6,6 +6,8 @@
   "additionalProperties": false,
   "required": ["version", "replay_id", "trading_date", "information_cutoff", "timezone", "universe_mode", "massive_plan", "ruleset", "capabilities", "source", "coverage_status", "coverage_reasons", "provider_limitation_metrics", "securities", "eligible_symbol_count", "excluded_symbol_count", "manifest_hash", "research_evidence", "promotion_eligible"],
   "properties": {
+    "reference_cache_summary": {"type": "object", "properties": {"sic_code_coverage": {"type": "object", "additionalProperties": false, "required": ["with", "without"], "properties": {"with": {"type": "integer", "minimum": 0}, "without": {"type": "integer", "minimum": 0}}}}},
+
     "version": {"const": "daily_universe_manifest_v1.0"},
     "replay_id": {"type": "string", "minLength": 1},
     "trading_date": {"type": "string", "format": "date"},
@@ -75,6 +77,9 @@
       "type": "object", "additionalProperties": false,
       "required": ["stable_security_id", "ticker", "listing_venue", "security_type", "listing_date", "delisting_date", "deciding_definitive_reason", "provider_identifier_gap", "inclusion", "reason_codes"],
       "properties": {
+        "sic_code": {"type": ["string", "integer", "null"]},
+        "sic_description": {"type": ["string", "null"]},
+
         "stable_security_id": {"type": "string", "minLength": 1},
         "ticker": {"type": "string"},
         "listing_venue": {"type": "string"},

@@ -13,6 +13,7 @@ import time
 from typing import Any, Callable
 
 from trainer.benchmark import build_same_universe_benchmark
+from trainer.sector_metrics import availability_metadata
 from trainer.replay_provenance import current_provenance, check_resume, provenance_differences
 from trainer.execution_costs import load_execution_costs
 from trainer.flatfile_snapshot import (
@@ -342,6 +343,7 @@ def _run_flatfile_day_impl(
         )
         reference_cache = _reference_cache_metrics(universe)
         relative = lambda path: str(path.relative_to(output_root))
+        progress["reference_cache_summary"] = universe.get("reference_cache_summary", {})
         artifacts = {"daily_universe_manifest": relative(universe_path)}
         progress.update({
             "universe_size": universe["eligible_symbol_count"],
@@ -384,6 +386,10 @@ def _run_flatfile_day_impl(
         )
         _write_json(scout_path, scout)
         artifacts["scout_output"] = relative(scout_path)
+        progress["spy_premarket_return_pct"] = scout.get("spy_premarket_return_pct")
+        progress["scorable_count"] = int(scout["scorable_candidate_count"])
+        progress["reachable_metric_count"] = scout.get("reachable_metric_count")
+        progress["unavailable_metrics"] = scout.get("unavailable_metrics", [])
         scorable_count = int(scout["scorable_candidate_count"])
         not_scorable_count = int(scout["not_scorable_candidate_count"])
         universe_count = len(scout["candidates"])
@@ -697,6 +703,7 @@ def run_flatfile_replay(
         else:
             status = "FAILED"
         manifest = {
+            **availability_metadata(),
             "provenance": provenance,
             "forced_resume": forced_resume,
             "previous_provenance": previous_provenance,
@@ -724,7 +731,7 @@ def run_flatfile_replay(
             "remaining_dates": remaining,
             "failed_dates": failures,
             "reference_cache_summary": {
-                key: sum(
+                **{key: sum(
                     int(item.get("reference_cache", {}).get(key, 0))
                     for item in ordered
                 )
@@ -737,7 +744,15 @@ def run_flatfile_replay(
                     "transient_retries",
                     "unresolved_failures",
                     "listed_after_lagged_date",
-                )
+                )},
+                "sic_code_coverage": {
+                    key: sum(
+                        day.get("reference_cache_summary", {})
+                        .get("sic_code_coverage", {}).get(key, 0)
+                        for day in ordered
+                    )
+                    for key in ("with", "without")
+                },
             },
             "days": ordered,
         }

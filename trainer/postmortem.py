@@ -501,6 +501,9 @@ def build_postmortem(
             "was_in_scout_output": candidate is not None,
             "scout_selected": bool(item.get("scout_selected", False)),
             "scout_score_pct": candidate.get("score_pct") if candidate else None,
+            "score_pct_reachable": candidate.get("score_pct_reachable") if candidate else None,
+            "score_pct_fixed120": candidate.get("score_pct_fixed120") if candidate else None,
+            "benchmark_symbol": candidate.get("benchmark_symbol") if candidate else None,
             "alpha12_total_score": candidate.get("alpha12_total_score") if candidate else None,
             "alpha12_score_pct": candidate.get("alpha12_score_pct") if candidate else None,
             "rubric_version": candidate.get("rubric_version") if candidate else None,
@@ -594,6 +597,8 @@ def build_postmortem(
     baselines = benchmark_result["return_baselines"]
     code = benchmark_result["comparison"]["result_code"]
     result = {
+        "reachable_metric_count": scout_result.get("reachable_metric_count"),
+        "unavailable_metrics": scout_result.get("unavailable_metrics", []),
         "cost_model_id": benchmark_result.get("cost_model_id"),
         "net_result_code": benchmark_result["comparison"].get("net_result_code"),
         "net_scout_won": benchmark_result["comparison"].get("net_scout_won"),

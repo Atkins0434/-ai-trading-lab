@@ -82,6 +82,7 @@ def test_flatfile_replay_resumes_completed_dates_without_reprocessing(tmp_path: 
     assert second["status"] == "COMPLETE"
     assert second["completed_dates"] == dates
     assert second["reference_cache_summary"] == {
+        "sic_code_coverage": {"with": 0, "without": 0},
         "hits": 4,
         "fetches": 2,
         "quarter_reuse_hits": 2,

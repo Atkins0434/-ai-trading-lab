@@ -17,6 +17,7 @@ from trainer.providers.massive_flatfiles import (
     SOURCE,
     MassiveFlatFileStore,
 )
+from trainer.sector_metrics import BENCHMARK_SYMBOLS
 from trainer.rate_control import load_massive_plan
 from trainer.replay_engine import configured_freeze_datetime
 from trainer.universe_builder import previous_trading_sessions
@@ -134,6 +135,11 @@ def _average_true_range(
         mean(true_ranges) if sessions_used == sessions else None,
         sessions_used,
     )
+
+
+def _benchmark_prior_close(rows: list[dict[str, Any]], prior_date: str) -> float | None:
+    matches = [bar for bar in rows if bar["trading_date"] == prior_date]
+    return float(matches[0]["close"]) if len(matches) == 1 else None
 
 
 def _snapshot_bar(bar: dict[str, Any]) -> dict[str, Any]:
@@ -349,6 +355,8 @@ def build_flatfile_snapshot(
     tickers = {item["ticker"] for item in securities}
     lookback_dates = previous_trading_sessions(trading_date, lookback_sessions)
 
+    benchmark_daily = defaultdict(list)
+    benchmark_premarket = defaultdict(list)
     daily_history: dict[str, list[dict[str, Any]]] = defaultdict(list)
     premarket_history: dict[str, dict[str, float]] = {
         stable_id: {value: 0.0 for value in lookback_dates}
@@ -363,8 +371,11 @@ def build_flatfile_snapshot(
     loaded_files = 0
     for session_date in lookback_dates:
         for bar in flatfiles.iter_bars(
-            DAY_AGGS_DATASET, session_date, tickers=tickers
+            DAY_AGGS_DATASET, session_date, tickers=tickers | set(BENCHMARK_SYMBOLS)
         ):
+            if bar["ticker"] in BENCHMARK_SYMBOLS:
+                benchmark_daily[bar["ticker"]].append(bar)
+                continue
             stable_id = _resolve_bar_identity(
                 bar, eligible_by_id, unique_ticker_ids
             )
@@ -399,8 +410,13 @@ def build_flatfile_snapshot(
         _log_load_progress(loaded_files, total_load_files, load_started)
 
     for bar in flatfiles.iter_bars(
-        MINUTE_AGGS_DATASET, trading_date, tickers=tickers
+        MINUTE_AGGS_DATASET, trading_date, tickers=tickers | set(BENCHMARK_SYMBOLS)
     ):
+        if bar["ticker"] in BENCHMARK_SYMBOLS:
+            observed = datetime.fromisoformat(bar["timestamp"]).astimezone(ET)
+            if observed.date() == target and time(4) <= observed.time() and observed < freeze:
+                benchmark_premarket[bar["ticker"]].append(_snapshot_bar(bar))
+            continue
         stable_id = _resolve_bar_identity(
             bar, eligible_by_id, unique_ticker_ids
         )
@@ -424,7 +440,7 @@ def build_flatfile_snapshot(
         "freeze_timestamp": freeze.isoformat(),
         "timezone": "America/New_York",
         "universe_version": universe_manifest["ruleset"]["version"],
-        "scout_version": "research_scout_alpha_v1.1",
+        "scout_version": "research_scout_alpha_v1.2",
         "execution_policy_version": "execution_disabled",
         "feature_registry_version": "feature_registry_alpha_v1.0",
         "data_source": {
@@ -433,6 +449,14 @@ def build_flatfile_snapshot(
         },
         "massive_plan": load_massive_plan(),
         **metadata,
+        "market_benchmarks": {symbol: {
+            "premarket_bars": sorted(benchmark_premarket[symbol], key=lambda b: b["timestamp"]),
+            "market_data": {"previous_close": _observation(
+                _benchmark_prior_close(benchmark_daily[symbol], lookback_dates[-1]),
+                datetime.combine(date.fromisoformat(lookback_dates[-1]), time(16), tzinfo=ET).isoformat(),
+                "day_aggs_v1.close",
+            )},
+        } for symbol in BENCHMARK_SYMBOLS},
         "securities": [],
     }
     outcome_bars: dict[str, list[dict[str, Any]]] = {}
@@ -605,6 +629,8 @@ def build_flatfile_snapshot(
         security = {
             "ticker": ticker,
             "stable_security_id": stable_id,
+            "sic_code": manifest_security.get("sic_code"),
+            "sic_description": manifest_security.get("sic_description"),
             "exchange": manifest_security["listing_venue"],
             "eligible": True,
             "eligibility_as_of_timestamp": manifest_security[

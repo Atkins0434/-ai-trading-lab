@@ -491,6 +491,8 @@ def build_point_in_time_universe(
             "prior_session_dollar_volume": prior_session_dollar_volume,
             "market_cap_usd": market_cap,
             "overview_failure": overview_failure,
+            "sic_code": overview.get("sic_code"),
+            "sic_description": overview.get("sic_description"),
             "market_cap_available_at": (
                 reference_as_of
                 if shares is not None and prior_close is not None
@@ -559,5 +561,9 @@ def build_point_in_time_universe(
         manifest["research_evidence"] = False
         manifest["promotion_eligible"] = False
         manifest["manifest_hash"] = calculate_manifest_hash(manifest)
+    from trainer.sector_metrics import sector_key
+    with_sic = sum(sector_key(s.get("sic_code")) is not None for s in manifest["securities"])
+    manifest["reference_cache_summary"] = {"sic_code_coverage": {"with": with_sic, "without": len(manifest["securities"]) - with_sic}}
+    manifest["manifest_hash"] = calculate_manifest_hash(manifest)
     persist_manifest(manifest_path, manifest)
     return manifest

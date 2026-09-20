@@ -301,3 +301,9 @@ Actions cache has a 10 GB repository budget and each run saves a new entry; prun
 bounds each entry to one unit, not the total retained cache usage. Existing push
 workflows explicitly exclude `replay-results`; workflows without push triggers
 cannot be activated by results commits.
+
+### Alpha v1.2 sector context and availability
+
+The research registry lists all 30 Scout V1 metric IDs and their availability. Its `metric_count` counts the 22 implemented metrics; the eight `UNAVAILABLE` metrics do not contribute to the reachable denominator. `score_pct` aliases `score_pct_reachable` (points / 88), which drives the unchanged 70% threshold. Per-ticker missing data still earns no points against that denominator. `score_pct_fixed120` reports points / 120, while `alpha12_score_pct` remains comparable to earlier rubrics. Reversal uses its original 12 components.
+
+Sector context uses cached lagged SIC codes, grouped by the research mappings in `config/sector_map.json`. These are coarse major-group proxies, not industry classifications or index membership: for example, SIC 73 includes business services as well as software. Missing SIC remains missing; existing reference entries are never refetched solely to add SIC. Coverage counts include all securities in the daily universe manifest. Sector medians include all eligible names with at least 10 real bars in the last hour and require five names. SPY/QQQ/IWM are read in the existing flat-file scans and stay outside the candidate universe. A benchmark needs 30 real bars in that hour and the immediately preceding session's close; missing or ambiguous benchmark bars leave the dependent metrics missing. Mapping checks the $10B SPY rule first, then XNAS/$3B for QQQ, then defaults to IWM. The day's replay manifest records SPY premarket return and scorable count for regime diagnostics.

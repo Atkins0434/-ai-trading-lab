@@ -1,6 +1,6 @@
 {
-  "scout_id": "research_scout_alpha_v1.1",
-  "rubric_version": "alpha_v1.1_19m",
+  "scout_id": "research_scout_alpha_v1.2",
+  "rubric_version": "alpha_v1.2_22m",
   "status": "research_only_not_promoted",
   "execution_allowed": false,
   "morning_freeze_time": "09:15:00",
@@ -9,11 +9,11 @@
   "selection_threshold_pct": 70,
   "validation_thresholds_pct": [60, 70, 80, 85],
   "scoring": {
-    "metric_count": 19,
+    "metric_count": 22,
     "points_per_metric": 4,
-    "maximum_points": 76,
-    "denominator_policy": "FIXED_76",
-    "missing_data_policy": "MISSING_WITH_NO_POINTS_FIXED_DENOMINATOR",
+    "maximum_points": 88,
+    "denominator_policy": "DATA_AVAILABILITY",
+    "missing_data_policy": "MISSING_WITH_NO_POINTS_REACHABLE_DENOMINATOR",
     "feature_registry_path": "config/feature_registry_alpha_v1.json"
   },
   "extended_metric_thresholds": {
@@ -28,7 +28,31 @@
     "current_range_pct_opportunity": {"1": 3, "2": 6, "3": 10, "4": 15},
     "average_daily_dollar_volume_quality": {"1": 5000000, "2": 10000000, "3": 25000000, "4": 50000000},
     "premarket_dollar_volume_quality": {"1": 250000, "2": 500000, "3": 1000000, "4": 2500000},
+    "sector_strength": {"1": 0.5, "2": 1, "3": 2, "4": 4},
+    "stock_leadership_vs_sector": {"1": 2, "2": 5, "3": 10, "4": 20},
+    "broad_market_regime_alignment": {"1": 0, "2": 0.25, "3": 0.5, "4": 1},
+    "sector_note": "Research thresholds only. Sector minus benchmark and stock minus sector are separate contributions; no benchmark double counting.",
     "range_note": "Metric 26 grades absolute premarket range as percent of prior close. Metric 12 grades the ratio to the historical 20-session average range; these distinct measurements do not duplicate points under premarket_price_volume_composite.double_counting_allowed=false."
+  },
+  "sector_context": {
+    "minimum_real_bars_60m": 10,
+    "minimum_sector_names": 5,
+    "benchmark_minimum_real_bars_60m": 30,
+    "mapping_order": [
+      {
+        "minimum_market_cap_usd": 10000000000,
+        "symbol": "SPY"
+      },
+      {
+        "listing_venue": "XNAS",
+        "minimum_market_cap_usd": 3000000000,
+        "symbol": "QQQ"
+      },
+      {
+        "symbol": "IWM"
+      }
+    ],
+    "note": "Cap proxies, not index membership. The benchmark requires the same 30 real bars in the final 60 minutes as the selection gate."
   },
   "liquidity": {
     "minimum_average_daily_dollar_volume_usd": 5000000,

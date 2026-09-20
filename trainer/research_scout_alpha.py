@@ -7,6 +7,10 @@ from typing import Any
 
 from trainer.price_volume import PriceVolumeError, calculate_price_volume_metrics
 from trainer.extended_alpha_metrics import EXTENDED_METRIC_IDS, extended_components
+from trainer.sector_metrics import (
+    SECTOR_METRIC_IDS, availability_metadata, score_percentages,
+    benchmark_symbol, build_sector_context, sector_components,
+)
 from trainer.rate_control import load_massive_plan
 from trainer.replay_engine import ReplayError, validate_freeze_timestamp, validate_point_in_time_inputs
 from trainer.scout_engine import (
@@ -23,9 +27,9 @@ ROOT = Path(__file__).resolve().parent.parent
 CONFIG_PATH = ROOT / "config" / "scout_alpha_v1.json"
 REVERSAL_CONFIG_PATH = ROOT / "config" / "scout_reversal_v1.json"
 REGISTRY_PATH = ROOT / "config" / "feature_registry_alpha_v1.json"
-MAXIMUM_POINTS = 76
+MAXIMUM_POINTS = 88
 ALPHA12_MAXIMUM_POINTS = 48
-RUBRIC_VERSION = "alpha_v1.1_19m"
+RUBRIC_VERSION = "alpha_v1.2_22m"
 
 
 class ResearchScoutError(Exception):
@@ -36,16 +40,20 @@ def _load_contract() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     config = load_json(CONFIG_PATH)
     reversal = load_json(REVERSAL_CONFIG_PATH)
     registry = load_json(REGISTRY_PATH)
-    metrics = registry.get("metrics", [])
+    metrics = [m for m in registry.get("metrics", []) if m["availability"] != "UNAVAILABLE"]
     ids = [metric.get("id") for metric in metrics]
     if (
         config.get("execution_allowed") is not False
         or config.get("scoring", {}).get("maximum_points") != MAXIMUM_POINTS
         or registry.get("maximum_points") != MAXIMUM_POINTS
-        or len(metrics) != 19
-        or len(set(ids)) != 19
-        or config["scoring"].get("denominator_policy") != "FIXED_76"
-        or registry.get("denominator_policy") != "FIXED_76"
+        or registry.get("metric_count") != 22
+        or [m.get("number") for m in registry["metrics"]] != list(range(1, 31))
+        or len({m.get("id") for m in registry["metrics"]}) != 30
+        or any(m.get("availability") not in {"AVAILABLE", "DATA_DEPENDENT", "UNAVAILABLE"} for m in registry["metrics"])
+        or len(metrics) != 22
+        or len(set(ids)) != 22
+        or config["scoring"].get("denominator_policy") != "DATA_AVAILABILITY"
+        or registry.get("denominator_policy") != "DATA_AVAILABILITY"
         or not 0 <= int(config.get("shadow_min_premarket_bars", -1))
         < int(config["minimum_real_bars_60m"])
         or reversal.get("pattern_id") != "research_reversal_v1.0"
@@ -57,9 +65,9 @@ def _load_contract() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         or reversal.get("spread") != config["spread"]
         or reversal.get("order_book_depth") != config["order_book_depth"]
         or set(reversal.get("scoring", {}).get("metrics", {})) != set(ids[:12])
-        or set(ids[12:]) != set(EXTENDED_METRIC_IDS)
+        or set(ids[12:]) != set(EXTENDED_METRIC_IDS) | set(SECTOR_METRIC_IDS)
     ):
-        raise ResearchScoutError("Alpha requires 19 metrics/76 points and reversal requires the original 12.")
+        raise ResearchScoutError("Alpha requires 22 reachable metrics/88 points and reversal requires the original 12.")
     return config, registry, reversal
 
 
@@ -208,15 +216,21 @@ def _score_security(
     reversal_config: dict[str, Any],
     threshold_pct: float,
     timestamp: str,
+    sector_context: dict[str, Any],
 ) -> dict[str, Any]:
+    availability = availability_metadata(registry)
+    maximum_points = 4 * availability["reachable_metric_count"]
     component_scores = {
         metric["id"]: _missing_component() for metric in registry["metrics"]
+        if metric["availability"] != "UNAVAILABLE"
     }
     for metric_id in EXTENDED_METRIC_IDS:
         component_scores[metric_id]["calculation_version"] = (
             "rsi_cutler_window_v1.0" if metric_id.startswith("relative_strength_index_")
             else "research_alpha_extended_v1.0"
         )
+    for metric_id in SECTOR_METRIC_IDS:
+        component_scores[metric_id]["calculation_version"] = "sector_context_v1.0"
     market_data = security["market_data"]
     real_bar_observation = market_data.get("real_bar_count_60m", {})
     real_bar_count_60m = real_bar_observation.get("value")
@@ -235,7 +249,7 @@ def _score_security(
     selection_minimum = int(config["minimum_real_bars_60m"])
     shadow_minimum = int(config["shadow_min_premarket_bars"])
     if real_bar_count_60m < shadow_minimum:
-        threshold_points = ceil(threshold_pct / 100 * MAXIMUM_POINTS)
+        threshold_points = ceil(threshold_pct / 100 * maximum_points)
         return {
             "ticker": security["ticker"],
             "timestamp": timestamp,
@@ -248,8 +262,12 @@ def _score_security(
             "execution_eligible": False,
             "rank": None,
             "total_score": 0,
-            "maximum_possible_score": MAXIMUM_POINTS,
+            "maximum_possible_score": maximum_points,
             "score_pct": 0.0,
+            "score_pct_reachable": 0.0,
+            "score_pct_fixed120": 0.0,
+            **availability,
+            "benchmark_symbol": benchmark_symbol(security, config),
             "threshold_points": threshold_points,
             "component_scores": component_scores,
             "reversal_status": "NOT_SCORABLE",
@@ -260,7 +278,7 @@ def _score_security(
             "rubric_version": RUBRIC_VERSION,
             "reversal_component_scores": {
                 key: deepcopy(value) for key, value in component_scores.items()
-                if key not in EXTENDED_METRIC_IDS
+                if key in reversal_config["scoring"]["metrics"]
             },
             "guardrails": {},
             "reason_codes": [
@@ -318,10 +336,11 @@ def _score_security(
 
     alpha12_components = {
         key: value for key, value in component_scores.items()
-        if key not in EXTENDED_METRIC_IDS
+        if key in reversal_config["scoring"]["metrics"]
     }
     alpha12_total_score = sum(item["score"] or 0 for item in alpha12_components.values())
     component_scores.update(extended_components(security, config, timestamp))
+    component_scores.update(sector_components(security, config, timestamp, sector_context))
     total_score = sum(item["score"] or 0 for item in component_scores.values())
     (
         reversal_status,
@@ -329,7 +348,7 @@ def _score_security(
         reversal_score_pct,
         reversal_component_scores,
     ) = _reversal_score(alpha12_components, reversal_config)
-    threshold_points = ceil(threshold_pct / 100 * MAXIMUM_POINTS)
+    threshold_points = ceil(threshold_pct / 100 * maximum_points)
     research_eligible = security["eligible"] and not rejection_reasons
     research_selected = (
         research_eligible and not shadow and total_score >= threshold_points
@@ -364,8 +383,10 @@ def _score_security(
         "alpha12_total_score": alpha12_total_score,
         "alpha12_score_pct": alpha12_total_score / ALPHA12_MAXIMUM_POINTS * 100,
         "rubric_version": RUBRIC_VERSION,
-        "maximum_possible_score": MAXIMUM_POINTS,
-        "score_pct": total_score / MAXIMUM_POINTS * 100,
+        "maximum_possible_score": maximum_points,
+        **score_percentages(total_score, availability["reachable_metric_count"]),
+        **availability,
+        "benchmark_symbol": benchmark_symbol(security, config),
         "threshold_points": threshold_points,
         "component_scores": component_scores,
         "reversal_status": reversal_status,
@@ -384,7 +405,7 @@ def run_research_scout_alpha(
     threshold_pct: float | None = None,
     exploration_top_k: int = 0,
 ) -> dict[str, Any]:
-    """Run the isolated 76-point Alpha; it can never authorize execution."""
+    """Run the isolated availability-denominator Alpha; it can never authorize execution."""
     try:
         validate_contract("historical_snapshot", snapshot)
         validate_point_in_time_inputs(snapshot)
@@ -403,6 +424,7 @@ def run_research_scout_alpha(
         raise ResearchScoutError("Alpha threshold must be between 0 and 100.")
     if exploration_top_k < 0 or exploration_top_k > 5:
         raise ResearchScoutError("Alpha exploration_top_k must be between 0 and 5.")
+    sector_context = build_sector_context(snapshot, config)
     candidates = [
         _score_security(
             security,
@@ -411,6 +433,7 @@ def run_research_scout_alpha(
             reversal_config,
             threshold,
             snapshot["freeze_timestamp"],
+            sector_context,
         )
         for security in snapshot["securities"]
     ]
@@ -483,6 +506,8 @@ def run_research_scout_alpha(
         "scout_version": config["scout_id"],
         "rubric_version": RUBRIC_VERSION,
         "mode": "RESEARCH_ONLY",
+        **availability_metadata(registry),
+        "spy_premarket_return_pct": sector_context["benchmark_returns"]["SPY"],
         "snapshot_timestamp": snapshot["freeze_timestamp"],
         "massive_plan": snapshot.get("massive_plan", load_massive_plan()),
         "scoring_threshold_pct": threshold,

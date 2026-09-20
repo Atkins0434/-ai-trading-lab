@@ -1,3 +1,7 @@
+## Research Alpha v1.2 — sector context and availability
+
+Alpha adds metrics 16–18 using cached SIC major groups and flat-file SPY/QQQ/IWM bars. Selection now uses the reachable denominator (22 implemented metrics, 88 points), with missing ticker data still earning no points; score_pct_fixed120 remains a reference and alpha12_score_pct remains comparable across rubric versions. Sector labels and thresholds are research assumptions. The backlog dataset version is incremented; reversal retains its original 12 metrics.
+
 # Changelog
 
 ## PR #35 — execution_costs_v1.0
