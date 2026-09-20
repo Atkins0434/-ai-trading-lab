@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from trainer.news_coverage import count_news_coverage
 from trainer.execution_costs import net_summary
 
 from datetime import datetime, time
@@ -597,6 +599,7 @@ def build_postmortem(
     baselines = benchmark_result["return_baselines"]
     code = benchmark_result["comparison"]["result_code"]
     result = {
+        "news_coverage": count_news_coverage(scout_result["candidates"], snapshot["securities"], {item["ticker"] for item in benchmark_result["benchmark_candidates"]}),
         "reachable_metric_count": scout_result.get("reachable_metric_count"),
         "unavailable_metrics": scout_result.get("unavailable_metrics", []),
         "cost_model_id": benchmark_result.get("cost_model_id"),

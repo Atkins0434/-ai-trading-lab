@@ -98,7 +98,7 @@ def test_flatfile_workflow_persists_versioned_provider_caches():
     assert workflow.count("uses: actions/cache@v4") == 2
     assert "jq -er .cache_version config/flatfile_replay.json" in workflow
     assert "path: data/flatfiles/" in workflow
-    assert "path: data/reference_cache/" in workflow
+    assert "path: |\n            data/reference_cache/\n            data/news_cache/" in workflow
     assert "restore-keys:" in workflow
     assert "10 GB per repository" in workflow
     assert "max_tickers:" in workflow
@@ -150,5 +150,5 @@ def test_flatfile_range_workflow_resumes_and_verifies_multi_day_output():
     assert 'if day.get("status") != "COMPLETE"' in workflow
     assert '"PAUSED_WALL_BUDGET"' in workflow
     assert "Each run saves a new flat-file cache entry." in workflow
-    assert 'data/reference_cache "$OUTPUT_ROOT"' in workflow
+    assert 'data/reference_cache data/news_cache "$OUTPUT_ROOT"' in workflow
     assert "flat-file-replay-range-${{ steps.replay.outputs.start_date }}" in workflow

@@ -465,6 +465,23 @@ class MassiveClient:
             },
         )
 
+    def get_news_response(self, ticker: str, start: str, end: str) -> dict[str, Any]:
+        """Preserve raw paginated news responses for the immutable replay cache."""
+        pages = []
+        payload = self._get_page("/v2/reference/news", {
+            "ticker": ticker.upper(), "published_utc.gte": start,
+            "published_utc.lte": end, "sort": "published_utc",
+            "order": "asc", "limit": 1000,
+        })
+        while True:
+            pages.append(payload)
+            next_url = payload.get("next_url")
+            if not next_url:
+                return {"pages": pages}
+            if not isinstance(next_url, str):
+                raise ProviderError("Massive next_url must be a string.")
+            payload = self._get_page(next_url)
+
     def get_tickers(
         self,
         as_of_date: str,

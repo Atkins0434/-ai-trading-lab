@@ -12,7 +12,7 @@
     "freeze_timestamp": {"type": "string", "format": "date-time"},
     "timezone": {"const": "America/New_York"},
     "policy_version": {"type": "string", "minLength": 1},
-    "shadow_mode": {"const": true},
+    "shadow_mode": {"type": "boolean"},
     "events": {
       "type": "array",
       "items": {"$ref": "#/$defs/event"}
@@ -35,6 +35,10 @@
       "additionalProperties": false,
       "required": ["event_id", "ticker", "source_provider", "feed_version", "source_name", "source_reference", "headline", "event_type", "published_timestamp", "provider_available_timestamp", "ingested_timestamp", "source_tier", "verification_status", "sentiment", "relevance_confidence", "duplicate_group_id", "admission_status", "admission_reason", "duplicate_of"],
       "properties": {
+        "event_type_source": {"enum": ["KEYWORDS"]},
+        "sentiment_source": {"enum": ["MASSIVE_INSIGHTS", "KEYWORDS"]},
+        "positive_relevance": {"type": "number", "minimum": 0, "maximum": 1},
+
         "event_id": {"type": "string", "pattern": "^evt_[a-f0-9]{24}$"},
         "ticker": {"type": "string", "pattern": "^[A-Z][A-Z0-9.-]{0,14}$"},
         "source_provider": {"type": "string", "minLength": 1},
@@ -52,7 +56,7 @@
         "relevance_confidence": {"type": "number", "minimum": 0, "maximum": 1},
         "duplicate_group_id": {"type": ["string", "null"]},
         "admission_status": {"enum": ["ADMITTED", "EXCLUDED"]},
-        "admission_reason": {"enum": ["KNOWN_BY_FREEZE", "PUBLISHED_AFTER_FREEZE", "UNKNOWN_PROVIDER_AVAILABILITY", "AVAILABILITY_PRECEDES_PUBLICATION", "AVAILABLE_AFTER_FREEZE", "SYNDICATED_DUPLICATE"]},
+        "admission_reason": {"enum": ["KNOWN_BY_FREEZE", "ASSUMED_AVAILABLE_WITH_LATENCY", "OUTSIDE_LOOKBACK", "PUBLISHED_AFTER_FREEZE", "UNKNOWN_PROVIDER_AVAILABILITY", "AVAILABILITY_PRECEDES_PUBLICATION", "AVAILABLE_AFTER_FREEZE", "SYNDICATED_DUPLICATE"]},
         "duplicate_of": {"type": ["string", "null"]}
       }
     }

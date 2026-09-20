@@ -161,6 +161,8 @@
         "reference_cache", "artifacts", "error"
       ],
       "properties": {
+        "news_cache": {"type": "object", "additionalProperties": false, "required": ["hits", "fetches", "errors", "tickers_with_zero_articles"], "properties": {"hits": {"type": "integer", "minimum": 0}, "fetches": {"type": "integer", "minimum": 0}, "errors": {"type": "integer", "minimum": 0}, "tickers_with_zero_articles": {"type": "integer", "minimum": 0}}},
+
         "reachable_metric_count": {"type": ["integer", "null"], "minimum": 0},
         "unavailable_metrics": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
         "spy_premarket_return_pct": {"type": ["number", "null"]},

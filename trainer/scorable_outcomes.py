@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from trainer.news_alpha import NEWS_FIELDS
 from trainer.scorable_outcomes_schema import eligible_outcomes_columns
 
 from trainer.output_paths import daily_path, day_file, legacy_name
@@ -164,6 +166,7 @@ def export_daily_outcomes(
             "average_daily_dollar_volume_usd": _observation(security, "average_daily_dollar_volume"),
             "market_cap_usd": security.get("market_cap_usd", {}).get("value"),
             "total_score": candidate.get("total_score"),
+            **{key: candidate.get(key) for key in NEWS_FIELDS},
             "score_pct": candidate.get("score_pct"),
             "score_pct_reachable": candidate.get("score_pct_reachable"),
             "score_pct_fixed120": candidate.get("score_pct_fixed120"),

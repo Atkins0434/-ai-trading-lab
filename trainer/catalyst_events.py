@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from hashlib import sha256
 import json
 import re
@@ -163,14 +163,20 @@ def normalize_catalyst_event(
     }
 
 
-def _admit(event: dict[str, Any], freeze_timestamp: str) -> tuple[str, str]:
+def _admit(event: dict[str, Any], freeze_timestamp: str, policy: dict[str, Any] | None = None) -> tuple[str, str]:
     freeze = _parse_aware(freeze_timestamp, "freeze_timestamp")
     published = _parse_aware(event["published_timestamp"], "published_timestamp")
     available_raw = event.get("provider_available_timestamp")
     if published > freeze:
         return "EXCLUDED", "PUBLISHED_AFTER_FREEZE"
+    if policy and published < freeze - timedelta(days=policy['lookback_days']):
+        return "EXCLUDED", "OUTSIDE_LOOKBACK"
     if available_raw is None:
-        return "EXCLUDED", "UNKNOWN_PROVIDER_AVAILABILITY"
+        rules = (policy or {}).get('admission', {})
+        if rules.get('unknown_provider_availability_action') != 'ASSUME_AVAILABLE_WITH_LATENCY':
+            return "EXCLUDED", "UNKNOWN_PROVIDER_AVAILABILITY"
+        assumed = published + timedelta(minutes=rules['provider_latency_minutes'])
+        return ("ADMITTED", "ASSUMED_AVAILABLE_WITH_LATENCY") if assumed <= freeze else ("EXCLUDED", "AVAILABLE_AFTER_FREEZE")
     available = _parse_aware(available_raw, "provider_available_timestamp")
     if available < published:
         return "EXCLUDED", "AVAILABILITY_PRECEDES_PUBLICATION"
@@ -186,6 +192,7 @@ def build_catalyst_snapshot(
     trading_date: str,
     freeze_timestamp: str,
     policy_version: str = "catalyst_alpha_v1.0",
+    policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Admit, deduplicate, and freeze normalized catalyst events."""
     _parse_aware(freeze_timestamp, "freeze_timestamp")
@@ -211,7 +218,7 @@ def build_catalyst_snapshot(
     )
     for original in ordered:
         event = dict(original)
-        status, reason = _admit(event, freeze_timestamp)
+        status, reason = _admit(event, freeze_timestamp, policy)
         event["admission_status"] = status
         event["admission_reason"] = reason
         event["duplicate_of"] = None
@@ -233,7 +240,7 @@ def build_catalyst_snapshot(
         "freeze_timestamp": freeze_timestamp,
         "timezone": "America/New_York",
         "policy_version": policy_version,
-        "shadow_mode": True,
+        "shadow_mode": policy is None or policy.get("mode") != "SCORED_RESEARCH",
         "events": evaluated,
         "summary": {
             "received": len(evaluated),
@@ -341,4 +348,83 @@ def calculate_shadow_catalyst_metrics(
         "components": components,
         "dilution_guardrail_candidate": dilution,
         "production_score_changed": False,
+    }
+
+
+def calculate_research_catalyst_metrics(
+    snapshot: dict[str, Any], ticker: str, policy: dict[str, Any]
+) -> dict[str, Any]:
+    """Score research catalysts, distinguishing an empty query from a failure."""
+    events = [
+        event for event in snapshot["events"]
+        if event["ticker"] == ticker and event["admission_status"] == "ADMITTED"
+    ]
+    dilution = next(
+        (event for event in events if event["event_type"] == "OFFERING_DILUTION"),
+        None,
+    )
+    best = dilution or max(
+        events,
+        key=lambda event: (
+            QUALITY_POINTS[event["event_type"]],
+            VERIFICATION_POINTS[event["verification_status"]],
+            _parse_aware(event["published_timestamp"], "published_timestamp"),
+            event["event_id"],
+        ),
+        default=None,
+    )
+    verification = max(
+        (event["verification_status"] for event in events),
+        key=lambda value: (VERIFICATION_POINTS[value], value == "VERIFIED_PRIMARY"),
+        default="UNVERIFIED",
+    )
+    relevant = [
+        event for event in events
+        if event.get("positive_relevance", 0) >= policy["positive_relevance_minimum"]
+    ]
+    freshest = max(
+        relevant,
+        key=lambda event: _parse_aware(event["published_timestamp"], "published_timestamp"),
+        default=None,
+    )
+    age = None
+    if freshest:
+        age = (
+            _parse_aware(snapshot["freeze_timestamp"], "freeze_timestamp")
+            - _parse_aware(freshest["published_timestamp"], "published_timestamp")
+        ).total_seconds() / 60
+    freshness = 0
+    for score in range(4, 0, -1):
+        key = f"{score}_points_max" if score > 1 else "1_point_max"
+        if age is not None and age <= policy["freshness_hours"][key] * 60:
+            freshness = score
+            break
+    values = {
+        "catalyst_quality": (
+            best["event_type"] if best else None,
+            QUALITY_POINTS[best["event_type"]] if best else 0,
+        ),
+        "catalyst_verification_confidence": (verification, VERIFICATION_POINTS[verification]),
+        "catalyst_freshness_relevance": (age, freshness),
+    }
+    components = {
+        metric: {
+            "status": "SCORED" if events else "NO_CATALYST",
+            "score": score,
+            "raw_value": raw,
+            "maximum_score": 4,
+            "as_of_timestamp": snapshot["freeze_timestamp"],
+            "reason_code": "ADMITTED_CATALYST" if events else "NO_ADMITTED_CATALYST",
+            "calculation_version": "research_catalyst_v1.0",
+        }
+        for metric, (raw, score) in values.items()
+    }
+    return {
+        "components": components,
+        "admitted_event_count": len(events),
+        "best_event_type": best["event_type"] if best else None,
+        "source_tier": best["source_tier"] if best else None,
+        "verification_status": verification,
+        "freshest_event_age_minutes": age,
+        "sentiment": best["sentiment"] if best else None,
     }
