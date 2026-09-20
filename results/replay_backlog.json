@@ -1,6 +1,6 @@
 {
   "version": "replay_backlog_v1.0",
-  "dataset_version": 2,
+  "dataset_version": 4,
   "units": [
     {
       "id": "2024-04-A",
@@ -114,14 +114,14 @@
       "id": "2024-03-A",
       "start": "2024-03-01",
       "end": "2024-03-14",
-      "status": "COMPLETE",
-      "code_sha": "012716fa5885868b242c948ddef0136533a3d52a",
-      "dataset_version_run": 2,
-      "attempts": 1,
-      "last_run_id": "35463816689",
-      "started_at": "2026-09-19T19:16:25.648459+00:00",
-      "completed_at": "2026-09-19T22:03:35.663399+00:00",
-      "days_completed": 10,
+      "status": "IN_PROGRESS",
+      "code_sha": "34016593c7ca0bcaaf8c8cd9b96a04adc5020cf5",
+      "dataset_version_run": 4,
+      "attempts": 2,
+      "last_run_id": "35480563883",
+      "started_at": "2026-09-20T01:07:41.577713+00:00",
+      "completed_at": null,
+      "days_completed": 0,
       "days_requested": 10,
       "last_error": null
     },
