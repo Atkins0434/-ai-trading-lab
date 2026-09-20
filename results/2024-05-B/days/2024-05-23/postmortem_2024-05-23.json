@@ -1,0 +1,1918 @@
+{
+  "benchmark_performance": {
+    "average_capture_ratio": null,
+    "max_drawdown_pct": null,
+    "net_realized_pnl_usd": -5.566819552313004,
+    "net_realized_return_pct": -0.22267278209252014,
+    "realized_pnl_usd": -2.744761180000004,
+    "realized_return_pct": -0.10979044720000015,
+    "win_rate_pct": null
+  },
+  "cost_model_id": "execution_costs_v1.0",
+  "execution_policy_review": [
+    {
+      "cohort_summaries": {
+        "SCOUT_SELECTION": {
+          "average_capture_ratio": -0.2326760563380287,
+          "delta_vs_champion": {
+            "capture_ratio": null,
+            "return_pct": null
+          },
+          "exit_reason_counts": {
+            "ENTRY_REJECTED": {},
+            "PROFIT_TARGET": 0,
+            "SESSION_END": 0,
+            "TRAILING_STOP": 1
+          },
+          "gross_realized_pnl_usd": -4.860400000000006,
+          "max_drawdown_pct": -1.0143198090692196,
+          "net_average_capture_ratio": -0.6053178723404271,
+          "net_realized_pnl_usd": -8.250482600000005,
+          "net_realized_return_pct": -1.6974904534606217,
+          "realized_pnl_usd": -4.860400000000006,
+          "realized_return_pct": -1.000000000000001,
+          "trades_executed": 1,
+          "win_rate_pct": 0.0
+        },
+        "TOP_10_MOVER": {
+          "average_capture_ratio": -0.01627522075075857,
+          "delta_vs_champion": {
+            "capture_ratio": null,
+            "return_pct": null
+          },
+          "exit_reason_counts": {
+            "ENTRY_REJECTED": {},
+            "PROFIT_TARGET": 0,
+            "SESSION_END": 0,
+            "TRAILING_STOP": 5
+          },
+          "gross_realized_pnl_usd": -5.885899999999971,
+          "max_drawdown_pct": -4.566563467492257,
+          "net_average_capture_ratio": -0.09747351609672852,
+          "net_realized_pnl_usd": -28.76437394999997,
+          "net_realized_return_pct": -1.1616869030450694,
+          "realized_pnl_usd": -5.885899999999971,
+          "realized_return_pct": -0.2403155176285639,
+          "trades_executed": 5,
+          "win_rate_pct": 20.0
+        }
+      },
+      "exit_mode": "PERCENT",
+      "policy_id": "execution_policy_v1.0",
+      "sizing_mode": "FIXED_FRACTION"
+    },
+    {
+      "cohort_summaries": {
+        "SCOUT_SELECTION": {
+          "average_capture_ratio": -1.4299304178291738,
+          "delta_vs_champion": {
+            "capture_ratio": -1.197254361491145,
+            "return_pct": -5.145584725536998
+          },
+          "exit_reason_counts": {
+            "ENTRY_REJECTED": {},
+            "PROFIT_TARGET": 0,
+            "SESSION_END": 1,
+            "TRAILING_STOP": 0
+          },
+          "gross_realized_pnl_usd": -14.420000000000016,
+          "max_drawdown_pct": -6.593078758949888,
+          "net_average_capture_ratio": -2.3568127659574536,
+          "net_realized_pnl_usd": -15.507828000000016,
+          "net_realized_return_pct": -6.609200477326975,
+          "realized_pnl_usd": -14.420000000000016,
+          "realized_return_pct": -6.145584725536999,
+          "trades_executed": 1,
+          "win_rate_pct": 0.0
+        },
+        "TOP_10_MOVER": {
+          "average_capture_ratio": 0.1730507080089886,
+          "delta_vs_champion": {
+            "capture_ratio": 0.1893259287597472,
+            "return_pct": 2.887857080355618
+          },
+          "exit_reason_counts": {
+            "ENTRY_REJECTED": {
+              "MAX_POSITIONS_REACHED": 5
+            },
+            "PROFIT_TARGET": 0,
+            "SESSION_END": 2,
+            "TRAILING_STOP": 3
+          },
+          "gross_realized_pnl_usd": 37.71449999999999,
+          "max_drawdown_pct": -7.534246575342463,
+          "net_average_capture_ratio": 0.1520410845978204,
+          "net_realized_pnl_usd": 28.858356928571414,
+          "net_realized_return_pct": 1.9398212183707673,
+          "realized_pnl_usd": 37.71449999999999,
+          "realized_return_pct": 2.647541562727054,
+          "trades_executed": 5,
+          "win_rate_pct": 80.0
+        }
+      },
+      "exit_mode": "ATR",
+      "policy_id": "execution_policy_atr_v1.0",
+      "sizing_mode": "RISK_PER_TRADE"
+    }
+  ],
+  "execution_policy_verdict": {
+    "best_challenger_policy_id": "execution_policy_atr_v1.0",
+    "challenger_won_on_movers": true,
+    "challenger_won_on_selection": false,
+    "champion_policy_id": "execution_policy_v1.0",
+    "sample_size": {
+      "SCOUT_SELECTION": 1,
+      "TOP_10_MOVER": 10
+    }
+  },
+  "execution_policy_version": "execution_policy_v1.0_hypothetical",
+  "feature_failures": [],
+  "feature_proposals": [],
+  "massive_plan": {
+    "flat_files": true,
+    "history_years": 10,
+    "plan": "DEVELOPER",
+    "rest_calls_per_minute": null
+  },
+  "missed_opportunities": [
+    {
+      "alpha12_score_pct": 0.0,
+      "alpha12_total_score": 0,
+      "benchmark_rank": 1,
+      "component_scores": [
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "atr_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "current_range_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "premarket_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_gap_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_range_expansion",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_trend_consistency",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_volume_confirmation",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_vs_premarket_vwap",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        }
+      ],
+      "failure_reason_codes": [
+        "INSUFFICIENT_PREMARKET_BARS"
+      ],
+      "maximum_capturable_move_pct": 16.163141993957698,
+      "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": 3.6577164000000337,
+      "net_realized_benchmark_return_pct": 0.7366408345752675,
+      "net_scout_realized_return_pct": 0.0,
+      "opening_range": {
+        "day_high_timestamp": "2024-05-23T10:39:00-04:00",
+        "high_0930_1000_pct": 12.36959761549925,
+        "return_0930_0945_pct": 9.687034277198215,
+        "return_0930_1000_pct": 7.898658718330864,
+        "time_first_crossed_plus_5pct": "2024-05-23T09:36:00-04:00",
+        "volume_0930_1000": 0.8437608645700255
+      },
+      "premarket_real_bars_60m": 3,
+      "premarket_real_bars_total": 13,
+      "realized_benchmark_pnl_usd": 9.686600000000034,
+      "realized_benchmark_return_pct": 1.9508196721311544,
+      "reversal_score_pct": null,
+      "rubric_version": "alpha_v1.1_19m",
+      "scout_exit_reason": null,
+      "scout_realized_return_pct": 0.0,
+      "scout_score_pct": 0.0,
+      "scout_selected": false,
+      "ticker": "TNGX",
+      "was_in_scout_output": true
+    },
+    {
+      "alpha12_score_pct": 0.0,
+      "alpha12_total_score": 0,
+      "benchmark_rank": 2,
+      "component_scores": [
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "atr_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "current_range_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "premarket_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_gap_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_range_expansion",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_trend_consistency",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_volume_confirmation",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_vs_premarket_vwap",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        }
+      ],
+      "failure_reason_codes": [
+        "INSUFFICIENT_PREMARKET_BARS"
+      ],
+      "maximum_capturable_move_pct": 16.274900398406377,
+      "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": -14.978151000000006,
+      "net_realized_benchmark_return_pct": -2.996409266409268,
+      "net_scout_realized_return_pct": 0.0,
+      "opening_range": {
+        "day_high_timestamp": "2024-05-23T11:10:00-04:00",
+        "high_0930_1000_pct": 6.563706563706551,
+        "return_0930_0945_pct": 1.4671814671814776,
+        "return_0930_1000_pct": 4.054054054054057,
+        "time_first_crossed_plus_5pct": "2024-05-23T09:46:00-04:00",
+        "volume_0930_1000": 0.6383657337251828
+      },
+      "premarket_real_bars_60m": 1,
+      "premarket_real_bars_total": 3,
+      "realized_benchmark_pnl_usd": -4.998700000000007,
+      "realized_benchmark_return_pct": -1.0000000000000013,
+      "reversal_score_pct": null,
+      "rubric_version": "alpha_v1.1_19m",
+      "scout_exit_reason": null,
+      "scout_realized_return_pct": 0.0,
+      "scout_score_pct": 0.0,
+      "scout_selected": false,
+      "ticker": "ERAS",
+      "was_in_scout_output": true
+    },
+    {
+      "alpha12_score_pct": 0.0,
+      "alpha12_total_score": 0,
+      "benchmark_rank": 3,
+      "component_scores": [
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "atr_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "current_range_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "premarket_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_gap_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_range_expansion",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_trend_consistency",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_volume_confirmation",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_vs_premarket_vwap",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        }
+      ],
+      "failure_reason_codes": [
+        "INSUFFICIENT_PREMARKET_BARS"
+      ],
+      "maximum_capturable_move_pct": 17.315490673154898,
+      "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": -6.866774800000033,
+      "net_realized_benchmark_return_pct": -1.398642414860688,
+      "net_scout_realized_return_pct": 0.0,
+      "opening_range": {
+        "day_high_timestamp": "2024-05-23T13:20:00-04:00",
+        "high_0930_1000_pct": 2.554179566563475,
+        "return_0930_0945_pct": 1.6640866873065097,
+        "return_0930_1000_pct": 0.2515479876161075,
+        "time_first_crossed_plus_5pct": null,
+        "volume_0930_1000": 0.3084219754914779
+      },
+      "premarket_real_bars_60m": 0,
+      "premarket_real_bars_total": 0,
+      "realized_benchmark_pnl_usd": -4.909600000000033,
+      "realized_benchmark_return_pct": -1.0000000000000069,
+      "reversal_score_pct": null,
+      "rubric_version": "alpha_v1.1_19m",
+      "scout_exit_reason": null,
+      "scout_realized_return_pct": 0.0,
+      "scout_score_pct": 0.0,
+      "scout_selected": false,
+      "ticker": "RNAC",
+      "was_in_scout_output": true
+    },
+    {
+      "alpha12_score_pct": 0.0,
+      "alpha12_total_score": 0,
+      "benchmark_rank": 4,
+      "component_scores": [
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "atr_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "current_range_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "premarket_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_gap_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_range_expansion",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_trend_consistency",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_volume_confirmation",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_vs_premarket_vwap",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        }
+      ],
+      "failure_reason_codes": [
+        "INSUFFICIENT_PREMARKET_BARS"
+      ],
+      "maximum_capturable_move_pct": 20.777777777777786,
+      "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": -2.2477654999999883,
+      "net_realized_benchmark_return_pct": -0.45281335616438123,
+      "net_scout_realized_return_pct": 0.0,
+      "opening_range": {
+        "day_high_timestamp": "2024-05-23T11:14:00-04:00",
+        "high_0930_1000_pct": 0.8561643835616417,
+        "return_0930_0945_pct": -6.02739726027397,
+        "return_0930_1000_pct": -3.5311643835616358,
+        "time_first_crossed_plus_5pct": null,
+        "volume_0930_1000": 0.1255008789303902
+      },
+      "premarket_real_bars_60m": 2,
+      "premarket_real_bars_total": 5,
+      "realized_benchmark_pnl_usd": -0.7564999999999884,
+      "realized_benchmark_return_pct": -0.15239726027397027,
+      "reversal_score_pct": null,
+      "rubric_version": "alpha_v1.1_19m",
+      "scout_exit_reason": null,
+      "scout_realized_return_pct": 0.0,
+      "scout_score_pct": 0.0,
+      "scout_selected": false,
+      "ticker": "RENT",
+      "was_in_scout_output": true
+    },
+    {
+      "alpha12_score_pct": 0.0,
+      "alpha12_total_score": 0,
+      "benchmark_rank": 5,
+      "component_scores": [
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "atr_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "current_range_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "premarket_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_gap_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_range_expansion",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_trend_consistency",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_volume_confirmation",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_vs_premarket_vwap",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        }
+      ],
+      "failure_reason_codes": [
+        "INSUFFICIENT_PREMARKET_BARS"
+      ],
+      "maximum_capturable_move_pct": 13.237847222222232,
+      "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": -8.329399049999978,
+      "net_realized_benchmark_return_pct": -1.697210312366277,
+      "net_scout_realized_return_pct": 0.0,
+      "opening_range": {
+        "day_high_timestamp": "2024-05-23T09:34:00-04:00",
+        "high_0930_1000_pct": 11.638853230637558,
+        "return_0930_0945_pct": 7.980316645271701,
+        "return_0930_1000_pct": 5.905006418485237,
+        "time_first_crossed_plus_5pct": "2024-05-23T09:32:00-04:00",
+        "volume_0930_1000": 1.2378822973479724
+      },
+      "premarket_real_bars_60m": 3,
+      "premarket_real_bars_total": 4,
+      "realized_benchmark_pnl_usd": -4.907699999999977,
+      "realized_benchmark_return_pct": -0.9999999999999953,
+      "reversal_score_pct": null,
+      "rubric_version": "alpha_v1.1_19m",
+      "scout_exit_reason": null,
+      "scout_realized_return_pct": 0.0,
+      "scout_score_pct": 0.0,
+      "scout_selected": false,
+      "ticker": "MNRO",
+      "was_in_scout_output": true
+    },
+    {
+      "alpha12_score_pct": 68.75,
+      "alpha12_total_score": 33,
+      "benchmark_rank": 6,
+      "component_scores": [
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "atr_pct_opportunity",
+          "raw_value": 4.234856481948944,
+          "score": 2,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": 224042339.171,
+          "score": 4,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "current_range_pct_opportunity",
+          "raw_value": 6.341964916789824,
+          "score": 2,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "premarket_dollar_volume_quality",
+          "raw_value": 10881340.567566667,
+          "score": 4,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "premarket_gap_strength",
+          "raw_value": 6.663239735269552,
+          "score": 4,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "premarket_range_expansion",
+          "raw_value": {
+            "average_daily_range_pct": 4.248565012182961,
+            "expansion_ratio": 1.4927310512146903,
+            "premarket_range_pct": 6.341964916789824
+          },
+          "score": 2,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "premarket_trend_consistency",
+          "raw_value": 49.152542372881356,
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "price_slope_15m",
+          "raw_value": 0.10532411644235885,
+          "score": 4,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "price_slope_30m",
+          "raw_value": 0.07290858390906779,
+          "score": 4,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "price_slope_60m",
+          "raw_value": 0.02805633956389877,
+          "score": 1,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "price_volume_confirmation",
+          "raw_value": {
+            "aligned_positive_windows": 2,
+            "short_term_override": true
+          },
+          "score": 2,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "price_vs_premarket_vwap",
+          "raw_value": {
+            "price_vs_vwap_pct": 2.3108313803063254,
+            "vwap": 162.2506608151296
+          },
+          "score": 4,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_15m",
+          "raw_value": 71.45344870920265,
+          "score": 4,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_30m",
+          "raw_value": 74.10401917302573,
+          "score": 4,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_60m",
+          "raw_value": 65.62467448594835,
+          "score": 3,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_alpha_relative_volume_v1.0",
+          "metric_id": "relative_volume",
+          "raw_value": 38.36780228267399,
+          "score": 4,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "volume_slope_15m",
+          "raw_value": 2.7222151190713,
+          "score": 4,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "volume_slope_30m",
+          "raw_value": 3.7446514608919603,
+          "score": 4,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "volume_slope_60m",
+          "raw_value": -0.2420027576925261,
+          "score": 0,
+          "status": "OBSERVED"
+        }
+      ],
+      "failure_reason_codes": [
+        "INSUFFICIENT_PREMARKET_BARS"
+      ],
+      "maximum_capturable_move_pct": 12.65906412069777,
+      "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": null,
+      "net_realized_benchmark_return_pct": null,
+      "net_scout_realized_return_pct": 0.0,
+      "opening_range": {
+        "day_high_timestamp": "2024-05-23T13:32:00-04:00",
+        "high_0930_1000_pct": 5.058105214422137,
+        "return_0930_0945_pct": 2.1413276231263545,
+        "return_0930_1000_pct": 2.731639562474686,
+        "time_first_crossed_plus_5pct": "2024-05-23T09:46:00-04:00",
+        "volume_0930_1000": 1.1433952567677816
+      },
+      "premarket_real_bars_60m": 28,
+      "premarket_real_bars_total": 60,
+      "realized_benchmark_pnl_usd": null,
+      "realized_benchmark_return_pct": null,
+      "reversal_score_pct": 50.0,
+      "rubric_version": "alpha_v1.1_19m",
+      "scout_exit_reason": null,
+      "scout_realized_return_pct": 0.0,
+      "scout_score_pct": 73.68421052631578,
+      "scout_selected": false,
+      "ticker": "ELF",
+      "was_in_scout_output": true
+    },
+    {
+      "alpha12_score_pct": 0.0,
+      "alpha12_total_score": 0,
+      "benchmark_rank": 7,
+      "component_scores": [
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "atr_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "current_range_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "premarket_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_gap_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_range_expansion",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_trend_consistency",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_volume_confirmation",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_vs_premarket_vwap",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        }
+      ],
+      "failure_reason_codes": [
+        "INSUFFICIENT_PREMARKET_BARS"
+      ],
+      "maximum_capturable_move_pct": 13.660017346053777,
+      "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": null,
+      "net_realized_benchmark_return_pct": null,
+      "net_scout_realized_return_pct": 0.0,
+      "opening_range": {
+        "day_high_timestamp": "2024-05-23T12:05:00-04:00",
+        "high_0930_1000_pct": 0.9282700421941126,
+        "return_0930_0945_pct": -1.7721518987341645,
+        "return_0930_1000_pct": 0.5578059071730035,
+        "time_first_crossed_plus_5pct": null,
+        "volume_0930_1000": 0.056861942688003785
+      },
+      "premarket_real_bars_60m": 0,
+      "premarket_real_bars_total": 1,
+      "realized_benchmark_pnl_usd": null,
+      "realized_benchmark_return_pct": null,
+      "reversal_score_pct": null,
+      "rubric_version": "alpha_v1.1_19m",
+      "scout_exit_reason": null,
+      "scout_realized_return_pct": 0.0,
+      "scout_score_pct": 0.0,
+      "scout_selected": false,
+      "ticker": "AGEN",
+      "was_in_scout_output": true
+    },
+    {
+      "alpha12_score_pct": 0.0,
+      "alpha12_total_score": 0,
+      "benchmark_rank": 8,
+      "component_scores": [
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "atr_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "current_range_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "premarket_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_gap_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_range_expansion",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_trend_consistency",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_volume_confirmation",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_vs_premarket_vwap",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        }
+      ],
+      "failure_reason_codes": [
+        "INSUFFICIENT_PREMARKET_BARS"
+      ],
+      "maximum_capturable_move_pct": 10.54941728469807,
+      "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": null,
+      "net_realized_benchmark_return_pct": null,
+      "net_scout_realized_return_pct": 0.0,
+      "opening_range": {
+        "day_high_timestamp": "2024-05-23T09:33:00-04:00",
+        "high_0930_1000_pct": 10.049721259605239,
+        "return_0930_0945_pct": 4.565315654663249,
+        "return_0930_1000_pct": 4.957058912159096,
+        "time_first_crossed_plus_5pct": "2024-05-23T09:33:00-04:00",
+        "volume_0930_1000": 0.6204598978060728
+      },
+      "premarket_real_bars_60m": 0,
+      "premarket_real_bars_total": 0,
+      "realized_benchmark_pnl_usd": null,
+      "realized_benchmark_return_pct": null,
+      "reversal_score_pct": null,
+      "rubric_version": "alpha_v1.1_19m",
+      "scout_exit_reason": null,
+      "scout_realized_return_pct": 0.0,
+      "scout_score_pct": 0.0,
+      "scout_selected": false,
+      "ticker": "ENV",
+      "was_in_scout_output": true
+    },
+    {
+      "alpha12_score_pct": 0.0,
+      "alpha12_total_score": 0,
+      "benchmark_rank": 9,
+      "component_scores": [
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "atr_pct_opportunity",
+          "raw_value": 9.68253968253968,
+          "score": 3,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": 110176862.0395,
+          "score": 4,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "current_range_pct_opportunity",
+          "raw_value": 1.0101010101010066,
+          "score": 0,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "premarket_dollar_volume_quality",
+          "raw_value": 227438.8671,
+          "score": 0,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "premarket_gap_strength",
+          "raw_value": 0.40404040404039543,
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "premarket_range_expansion",
+          "raw_value": {
+            "average_daily_range_pct": 7.55293417756979,
+            "expansion_ratio": 0.13373623897064252,
+            "premarket_range_pct": 1.0101010101010066
+          },
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "premarket_trend_consistency",
+          "raw_value": 36.0,
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "price_slope_15m",
+          "raw_value": -0.03907675726156179,
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "price_slope_30m",
+          "raw_value": -4.111604051417302e-05,
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "price_volume_confirmation",
+          "raw_value": {
+            "aligned_positive_windows": 0,
+            "short_term_override": false
+          },
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "price_vs_premarket_vwap",
+          "raw_value": {
+            "price_vs_vwap_pct": -0.34820657968358754,
+            "vwap": 4.987366337740938
+          },
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_15m",
+          "raw_value": 20.08032128514037,
+          "score": 0,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_30m",
+          "raw_value": 42.81609195402235,
+          "score": 0,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_relative_volume_v1.0",
+          "metric_id": "relative_volume",
+          "raw_value": 0.1295518242097397,
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "volume_slope_15m",
+          "raw_value": -18.63038832803261,
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_price_volume_v1.0",
+          "metric_id": "volume_slope_30m",
+          "raw_value": -0.027667503934177853,
+          "score": 0,
+          "status": "OBSERVED"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        }
+      ],
+      "failure_reason_codes": [
+        "INSUFFICIENT_PREMARKET_BARS",
+        "LIQUIDITY_BELOW_MINIMUM"
+      ],
+      "maximum_capturable_move_pct": 13.278008298755184,
+      "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": null,
+      "net_realized_benchmark_return_pct": null,
+      "net_scout_realized_return_pct": 0.0,
+      "opening_range": {
+        "day_high_timestamp": "2024-05-23T11:58:00-04:00",
+        "high_0930_1000_pct": 0.0,
+        "return_0930_0945_pct": -2.594810379241519,
+        "return_0930_1000_pct": -2.682634730538913,
+        "time_first_crossed_plus_5pct": null,
+        "volume_0930_1000": 0.0886713455449766
+      },
+      "premarket_real_bars_60m": 17,
+      "premarket_real_bars_total": 26,
+      "realized_benchmark_pnl_usd": null,
+      "realized_benchmark_return_pct": null,
+      "reversal_score_pct": null,
+      "rubric_version": "alpha_v1.1_19m",
+      "scout_exit_reason": null,
+      "scout_realized_return_pct": 0.0,
+      "scout_score_pct": 9.210526315789473,
+      "scout_selected": false,
+      "ticker": "MPW",
+      "was_in_scout_output": true
+    },
+    {
+      "alpha12_score_pct": 0.0,
+      "alpha12_total_score": 0,
+      "benchmark_rank": 10,
+      "component_scores": [
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "atr_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "current_range_pct_opportunity",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_extended_v1.0",
+          "metric_id": "premarket_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_gap_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_range_expansion",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "premarket_trend_consistency",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_volume_confirmation",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "price_vs_premarket_vwap",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "rsi_cutler_window_v1.0",
+          "metric_id": "relative_strength_index_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_15m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_30m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_alpha_v1.0",
+          "metric_id": "volume_slope_60m",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        }
+      ],
+      "failure_reason_codes": [
+        "INSUFFICIENT_PREMARKET_BARS"
+      ],
+      "maximum_capturable_move_pct": 8.933454876937086,
+      "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": null,
+      "net_realized_benchmark_return_pct": null,
+      "net_scout_realized_return_pct": 0.0,
+      "opening_range": {
+        "day_high_timestamp": "2024-05-23T09:32:00-04:00",
+        "high_0930_1000_pct": 8.933454876937086,
+        "return_0930_0945_pct": 3.008204193254338,
+        "return_0930_1000_pct": 2.370100273473108,
+        "time_first_crossed_plus_5pct": "2024-05-23T09:31:00-04:00",
+        "volume_0930_1000": 0.3681646529988249
+      },
+      "premarket_real_bars_60m": 0,
+      "premarket_real_bars_total": 0,
+      "realized_benchmark_pnl_usd": null,
+      "realized_benchmark_return_pct": null,
+      "reversal_score_pct": null,
+      "rubric_version": "alpha_v1.1_19m",
+      "scout_exit_reason": null,
+      "scout_realized_return_pct": 0.0,
+      "scout_score_pct": 0.0,
+      "scout_selected": false,
+      "ticker": "ABL",
+      "was_in_scout_output": true
+    }
+  ],
+  "net_result": "MISS",
+  "net_result_code": "SCOUT_UNDERPERFORMED",
+  "net_scout_won": false,
+  "notes": [
+    "WIN/TIE/MISS uses the deterministic random-draw return baseline, not top-10 capture.",
+    "Top-10 capture is diagnostic only.",
+    "No feature proposal is eligible from one day; at least 30 independent occurrences are required.",
+    "Execution policy review is descriptive. Promotion requires the gates defined in the execution learner, not a single-day verdict."
+  ],
+  "promotion_eligible": true,
+  "reachability": {
+    "bars_0": 4,
+    "bars_10_29": 2,
+    "bars_1_9": 4,
+    "opening_range_reachable_count": 0,
+    "picked": 0,
+    "visible_guardrail_rejected": 0,
+    "visible_reversal_candidate": 0,
+    "visible_scored_low": 0
+  },
+  "replay_id": "2024-05-23-0915-flatfile-replay",
+  "research_evidence": true,
+  "result": "MISS",
+  "reversal_cohort": {
+    "candidate_count": 0,
+    "candidates": [],
+    "close_above_open_share": null,
+    "mean_day_mfe_pct": null,
+    "net_policy_returns": {
+      "execution_policy_atr_v1.0": 0.0,
+      "execution_policy_v1.0": 0.0
+    },
+    "policy_returns": {
+      "execution_policy_atr_v1.0": 0.0,
+      "execution_policy_v1.0": 0.0
+    },
+    "selected_count": 0
+  },
+  "scout_performance": {
+    "average_capture_ratio": -0.2326760563380287,
+    "max_drawdown_pct": -1.0143198090692196,
+    "net_average_capture_ratio": -0.6053178723404271,
+    "net_realized_pnl_usd": -8.250482600000005,
+    "net_realized_return_pct": -0.3300193040000002,
+    "realized_pnl_usd": -4.860400000000006,
+    "realized_return_pct": -0.19441600000000023,
+    "win_rate_pct": 0.0
+  },
+  "scout_version": "research_scout_alpha_v1.1",
+  "shadow_scores": [
+    {
+      "benchmark_rank": 6,
+      "premarket_real_bars_60m": 28,
+      "score_pct": 73.68421052631578,
+      "ticker": "ELF"
+    },
+    {
+      "benchmark_rank": 9,
+      "premarket_real_bars_60m": 17,
+      "score_pct": 9.210526315789473,
+      "ticker": "MPW"
+    }
+  ],
+  "trading_date": "2024-05-23",
+  "trainer_version": "scout_trainer_v1.1",
+  "universe_coverage": "complete",
+  "universe_manifest_hash": "sha256:09ab6aa90e9cca4663ec212de85146645f45bece940387e840b69d11ecc64f4d",
+  "universe_mode": "historical_research",
+  "universe_scorability": {
+    "eligible_count": 2440,
+    "not_scorable_share": 0.9844262295081967,
+    "scorable_count": 38,
+    "top_10_invisible_count": 10,
+    "zero_premarket_60m_bar_count": 1870,
+    "zero_premarket_bar_count": 1652
+  },
+  "unreachable_mover_count": 10,
+  "unreachable_pct": 100.0
+}
