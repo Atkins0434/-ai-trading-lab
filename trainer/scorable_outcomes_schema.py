@@ -43,7 +43,7 @@ SCORABLE_OUTCOME_COLUMNS = (
     "reachable_metric_count", "unavailable_metrics", "benchmark_symbol", "alpha12_total_score", "alpha12_score_pct",
     "rubric_version", "reversal_score_pct", "selected",
     "news_article_count", "news_fetch_status", "admitted_event_count", "best_event_type",
-    "source_tier", "verification_status", "freshest_event_age_minutes", "sentiment",
+    "source_tier", "verification_status", "freshest_event_age_minutes", "sentiment", "keyword_sentiment_hint",
     "selection_basis", "rejection_reasons", "liquidity_action",
     "top_10_mover", "benchmark_rank", "open_0930", "day_high",
     "day_low", "close", "day_mfe_pct", "day_mae_pct",

@@ -10,7 +10,6 @@
     "syndicated_duplicate_action": "COUNT_ONCE",
     "provider_latency_minutes": 15
   },
-  "positive_relevance_minimum": 0.5,
   "metrics": [
     {
       "metric_id": "catalyst_quality",
@@ -43,5 +42,30 @@
     "dilution_enforcement": "OBSERVE_ONLY"
   },
   "lookback_days": 3,
-  "notes": "Massive exposes publish time, not ingestion time, so a 15-minute latency buffer stands in for provider availability. SEC filings are out of scope; SEC_FILING remains defined but is not emitted by this news adapter. Positive relevance is ticker relevance when sentiment is POSITIVE, otherwise zero."
+  "notes": "Massive exposes publish time, not ingestion time, so a 15-minute latency buffer stands in for provider availability. SEC filings are out of scope; SEC_FILING remains defined but is not emitted by this news adapter. Freshness relevance follows the event-type policy, independent of keyword hints. Sentiment is Massive insights only; absent insights yield UNKNOWN.",
+  "freshness_relevance": {
+    "always_relevant": [
+      "EARNINGS",
+      "GUIDANCE",
+      "FDA_REGULATORY",
+      "MERGER_ACQUISITION",
+      "CONTRACT_AWARD",
+      "PRODUCT",
+      "SEC_FILING"
+    ],
+    "sentiment_dependent": [
+      "ANALYST_ACTION",
+      "MANAGEMENT",
+      "LEGAL_REGULATORY",
+      "MACRO_SECTOR",
+      "OTHER"
+    ],
+    "allowed_sentiments": [
+      "POSITIVE",
+      "MIXED"
+    ],
+    "never_relevant": [
+      "OFFERING_DILUTION"
+    ]
+  }
 }
