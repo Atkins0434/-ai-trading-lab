@@ -130,7 +130,7 @@
     {
       "description": "A visible benchmark mover remained below the research selection threshold.",
       "evidence": [
-        "NYCB score=28.00%"
+        "NYCB score=29.00%"
       ],
       "failure_type": "THRESHOLD",
       "feature_id": "selection_threshold"
@@ -600,8 +600,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 137.46666666666667,
+          "score": 3,
           "status": "SCORED"
         },
         {
@@ -785,11 +785,11 @@
       "realized_benchmark_return_pct": -1.0000000000000016,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 15.833333333333332,
-      "score_pct_reachable": 19.0,
+      "score_pct_fixed120": 18.333333333333332,
+      "score_pct_reachable": 22.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 19.0,
+      "scout_score_pct": 22.0,
       "scout_selected": false,
       "ticker": "REAL",
       "was_in_scout_output": true
@@ -824,8 +824,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 1185.7,
+          "score": 1,
           "status": "SCORED"
         },
         {
@@ -1009,11 +1009,11 @@
       "realized_benchmark_return_pct": -1.0000000000000058,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 10.833333333333334,
-      "score_pct_reachable": 13.0,
+      "score_pct_fixed120": 11.666666666666666,
+      "score_pct_reachable": 14.000000000000002,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 13.0,
+      "scout_score_pct": 14.000000000000002,
       "scout_selected": false,
       "ticker": "MTC",
       "was_in_scout_output": true
@@ -1687,8 +1687,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 96.0,
+          "score": 4,
           "status": "SCORED"
         },
         {
@@ -1872,11 +1872,11 @@
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 19.166666666666668,
-      "score_pct_reachable": 23.0,
+      "score_pct_fixed120": 22.5,
+      "score_pct_reachable": 27.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 23.0,
+      "scout_score_pct": 27.0,
       "scout_selected": false,
       "ticker": "DDD",
       "was_in_scout_output": true
@@ -1911,8 +1911,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 1185.7,
+          "score": 1,
           "status": "SCORED"
         },
         {
@@ -2095,11 +2095,11 @@
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 23.333333333333332,
-      "score_pct_reachable": 28.000000000000004,
+      "score_pct_fixed120": 24.166666666666668,
+      "score_pct_reachable": 28.999999999999996,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 28.000000000000004,
+      "scout_score_pct": 28.999999999999996,
       "scout_selected": false,
       "ticker": "NYCB",
       "was_in_scout_output": true
@@ -2347,8 +2347,36 @@
           "OTHER": 10
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 145.79166666666669,
+          "p50": 254.65,
+          "p75": 1229.0
+        },
+        "freshest_relevant_event_ages_minutes": [
+          39.0,
+          48.0,
+          81.75,
+          107.0,
+          135.0,
+          156.58333333333334,
+          156.58333333333334,
+          254.65,
+          254.65,
+          254.65,
+          409.3833333333333,
+          959.95,
+          1018.8333333333334,
+          1169.0,
+          1289.0,
+          1399.0,
+          1512.3166666666666,
+          1605.0,
+          2935.0
+        ],
         "scorable_count": 37,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.2972972972972973,
+        "share_with_relevant_event_under_24h": 0.43243243243243246,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 25,
         "with_any_article": 25
@@ -2366,8 +2394,29 @@
           "OTHER": 12
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 67.75,
+          "p50": 119.26666666666668,
+          "p75": 469.92083333333335
+        },
+        "freshest_relevant_event_ages_minutes": [
+          48.43333333333333,
+          54.95,
+          55.0,
+          72.0,
+          75.66666666666667,
+          81.95,
+          156.58333333333334,
+          185.0,
+          226.0,
+          1201.6833333333334,
+          1233.8166666666666,
+          1285.0
+        ],
         "scorable_count": 27,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.3333333333333333,
+        "share_with_relevant_event_under_24h": 0.4444444444444444,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 21,
         "with_any_article": 21
@@ -2387,8 +2436,29 @@
           "OTHER": 7
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 136.85,
+          "p50": 1185.7,
+          "p75": 1192.025
+        },
+        "freshest_relevant_event_ages_minutes": [
+          38.06666666666667,
+          96.0,
+          135.0,
+          137.46666666666667,
+          156.58333333333334,
+          1185.7,
+          1185.7,
+          1185.7,
+          1185.7,
+          1211.0,
+          1387.0,
+          1693.8166666666666
+        ],
         "scorable_count": 36,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.1388888888888889,
+        "share_with_relevant_event_under_24h": 0.3055555555555556,
         "top_10_movers_with_admitted_event": 4,
         "with_admitted_event": 18,
         "with_any_article": 18
@@ -2406,8 +2476,22 @@
           "OTHER": 8
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 1018.8333333333334,
+          "p50": 1018.8333333333334,
+          "p75": 1029.3
+        },
+        "freshest_relevant_event_ages_minutes": [
+          165.0,
+          1018.8333333333334,
+          1018.8333333333334,
+          1029.3,
+          1185.7
+        ],
         "scorable_count": 27,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.037037037037037035,
+        "share_with_relevant_event_under_24h": 0.18518518518518517,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 12,
         "with_any_article": 12
@@ -2416,8 +2500,16 @@
         "by_event_type": {},
         "by_source_tier": {},
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": null,
+          "p50": null,
+          "p75": null
+        },
+        "freshest_relevant_event_ages_minutes": [],
         "scorable_count": 0,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": null,
+        "share_with_relevant_event_under_24h": null,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 0,
         "with_any_article": 0
@@ -2433,8 +2525,20 @@
           "OTHER": 7
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 659.8166666666667,
+          "p50": 1296.6333333333334,
+          "p75": 1429.8166666666666
+        },
+        "freshest_relevant_event_ages_minutes": [
+          23.0,
+          1296.6333333333334,
+          1563.0
+        ],
         "scorable_count": 19,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.05263157894736842,
+        "share_with_relevant_event_under_24h": 0.10526315789473684,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 8,
         "with_any_article": 8
@@ -2445,8 +2549,68 @@
       "OTHER": 44
     },
     "fetch_errors": 0,
+    "freshest_relevant_event_age_minutes": {
+      "p25": 121.0,
+      "p50": 254.65,
+      "p75": 1193.6916666666666
+    },
+    "freshest_relevant_event_ages_minutes": [
+      23.0,
+      38.06666666666667,
+      39.0,
+      48.0,
+      48.43333333333333,
+      54.95,
+      55.0,
+      72.0,
+      75.66666666666667,
+      81.75,
+      81.95,
+      96.0,
+      107.0,
+      135.0,
+      135.0,
+      137.46666666666667,
+      156.58333333333334,
+      156.58333333333334,
+      156.58333333333334,
+      156.58333333333334,
+      165.0,
+      185.0,
+      226.0,
+      254.65,
+      254.65,
+      254.65,
+      409.3833333333333,
+      959.95,
+      1018.8333333333334,
+      1018.8333333333334,
+      1018.8333333333334,
+      1029.3,
+      1169.0,
+      1185.7,
+      1185.7,
+      1185.7,
+      1185.7,
+      1185.7,
+      1201.6833333333334,
+      1211.0,
+      1233.8166666666666,
+      1285.0,
+      1289.0,
+      1296.6333333333334,
+      1387.0,
+      1399.0,
+      1512.3166666666666,
+      1563.0,
+      1605.0,
+      1693.8166666666666,
+      2935.0
+    ],
     "scorable_count": 146,
     "selections_with_admitted_event": 0,
+    "share_with_relevant_event_under_12h": 0.18493150684931506,
+    "share_with_relevant_event_under_24h": 0.3150684931506849,
     "top_10_movers_with_admitted_event": 4,
     "with_admitted_event": 84,
     "with_any_article": 84
@@ -2502,19 +2666,19 @@
     {
       "benchmark_rank": 3,
       "premarket_real_bars_60m": 17,
-      "score_pct": 19.0,
+      "score_pct": 22.0,
       "ticker": "REAL"
     },
     {
       "benchmark_rank": 4,
       "premarket_real_bars_60m": 12,
-      "score_pct": 13.0,
+      "score_pct": 14.000000000000002,
       "ticker": "MTC"
     },
     {
       "benchmark_rank": 8,
       "premarket_real_bars_60m": 11,
-      "score_pct": 23.0,
+      "score_pct": 27.0,
       "ticker": "DDD"
     }
   ],

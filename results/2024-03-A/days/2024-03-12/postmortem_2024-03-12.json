@@ -1250,8 +1250,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 975.0,
+          "score": 1,
           "status": "SCORED"
         },
         {
@@ -1434,11 +1434,11 @@
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 11.666666666666666,
-      "score_pct_reachable": 14.000000000000002,
+      "score_pct_fixed120": 12.5,
+      "score_pct_reachable": 15.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 14.000000000000002,
+      "scout_score_pct": 15.0,
       "scout_selected": false,
       "ticker": "RUM",
       "was_in_scout_output": true
@@ -2336,8 +2336,27 @@
           "OTHER": 13
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 79.81666666666666,
+          "p50": 1083.5,
+          "p75": 1572.5541666666668
+        },
+        "freshest_relevant_event_ages_minutes": [
+          30.0,
+          52.0,
+          63.96666666666667,
+          127.36666666666666,
+          837.0,
+          1330.0,
+          1357.4666666666667,
+          1644.25,
+          1755.0,
+          2911.5333333333333
+        ],
         "scorable_count": 35,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.11428571428571428,
+        "share_with_relevant_event_under_24h": 0.2,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 23,
         "with_any_article": 23
@@ -2356,8 +2375,29 @@
           "OTHER": 18
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 62.3875,
+          "p50": 890.45,
+          "p75": 1279.8666666666668
+        },
+        "freshest_relevant_event_ages_minutes": [
+          43.0,
+          52.0,
+          54.7,
+          64.95,
+          119.96666666666667,
+          801.0,
+          979.9,
+          1245.0,
+          1254.0,
+          1357.4666666666667,
+          1357.4666666666667,
+          1401.0
+        ],
         "scorable_count": 32,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.15625,
+        "share_with_relevant_event_under_24h": 0.375,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 23,
         "with_any_article": 23
@@ -2376,8 +2416,23 @@
           "OTHER": 13
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 503.5541666666667,
+          "p50": 1471.2333333333333,
+          "p75": 1633.75
+        },
+        "freshest_relevant_event_ages_minutes": [
+          62.266666666666666,
+          218.91666666666666,
+          1357.4666666666667,
+          1585.0,
+          1650.0,
+          1695.0
+        ],
         "scorable_count": 29,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.06896551724137931,
+        "share_with_relevant_event_under_24h": 0.10344827586206896,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 20,
         "with_any_article": 20
@@ -2396,8 +2451,22 @@
           "OTHER": 10
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 975.0,
+          "p50": 1110.5166666666667,
+          "p75": 1173.5333333333333
+        },
+        "freshest_relevant_event_ages_minutes": [
+          63.96666666666667,
+          975.0,
+          1110.5166666666667,
+          1173.5333333333333,
+          1854.65
+        ],
         "scorable_count": 32,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.03125,
+        "share_with_relevant_event_under_24h": 0.125,
         "top_10_movers_with_admitted_event": 2,
         "with_admitted_event": 15,
         "with_any_article": 15
@@ -2406,8 +2475,16 @@
         "by_event_type": {},
         "by_source_tier": {},
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": null,
+          "p50": null,
+          "p75": null
+        },
+        "freshest_relevant_event_ages_minutes": [],
         "scorable_count": 0,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": null,
+        "share_with_relevant_event_under_24h": null,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 0,
         "with_any_article": 0
@@ -2422,8 +2499,18 @@
           "OTHER": 7
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 1230.0,
+          "p50": 1230.0,
+          "p75": 1230.0
+        },
+        "freshest_relevant_event_ages_minutes": [
+          1230.0
+        ],
         "scorable_count": 17,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.0,
+        "share_with_relevant_event_under_24h": 0.058823529411764705,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 7,
         "with_any_article": 7
@@ -2434,8 +2521,51 @@
       "OTHER": 61
     },
     "fetch_errors": 0,
+    "freshest_relevant_event_age_minutes": {
+      "p25": 78.70416666666667,
+      "p50": 1142.025,
+      "p75": 1357.4666666666667
+    },
+    "freshest_relevant_event_ages_minutes": [
+      30.0,
+      43.0,
+      52.0,
+      52.0,
+      54.7,
+      62.266666666666666,
+      63.96666666666667,
+      63.96666666666667,
+      64.95,
+      119.96666666666667,
+      127.36666666666666,
+      218.91666666666666,
+      801.0,
+      837.0,
+      975.0,
+      979.9,
+      1110.5166666666667,
+      1173.5333333333333,
+      1230.0,
+      1245.0,
+      1254.0,
+      1330.0,
+      1357.4666666666667,
+      1357.4666666666667,
+      1357.4666666666667,
+      1357.4666666666667,
+      1401.0,
+      1585.0,
+      1644.25,
+      1650.0,
+      1695.0,
+      1755.0,
+      1854.65,
+      2911.5333333333333
+    ],
     "scorable_count": 145,
     "selections_with_admitted_event": 0,
+    "share_with_relevant_event_under_12h": 0.08275862068965517,
+    "share_with_relevant_event_under_24h": 0.18620689655172415,
     "top_10_movers_with_admitted_event": 2,
     "with_admitted_event": 88,
     "with_any_article": 88
@@ -2497,7 +2627,7 @@
     {
       "benchmark_rank": 6,
       "premarket_real_bars_60m": 12,
-      "score_pct": 14.000000000000002,
+      "score_pct": 15.0,
       "ticker": "RUM"
     }
   ],

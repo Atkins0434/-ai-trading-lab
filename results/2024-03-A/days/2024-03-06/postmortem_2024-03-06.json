@@ -2,10 +2,10 @@
   "benchmark_performance": {
     "average_capture_ratio": null,
     "max_drawdown_pct": null,
-    "net_realized_pnl_usd": 0.0,
-    "net_realized_return_pct": 0.0,
-    "realized_pnl_usd": 0.0,
-    "realized_return_pct": 0.0,
+    "net_realized_pnl_usd": -3.050351594766753,
+    "net_realized_return_pct": -0.12201406379067012,
+    "realized_pnl_usd": -0.1614953075000031,
+    "realized_return_pct": -0.006459812300000123,
     "win_rate_pct": null
   },
   "cost_model_id": "execution_costs_v1.0",
@@ -13,7 +13,7 @@
     {
       "cohort_summaries": {
         "SCOUT_SELECTION": {
-          "average_capture_ratio": null,
+          "average_capture_ratio": -0.14700972343324573,
           "delta_vs_champion": {
             "capture_ratio": null,
             "return_pct": null
@@ -22,17 +22,17 @@
             "ENTRY_REJECTED": {},
             "PROFIT_TARGET": 0,
             "SESSION_END": 0,
-            "TRAILING_STOP": 0
+            "TRAILING_STOP": 1
           },
-          "gross_realized_pnl_usd": 0,
-          "max_drawdown_pct": null,
-          "net_average_capture_ratio": null,
-          "net_realized_pnl_usd": 0,
-          "net_realized_return_pct": 0.0,
-          "realized_pnl_usd": 0,
-          "realized_return_pct": 0.0,
-          "trades_executed": 0,
-          "win_rate_pct": null
+          "gross_realized_pnl_usd": -3.176997,
+          "max_drawdown_pct": -2.185596560372638,
+          "net_average_capture_ratio": -4.752124160046884,
+          "net_realized_pnl_usd": -4.845741006000001,
+          "net_realized_return_pct": -1.1574682923683268,
+          "realized_pnl_usd": -3.176997,
+          "realized_return_pct": -0.7588670727337871,
+          "trades_executed": 1,
+          "win_rate_pct": 0.0
         },
         "TOP_10_MOVER": {
           "average_capture_ratio": 0.03403410316130769,
@@ -64,26 +64,26 @@
     {
       "cohort_summaries": {
         "SCOUT_SELECTION": {
-          "average_capture_ratio": null,
+          "average_capture_ratio": -0.8514613701346745,
           "delta_vs_champion": {
-            "capture_ratio": null,
-            "return_pct": 0.0
+            "capture_ratio": -0.7044516467014288,
+            "return_pct": -3.6363932026411434
           },
           "exit_reason_counts": {
             "ENTRY_REJECTED": {},
             "PROFIT_TARGET": 0,
             "SESSION_END": 0,
-            "TRAILING_STOP": 0
+            "TRAILING_STOP": 1
           },
-          "gross_realized_pnl_usd": 0,
-          "max_drawdown_pct": null,
-          "net_average_capture_ratio": null,
-          "net_realized_pnl_usd": 0,
-          "net_realized_return_pct": 0.0,
-          "realized_pnl_usd": 0,
-          "realized_return_pct": 0.0,
-          "trades_executed": 0,
-          "win_rate_pct": null
+          "gross_realized_pnl_usd": -18.400757142857145,
+          "max_drawdown_pct": -4.693658187029747,
+          "net_average_capture_ratio": -19.25939431765569,
+          "net_realized_pnl_usd": -19.638804385714288,
+          "net_realized_return_pct": -4.690983968879562,
+          "realized_pnl_usd": -18.400757142857145,
+          "realized_return_pct": -4.39526027537493,
+          "trades_executed": 1,
+          "win_rate_pct": 0.0
         },
         "TOP_10_MOVER": {
           "average_capture_ratio": 0.3441983252501985,
@@ -121,7 +121,7 @@
     "challenger_won_on_selection": false,
     "champion_policy_id": "execution_policy_v1.0",
     "sample_size": {
-      "SCOUT_SELECTION": 0,
+      "SCOUT_SELECTION": 1,
       "TOP_10_MOVER": 10
     }
   },
@@ -388,7 +388,7 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
+          "raw_value": 1575.0,
           "score": 0,
           "status": "SCORED"
         },
@@ -611,8 +611,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 105.0,
+          "score": 4,
           "status": "SCORED"
         },
         {
@@ -796,11 +796,11 @@
       "realized_benchmark_return_pct": -0.036964980544730054,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 19.166666666666668,
-      "score_pct_reachable": 23.0,
+      "score_pct_fixed120": 22.5,
+      "score_pct_reachable": 27.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 23.0,
+      "scout_score_pct": 27.0,
       "scout_selected": false,
       "ticker": "WVE",
       "was_in_scout_output": true
@@ -835,7 +835,7 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
+          "raw_value": 2625.7,
           "score": 0,
           "status": "SCORED"
         },
@@ -2327,8 +2327,8 @@
       "was_in_scout_output": true
     }
   ],
-  "net_result": "TIE",
-  "net_result_code": "SCOUT_TIED",
+  "net_result": "MISS",
+  "net_result_code": "SCOUT_UNDERPERFORMED",
   "net_scout_won": false,
   "news_coverage": {
     "by_event_type": {
@@ -2355,8 +2355,36 @@
           "OTHER": 14
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 569.7916666666666,
+          "p50": 1521.75,
+          "p75": 2504.475
+        },
+        "freshest_relevant_event_ages_minutes": [
+          22.0,
+          60.95,
+          74.33333333333333,
+          240.0,
+          254.58333333333334,
+          885.0,
+          889.9666666666667,
+          1215.0,
+          1424.75,
+          1521.75,
+          1694.65,
+          1694.65,
+          1849.3833333333334,
+          2399.95,
+          2609.0,
+          2729.0,
+          2952.3166666666666,
+          3011.0,
+          3019.35
+        ],
         "scorable_count": 39,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.1282051282051282,
+        "share_with_relevant_event_under_24h": 0.23076923076923078,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 28,
         "with_any_article": 28
@@ -2375,8 +2403,36 @@
           "OTHER": 18
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 77.13333333333333,
+          "p50": 972.3166666666667,
+          "p75": 1458.7166666666667
+        },
+        "freshest_relevant_event_ages_minutes": [
+          34.96666666666667,
+          60.95,
+          60.95,
+          73.36666666666666,
+          74.33333333333333,
+          79.93333333333334,
+          89.95,
+          406.71666666666664,
+          914.9,
+          972.3166666666667,
+          1153.85,
+          1217.0,
+          1380.0,
+          1429.0,
+          1488.4333333333334,
+          1521.95,
+          1521.95,
+          1666.0,
+          2625.7
+        ],
         "scorable_count": 37,
-        "selections_with_admitted_event": 0,
+        "selections_with_admitted_event": 1,
+        "share_with_relevant_event_under_12h": 0.21621621621621623,
+        "share_with_relevant_event_under_24h": 0.3783783783783784,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 32,
         "with_any_article": 32
@@ -2395,8 +2451,27 @@
           "OTHER": 8
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 1199.75,
+          "p50": 1375.525,
+          "p75": 2363.0249999999996
+        },
+        "freshest_relevant_event_ages_minutes": [
+          1153.85,
+          1168.4333333333334,
+          1196.0,
+          1211.0,
+          1338.05,
+          1413.0,
+          1575.0,
+          2625.7,
+          2625.7,
+          2651.0
+        ],
         "scorable_count": 24,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.0,
+        "share_with_relevant_event_under_24h": 0.25,
         "top_10_movers_with_admitted_event": 1,
         "with_admitted_event": 16,
         "with_any_article": 16
@@ -2415,8 +2490,26 @@
           "OTHER": 12
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 939.95,
+          "p50": 2458.8333333333335,
+          "p75": 2625.7
+        },
+        "freshest_relevant_event_ages_minutes": [
+          105.0,
+          170.0,
+          939.95,
+          1153.85,
+          2458.8333333333335,
+          2458.8333333333335,
+          2625.7,
+          2625.7,
+          2625.7
+        ],
         "scorable_count": 39,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.05128205128205128,
+        "share_with_relevant_event_under_24h": 0.10256410256410256,
         "top_10_movers_with_admitted_event": 2,
         "with_admitted_event": 19,
         "with_any_article": 19
@@ -2425,8 +2518,16 @@
         "by_event_type": {},
         "by_source_tier": {},
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": null,
+          "p50": null,
+          "p75": null
+        },
+        "freshest_relevant_event_ages_minutes": [],
         "scorable_count": 0,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": null,
+        "share_with_relevant_event_under_24h": null,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 0,
         "with_any_article": 0
@@ -2442,8 +2543,22 @@
           "OTHER": 5
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 74.33333333333333,
+          "p50": 138.16666666666666,
+          "p75": 2736.633333333333
+        },
+        "freshest_relevant_event_ages_minutes": [
+          60.95,
+          74.33333333333333,
+          138.16666666666666,
+          2736.633333333333,
+          3003.0
+        ],
         "scorable_count": 16,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.1875,
+        "share_with_relevant_event_under_24h": 0.1875,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 10,
         "with_any_article": 10
@@ -2454,8 +2569,79 @@
       "OTHER": 57
     },
     "fetch_errors": 0,
+    "freshest_relevant_event_age_minutes": {
+      "p25": 243.64583333333334,
+      "p50": 1277.525,
+      "p75": 2444.1125
+    },
+    "freshest_relevant_event_ages_minutes": [
+      22.0,
+      34.96666666666667,
+      60.95,
+      60.95,
+      60.95,
+      60.95,
+      73.36666666666666,
+      74.33333333333333,
+      74.33333333333333,
+      74.33333333333333,
+      79.93333333333334,
+      89.95,
+      105.0,
+      138.16666666666666,
+      170.0,
+      240.0,
+      254.58333333333334,
+      406.71666666666664,
+      885.0,
+      889.9666666666667,
+      914.9,
+      939.95,
+      972.3166666666667,
+      1153.85,
+      1153.85,
+      1153.85,
+      1168.4333333333334,
+      1196.0,
+      1211.0,
+      1215.0,
+      1217.0,
+      1338.05,
+      1380.0,
+      1413.0,
+      1424.75,
+      1429.0,
+      1488.4333333333334,
+      1521.75,
+      1521.95,
+      1521.95,
+      1575.0,
+      1666.0,
+      1694.65,
+      1694.65,
+      1849.3833333333334,
+      2399.95,
+      2458.8333333333335,
+      2458.8333333333335,
+      2609.0,
+      2625.7,
+      2625.7,
+      2625.7,
+      2625.7,
+      2625.7,
+      2625.7,
+      2651.0,
+      2729.0,
+      2736.633333333333,
+      2952.3166666666666,
+      3003.0,
+      3011.0,
+      3019.35
+    ],
     "scorable_count": 155,
-    "selections_with_admitted_event": 0,
+    "selections_with_admitted_event": 1,
+    "share_with_relevant_event_under_12h": 0.11612903225806452,
+    "share_with_relevant_event_under_24h": 0.23225806451612904,
     "top_10_movers_with_admitted_event": 3,
     "with_admitted_event": 105,
     "with_any_article": 105
@@ -2480,7 +2666,7 @@
   "reachable_metric_count": 25,
   "replay_id": "2024-03-06-0915-flatfile-replay",
   "research_evidence": true,
-  "result": "TIE",
+  "result": "MISS",
   "reversal_cohort": {
     "candidate_count": 0,
     "candidates": [],
@@ -2497,14 +2683,14 @@
     "selected_count": 0
   },
   "scout_performance": {
-    "average_capture_ratio": null,
-    "max_drawdown_pct": null,
-    "net_average_capture_ratio": null,
-    "net_realized_pnl_usd": 0,
-    "net_realized_return_pct": 0.0,
-    "realized_pnl_usd": 0,
-    "realized_return_pct": 0.0,
-    "win_rate_pct": null
+    "average_capture_ratio": -0.14700972343324573,
+    "max_drawdown_pct": -2.185596560372638,
+    "net_average_capture_ratio": -4.752124160046884,
+    "net_realized_pnl_usd": -4.845741006000001,
+    "net_realized_return_pct": -0.19382964024000005,
+    "realized_pnl_usd": -3.176997,
+    "realized_return_pct": -0.12707988,
+    "win_rate_pct": 0.0
   },
   "scout_version": "research_scout_alpha_v1.3",
   "shadow_scores": [
@@ -2517,7 +2703,7 @@
     {
       "benchmark_rank": 3,
       "premarket_real_bars_60m": 14,
-      "score_pct": 23.0,
+      "score_pct": 27.0,
       "ticker": "WVE"
     },
     {

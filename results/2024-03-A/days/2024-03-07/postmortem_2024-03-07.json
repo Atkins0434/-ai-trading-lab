@@ -130,7 +130,7 @@
     {
       "description": "A visible benchmark mover remained below the research selection threshold.",
       "evidence": [
-        "SOUN score=39.00%"
+        "SOUN score=42.00%"
       ],
       "failure_type": "THRESHOLD",
       "feature_id": "selection_threshold"
@@ -1239,8 +1239,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 959.9666666666667,
+          "score": 1,
           "status": "SCORED"
         },
         {
@@ -1423,11 +1423,11 @@
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 29.166666666666668,
-      "score_pct_reachable": 35.0,
+      "score_pct_fixed120": 30.0,
+      "score_pct_reachable": 36.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 35.0,
+      "scout_score_pct": 36.0,
       "scout_selected": false,
       "ticker": "ML",
       "was_in_scout_output": true
@@ -1462,8 +1462,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 180.0,
+          "score": 3,
           "status": "SCORED"
         },
         {
@@ -1646,11 +1646,11 @@
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": 18.75,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 32.5,
-      "score_pct_reachable": 39.0,
+      "score_pct_fixed120": 35.0,
+      "score_pct_reachable": 42.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 39.0,
+      "scout_score_pct": 42.0,
       "scout_selected": false,
       "ticker": "SOUN",
       "was_in_scout_output": true
@@ -1898,8 +1898,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 69.23333333333333,
+          "score": 4,
           "status": "SCORED"
         },
         {
@@ -2082,11 +2082,11 @@
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 25.0,
-      "score_pct_reachable": 30.0,
+      "score_pct_fixed120": 28.333333333333332,
+      "score_pct_reachable": 34.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 30.0,
+      "scout_score_pct": 34.0,
       "scout_selected": false,
       "ticker": "SWIN",
       "was_in_scout_output": true
@@ -2344,8 +2344,39 @@
           "OTHER": 18
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 66.80833333333334,
+          "p50": 677.0666666666667,
+          "p75": 1392.9625
+        },
+        "freshest_relevant_event_ages_minutes": [
+          20.233333333333334,
+          20.233333333333334,
+          44.45,
+          44.45,
+          54.93333333333333,
+          66.0,
+          69.23333333333333,
+          69.23333333333333,
+          151.28333333333333,
+          151.28333333333333,
+          194.0,
+          1160.1333333333334,
+          1160.1333333333334,
+          1160.1333333333334,
+          1289.5333333333333,
+          1312.0,
+          1419.95,
+          1680.0,
+          3134.65,
+          3289.383333333333,
+          3764.9666666666667,
+          3839.95
+        ],
         "scorable_count": 40,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.275,
+        "share_with_relevant_event_under_24h": 0.425,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 34,
         "with_any_article": 34
@@ -2364,8 +2395,30 @@
           "OTHER": 10
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 79.96666666666667,
+          "p50": 165.0,
+          "p75": 1514.3333333333333
+        },
+        "freshest_relevant_event_ages_minutes": [
+          44.45,
+          64.96666666666667,
+          69.23333333333333,
+          79.96666666666667,
+          151.28333333333333,
+          151.28333333333333,
+          165.0,
+          654.6333333333333,
+          959.9666666666667,
+          1514.3333333333333,
+          2864.75,
+          2961.95,
+          2961.95
+        ],
         "scorable_count": 29,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.27586206896551724,
+        "share_with_relevant_event_under_24h": 0.3103448275862069,
         "top_10_movers_with_admitted_event": 2,
         "with_admitted_event": 19,
         "with_any_article": 19
@@ -2383,8 +2436,27 @@
           "OTHER": 10
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 151.28333333333333,
+          "p50": 560.6416666666667,
+          "p75": 2791.8583333333336
+        },
+        "freshest_relevant_event_ages_minutes": [
+          116.23333333333333,
+          120.0,
+          151.28333333333333,
+          151.28333333333333,
+          510.28333333333336,
+          611.0,
+          2608.4333333333334,
+          2853.0,
+          3015.0,
+          4091.0
+        ],
         "scorable_count": 26,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.23076923076923078,
+        "share_with_relevant_event_under_24h": 0.23076923076923078,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 20,
         "with_any_article": 20
@@ -2403,8 +2475,32 @@
           "OTHER": 17
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 69.23333333333333,
+          "p50": 180.0,
+          "p75": 907.3833333333334
+        },
+        "freshest_relevant_event_ages_minutes": [
+          66.0,
+          69.23333333333333,
+          69.23333333333333,
+          69.23333333333333,
+          69.23333333333333,
+          69.23333333333333,
+          118.0,
+          180.0,
+          182.0,
+          584.7166666666667,
+          654.6333333333333,
+          1160.1333333333334,
+          1402.0,
+          1402.0,
+          2339.95
+        ],
         "scorable_count": 31,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.3548387096774194,
+        "share_with_relevant_event_under_24h": 0.45161290322580644,
         "top_10_movers_with_admitted_event": 2,
         "with_admitted_event": 23,
         "with_any_article": 23
@@ -2413,8 +2509,16 @@
         "by_event_type": {},
         "by_source_tier": {},
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": null,
+          "p50": null,
+          "p75": null
+        },
+        "freshest_relevant_event_ages_minutes": [],
         "scorable_count": 0,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": null,
+        "share_with_relevant_event_under_24h": null,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 0,
         "with_any_article": 0
@@ -2430,8 +2534,21 @@
           "OTHER": 6
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 420.5333333333333,
+          "p50": 1706.6416666666667,
+          "p75": 3221.4083333333333
+        },
+        "freshest_relevant_event_ages_minutes": [
+          151.28333333333333,
+          510.28333333333336,
+          2903.0,
+          4176.633333333333
+        ],
         "scorable_count": 16,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.125,
+        "share_with_relevant_event_under_24h": 0.125,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 8,
         "with_any_article": 8
@@ -2442,8 +2559,81 @@
       "OTHER": 61
     },
     "fetch_errors": 0,
+    "freshest_relevant_event_age_minutes": {
+      "p25": 69.23333333333333,
+      "p50": 352.14166666666665,
+      "p75": 1443.5458333333333
+    },
+    "freshest_relevant_event_ages_minutes": [
+      20.233333333333334,
+      20.233333333333334,
+      44.45,
+      44.45,
+      44.45,
+      54.93333333333333,
+      64.96666666666667,
+      66.0,
+      66.0,
+      69.23333333333333,
+      69.23333333333333,
+      69.23333333333333,
+      69.23333333333333,
+      69.23333333333333,
+      69.23333333333333,
+      69.23333333333333,
+      69.23333333333333,
+      79.96666666666667,
+      116.23333333333333,
+      118.0,
+      120.0,
+      151.28333333333333,
+      151.28333333333333,
+      151.28333333333333,
+      151.28333333333333,
+      151.28333333333333,
+      151.28333333333333,
+      151.28333333333333,
+      165.0,
+      180.0,
+      182.0,
+      194.0,
+      510.28333333333336,
+      510.28333333333336,
+      584.7166666666667,
+      611.0,
+      654.6333333333333,
+      654.6333333333333,
+      959.9666666666667,
+      1160.1333333333334,
+      1160.1333333333334,
+      1160.1333333333334,
+      1160.1333333333334,
+      1289.5333333333333,
+      1312.0,
+      1402.0,
+      1402.0,
+      1419.95,
+      1514.3333333333333,
+      1680.0,
+      2339.95,
+      2608.4333333333334,
+      2853.0,
+      2864.75,
+      2903.0,
+      2961.95,
+      2961.95,
+      3015.0,
+      3134.65,
+      3289.383333333333,
+      3764.9666666666667,
+      3839.95,
+      4091.0,
+      4176.633333333333
+    ],
     "scorable_count": 142,
     "selections_with_admitted_event": 0,
+    "share_with_relevant_event_under_12h": 0.2676056338028169,
+    "share_with_relevant_event_under_24h": 0.3380281690140845,
     "top_10_movers_with_admitted_event": 4,
     "with_admitted_event": 104,
     "with_any_article": 104
@@ -2499,13 +2689,13 @@
     {
       "benchmark_rank": 6,
       "premarket_real_bars_60m": 16,
-      "score_pct": 35.0,
+      "score_pct": 36.0,
       "ticker": "ML"
     },
     {
       "benchmark_rank": 9,
       "premarket_real_bars_60m": 16,
-      "score_pct": 30.0,
+      "score_pct": 34.0,
       "ticker": "SWIN"
     },
     {

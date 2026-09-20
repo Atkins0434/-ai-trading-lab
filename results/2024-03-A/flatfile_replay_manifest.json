@@ -26435,7 +26435,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "1a90828b745d0b67dc6b013a21b18ff7",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-01.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-01.csv.gz",
@@ -26447,8 +26447,8 @@
       "max_tickers": null,
       "news_cache": {
         "errors": 0,
-        "fetches": 132,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 132,
         "tickers_with_zero_articles": 25
       },
       "phase_status": {
@@ -26462,21 +26462,21 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.282,
-        "download": 10.649,
-        "grading": 68.424,
-        "postmortem": 0.123,
-        "report": 4.224,
-        "scoring": 14.386,
-        "snapshot": 891.636,
-        "universe": 94.041
+        "benchmark": 1.259,
+        "download": 15.601,
+        "grading": 65.826,
+        "postmortem": 0.121,
+        "report": 4.014,
+        "scoring": 13.554,
+        "snapshot": 894.639,
+        "universe": 13.241
       },
       "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 826,
         "errors": 0,
-        "fetches": 11069,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 11069,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 0,
         "transient_retries": 0,
@@ -52233,7 +52233,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "789b52f6fdb3c08e139e78cf77cf5a35",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-01.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-01.csv.gz",
@@ -52443,7 +52443,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "7c6f46a95c3cd3ce3d4383ec557d4937",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-04.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-04.csv.gz",
@@ -52455,8 +52455,8 @@
       "max_tickers": null,
       "news_cache": {
         "errors": 0,
-        "fetches": 165,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 165,
         "tickers_with_zero_articles": 92
       },
       "phase_status": {
@@ -52470,21 +52470,21 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.313,
-        "download": 2.493,
-        "grading": 66.382,
-        "postmortem": 0.155,
-        "report": 4.348,
-        "scoring": 14.679,
-        "snapshot": 900.62,
-        "universe": 19.123
+        "benchmark": 1.294,
+        "download": 4.031,
+        "grading": 64.903,
+        "postmortem": 0.149,
+        "report": 4.162,
+        "scoring": 13.995,
+        "snapshot": 896.807,
+        "universe": 13.98
       },
       "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 825,
         "errors": 0,
-        "fetches": 830,
-        "hits": 10239,
+        "fetches": 0,
+        "hits": 11069,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10239,
         "transient_retries": 0,
@@ -78951,7 +78951,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "331c803b63cae5210405299a0a014dfd",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-04.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-04.csv.gz",
@@ -79161,7 +79161,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "14e4399666aaf315809f12890fa8aeae",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-05.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-05.csv.gz",
@@ -79173,8 +79173,8 @@
       "max_tickers": null,
       "news_cache": {
         "errors": 0,
-        "fetches": 146,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 146,
         "tickers_with_zero_articles": 62
       },
       "phase_status": {
@@ -79188,21 +79188,21 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.348,
-        "download": 2.713,
-        "grading": 66.711,
-        "postmortem": 0.191,
-        "report": 4.1,
-        "scoring": 14.398,
-        "snapshot": 898.242,
-        "universe": 20.303
+        "benchmark": 1.339,
+        "download": 4.567,
+        "grading": 64.972,
+        "postmortem": 0.19,
+        "report": 3.996,
+        "scoring": 13.66,
+        "snapshot": 901.526,
+        "universe": 13.575
       },
       "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 824,
         "errors": 0,
-        "fetches": 830,
-        "hits": 10237,
+        "fetches": 0,
+        "hits": 11067,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10237,
         "transient_retries": 0,
@@ -105298,7 +105298,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "c54d9d805c54998f462ac87fa3d4169e",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-05.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-05.csv.gz",
@@ -105508,7 +105508,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "73a207967c54bcb025ada725ea7922a7",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-06.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-06.csv.gz",
@@ -105520,8 +105520,8 @@
       "max_tickers": null,
       "news_cache": {
         "errors": 0,
-        "fetches": 155,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 155,
         "tickers_with_zero_articles": 50
       },
       "phase_status": {
@@ -105535,21 +105535,21 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.372,
-        "download": 3.642,
-        "grading": 66.724,
-        "postmortem": 0.229,
-        "report": 4.394,
-        "scoring": 14.632,
-        "snapshot": 904.486,
-        "universe": 19.389
+        "benchmark": 1.357,
+        "download": 5.048,
+        "grading": 65.46,
+        "postmortem": 0.228,
+        "report": 4.204,
+        "scoring": 13.959,
+        "snapshot": 898.753,
+        "universe": 13.136
       },
       "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 825,
         "errors": 0,
-        "fetches": 829,
-        "hits": 10242,
+        "fetches": 0,
+        "hits": 11071,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10242,
         "transient_retries": 0,
@@ -131166,7 +131166,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "ab6d72836c8511e4d62c013fee739cdc",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-06.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-06.csv.gz",
@@ -131376,7 +131376,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "80b5b24e64dbdca722fb6777ecee5c34",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-07.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-07.csv.gz",
@@ -131388,8 +131388,8 @@
       "max_tickers": null,
       "news_cache": {
         "errors": 0,
-        "fetches": 142,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 142,
         "tickers_with_zero_articles": 38
       },
       "phase_status": {
@@ -131403,21 +131403,21 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.38,
-        "download": 2.907,
-        "grading": 64.111,
-        "postmortem": 0.269,
-        "report": 4.205,
-        "scoring": 14.514,
-        "snapshot": 904.469,
-        "universe": 18.615
+        "benchmark": 1.359,
+        "download": 4.642,
+        "grading": 62.504,
+        "postmortem": 0.259,
+        "report": 4.048,
+        "scoring": 13.79,
+        "snapshot": 903.494,
+        "universe": 13.597
       },
       "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 822,
         "errors": 0,
-        "fetches": 835,
-        "hits": 10241,
+        "fetches": 0,
+        "hits": 11076,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10241,
         "transient_retries": 0,
@@ -157984,7 +157984,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "1fae8c9da78f68293e8a3ae51cc5c73b",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-07.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-07.csv.gz",
@@ -158194,7 +158194,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "4d2ee41559b315723619d84a56a6f24b",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-08.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-08.csv.gz",
@@ -158206,8 +158206,8 @@
       "max_tickers": null,
       "news_cache": {
         "errors": 0,
-        "fetches": 161,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 161,
         "tickers_with_zero_articles": 47
       },
       "phase_status": {
@@ -158221,21 +158221,21 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.475,
-        "download": 4.353,
-        "grading": 65.416,
-        "postmortem": 0.321,
-        "report": 4.663,
-        "scoring": 14.65,
-        "snapshot": 903.042,
-        "universe": 18.841
+        "benchmark": 1.418,
+        "download": 4.87,
+        "grading": 63.794,
+        "postmortem": 0.299,
+        "report": 4.248,
+        "scoring": 13.797,
+        "snapshot": 905.049,
+        "universe": 13.823
       },
       "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 813,
         "errors": 0,
-        "fetches": 823,
-        "hits": 10249,
+        "fetches": 0,
+        "hits": 11072,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10249,
         "transient_retries": 0,
@@ -184382,7 +184382,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "ade5dfd8394bde4b03f41e8827f2ce23",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-08.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-08.csv.gz",
@@ -184592,7 +184592,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "d25d97770ce955e9ab17cd428af54934",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-11.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-11.csv.gz",
@@ -184604,8 +184604,8 @@
       "max_tickers": null,
       "news_cache": {
         "errors": 0,
-        "fetches": 108,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 108,
         "tickers_with_zero_articles": 44
       },
       "phase_status": {
@@ -184619,21 +184619,21 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.463,
-        "download": 2.936,
-        "grading": 65.08,
-        "postmortem": 0.355,
-        "report": 4.336,
-        "scoring": 14.357,
-        "snapshot": 908.612,
-        "universe": 20.271
+        "benchmark": 1.435,
+        "download": 3.984,
+        "grading": 63.367,
+        "postmortem": 0.338,
+        "report": 4.117,
+        "scoring": 13.515,
+        "snapshot": 901.14,
+        "universe": 13.546
       },
       "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 814,
         "errors": 0,
-        "fetches": 816,
-        "hits": 10253,
+        "fetches": 0,
+        "hits": 11069,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10253,
         "transient_retries": 0,
@@ -211460,7 +211460,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "93500a18df0c61ede500bc667966b2ad",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-11.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-11.csv.gz",
@@ -211670,7 +211670,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "c4c9d03bd41ad83ba7c952960c95344e",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-12.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-12.csv.gz",
@@ -211682,8 +211682,8 @@
       "max_tickers": null,
       "news_cache": {
         "errors": 0,
-        "fetches": 145,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 145,
         "tickers_with_zero_articles": 57
       },
       "phase_status": {
@@ -211697,21 +211697,21 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.579,
-        "download": 2.847,
-        "grading": 64.799,
-        "postmortem": 0.407,
-        "report": 4.372,
-        "scoring": 14.352,
-        "snapshot": 904.615,
-        "universe": 19.307
+        "benchmark": 1.474,
+        "download": 4.833,
+        "grading": 62.684,
+        "postmortem": 0.371,
+        "report": 4.062,
+        "scoring": 13.604,
+        "snapshot": 903.066,
+        "universe": 13.633
       },
       "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 814,
         "errors": 0,
-        "fetches": 816,
-        "hits": 10243,
+        "fetches": 0,
+        "hits": 11059,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10243,
         "transient_retries": 0,
@@ -238698,7 +238698,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "b675c974327b54235c78505b32dc33bd",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-12.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-12.csv.gz",
@@ -238908,7 +238908,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "f89ba69ec7e1e93cd55e01049f23a5cb",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-13.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-13.csv.gz",
@@ -238920,8 +238920,8 @@
       "max_tickers": null,
       "news_cache": {
         "errors": 0,
-        "fetches": 106,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 106,
         "tickers_with_zero_articles": 32
       },
       "phase_status": {
@@ -238935,21 +238935,21 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.54,
-        "download": 3.356,
-        "grading": 62.618,
-        "postmortem": 0.427,
-        "report": 4.377,
-        "scoring": 14.208,
-        "snapshot": 905.76,
-        "universe": 18.777
+        "benchmark": 1.491,
+        "download": 4.838,
+        "grading": 62.009,
+        "postmortem": 0.408,
+        "report": 3.97,
+        "scoring": 13.497,
+        "snapshot": 903.835,
+        "universe": 13.877
       },
       "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 810,
         "errors": 0,
-        "fetches": 817,
-        "hits": 10242,
+        "fetches": 0,
+        "hits": 11059,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10242,
         "transient_retries": 0,
@@ -265926,7 +265926,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "efc666148e031fa83daa252c97deafeb",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-13.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-13.csv.gz",
@@ -266136,7 +266136,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "974a271de0864edc9956d4daf4729507",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-14.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-14.csv.gz",
@@ -266148,8 +266148,8 @@
       "max_tickers": null,
       "news_cache": {
         "errors": 0,
-        "fetches": 130,
-        "hits": 0,
+        "fetches": 0,
+        "hits": 130,
         "tickers_with_zero_articles": 40
       },
       "phase_status": {
@@ -266163,21 +266163,21 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.609,
-        "download": 2.859,
-        "grading": 65.642,
-        "postmortem": 0.491,
-        "report": 4.645,
-        "scoring": 14.421,
-        "snapshot": 911.447,
-        "universe": 19.34
+        "benchmark": 1.542,
+        "download": 4.706,
+        "grading": 64.639,
+        "postmortem": 0.448,
+        "report": 4.334,
+        "scoring": 13.666,
+        "snapshot": 902.156,
+        "universe": 13.464
       },
       "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 809,
         "errors": 0,
-        "fetches": 816,
-        "hits": 10235,
+        "fetches": 0,
+        "hits": 11051,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10235,
         "transient_retries": 0,
@@ -266231,9 +266231,9 @@
       "config/execution_policy_atr.json"
     ],
     "cost_model_id": "execution_costs_v1.0",
-    "dataset_version": 4,
+    "dataset_version": 5,
     "feature_registry_id": "feature_registry_alpha_v1.0",
-    "git_sha": "34016593c7ca0bcaaf8c8cd9b96a04adc5020cf5",
+    "git_sha": "25438eecdfc35640c18df4b90661a1f3530ccbb1",
     "metric_count": 25,
     "rubric_version": "alpha_v1.3_25m",
     "scout_id": "research_scout_alpha_v1.3"
@@ -266242,8 +266242,8 @@
   "reference_cache_summary": {
     "definitive_misses": 8182,
     "errors": 0,
-    "fetches": 18481,
-    "hits": 92181,
+    "fetches": 0,
+    "hits": 110662,
     "listed_after_lagged_date": 0,
     "quarter_reuse_hits": 92181,
     "sic_code_coverage": {

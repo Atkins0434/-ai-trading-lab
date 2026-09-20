@@ -130,7 +130,7 @@
     {
       "description": "A visible benchmark mover remained below the research selection threshold.",
       "evidence": [
-        "LXRX score=33.00%",
+        "LXRX score=37.00%",
         "SILV score=31.00%"
       ],
       "failure_type": "THRESHOLD",
@@ -1453,8 +1453,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 49.95,
+          "score": 4,
           "status": "SCORED"
         },
         {
@@ -1637,11 +1637,11 @@
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 27.500000000000004,
-      "score_pct_reachable": 33.0,
+      "score_pct_fixed120": 30.833333333333336,
+      "score_pct_reachable": 37.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 33.0,
+      "scout_score_pct": 37.0,
       "scout_selected": false,
       "ticker": "LXRX",
       "was_in_scout_output": true
@@ -2336,8 +2336,29 @@
           "OTHER": 7
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 1124.25,
+          "p50": 3972.2666666666664,
+          "p75": 4206.466666666666
+        },
+        "freshest_relevant_event_ages_minutes": [
+          110.76666666666667,
+          204.25,
+          315.0,
+          1394.0,
+          1471.5333333333333,
+          3956.55,
+          3987.983333333333,
+          4085.8333333333335,
+          4206.466666666666,
+          4206.466666666666,
+          4239.466666666666,
+          4251.0
+        ],
         "scorable_count": 27,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.1111111111111111,
+        "share_with_relevant_event_under_24h": 0.14814814814814814,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 19,
         "with_any_article": 19
@@ -2356,8 +2377,22 @@
           "OTHER": 6
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 3956.55,
+          "p50": 4206.466666666666,
+          "p75": 4206.466666666666
+        },
+        "freshest_relevant_event_ages_minutes": [
+          1325.0,
+          3956.55,
+          4206.466666666666,
+          4206.466666666666,
+          4206.466666666666
+        ],
         "scorable_count": 17,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.0,
+        "share_with_relevant_event_under_24h": 0.058823529411764705,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 12,
         "with_any_article": 12
@@ -2375,8 +2410,23 @@
           "OTHER": 7
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 1154.4958333333334,
+          "p50": 4007.075,
+          "p75": 4091.2916666666665
+        },
+        "freshest_relevant_event_ages_minutes": [
+          49.95,
+          210.0,
+          3987.983333333333,
+          4026.1666666666665,
+          4113.0,
+          4206.466666666666
+        ],
         "scorable_count": 23,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.08695652173913043,
+        "share_with_relevant_event_under_24h": 0.08695652173913043,
         "top_10_movers_with_admitted_event": 1,
         "with_admitted_event": 14,
         "with_any_article": 14
@@ -2393,8 +2443,25 @@
           "OTHER": 10
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 119.5,
+          "p50": 2096.116666666667,
+          "p75": 4033.2374999999997
+        },
+        "freshest_relevant_event_ages_minutes": [
+          66.28333333333333,
+          73.0,
+          135.0,
+          204.25,
+          3987.983333333333,
+          3987.983333333333,
+          4169.0,
+          4261.75
+        ],
         "scorable_count": 27,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.14814814814814814,
+        "share_with_relevant_event_under_24h": 0.14814814814814814,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 15,
         "with_any_article": 15
@@ -2403,8 +2470,16 @@
         "by_event_type": {},
         "by_source_tier": {},
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": null,
+          "p50": null,
+          "p75": null
+        },
+        "freshest_relevant_event_ages_minutes": [],
         "scorable_count": 0,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": null,
+        "share_with_relevant_event_under_24h": null,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 0,
         "with_any_article": 0
@@ -2419,8 +2494,18 @@
           "OTHER": 3
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 2948.0,
+          "p50": 2948.0,
+          "p75": 2948.0
+        },
+        "freshest_relevant_event_ages_minutes": [
+          2948.0
+        ],
         "scorable_count": 14,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.0,
+        "share_with_relevant_event_under_24h": 0.0,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 3,
         "with_any_article": 4
@@ -2431,8 +2516,49 @@
       "OTHER": 33
     },
     "fetch_errors": 0,
+    "freshest_relevant_event_age_minutes": {
+      "p25": 288.75,
+      "p50": 3987.983333333333,
+      "p75": 4206.466666666666
+    },
+    "freshest_relevant_event_ages_minutes": [
+      49.95,
+      66.28333333333333,
+      73.0,
+      110.76666666666667,
+      135.0,
+      204.25,
+      204.25,
+      210.0,
+      315.0,
+      1325.0,
+      1394.0,
+      1471.5333333333333,
+      2948.0,
+      3956.55,
+      3956.55,
+      3987.983333333333,
+      3987.983333333333,
+      3987.983333333333,
+      3987.983333333333,
+      4026.1666666666665,
+      4085.8333333333335,
+      4113.0,
+      4169.0,
+      4206.466666666666,
+      4206.466666666666,
+      4206.466666666666,
+      4206.466666666666,
+      4206.466666666666,
+      4206.466666666666,
+      4239.466666666666,
+      4251.0,
+      4261.75
+    ],
     "scorable_count": 108,
     "selections_with_admitted_event": 0,
+    "share_with_relevant_event_under_12h": 0.08333333333333333,
+    "share_with_relevant_event_under_24h": 0.10185185185185185,
     "top_10_movers_with_admitted_event": 1,
     "with_admitted_event": 63,
     "with_any_article": 64

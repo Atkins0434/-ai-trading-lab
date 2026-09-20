@@ -130,7 +130,7 @@
     {
       "description": "A visible benchmark mover remained below the research selection threshold.",
       "evidence": [
-        "AMLX score=34.00%"
+        "AMLX score=38.00%"
       ],
       "failure_type": "THRESHOLD",
       "feature_id": "selection_threshold"
@@ -387,8 +387,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
-          "score": 0,
+          "raw_value": 74.06666666666666,
+          "score": 4,
           "status": "SCORED"
         },
         {
@@ -571,11 +571,11 @@
       "realized_benchmark_return_pct": -1.0000000000000013,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 28.333333333333332,
-      "score_pct_reachable": 34.0,
+      "score_pct_fixed120": 31.666666666666664,
+      "score_pct_reachable": 38.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 34.0,
+      "scout_score_pct": 38.0,
       "scout_selected": false,
       "ticker": "AMLX",
       "was_in_scout_output": true
@@ -1685,7 +1685,7 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": null,
+          "raw_value": 2600.133333333333,
           "score": 0,
           "status": "SCORED"
         },
@@ -2122,8 +2122,8 @@
         {
           "calculation_version": "research_catalyst_v1.0",
           "metric_id": "catalyst_freshness_relevance",
-          "raw_value": 1182.4,
-          "score": 1,
+          "raw_value": 122.25,
+          "score": 3,
           "status": "SCORED"
         },
         {
@@ -2307,11 +2307,11 @@
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
       "rubric_version": "alpha_v1.3_25m",
-      "score_pct_fixed120": 25.833333333333336,
-      "score_pct_reachable": 31.0,
+      "score_pct_fixed120": 27.500000000000004,
+      "score_pct_reachable": 33.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 31.0,
+      "scout_score_pct": 33.0,
       "scout_selected": false,
       "ticker": "SWBI",
       "was_in_scout_output": true
@@ -2344,8 +2344,39 @@
           "OTHER": 26
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 344.8,
+          "p50": 1390.6166666666668,
+          "p75": 2697.1833333333334
+        },
+        "freshest_relevant_event_ages_minutes": [
+          29.35,
+          50.81666666666667,
+          114.0,
+          122.25,
+          172.0,
+          200.4,
+          778.0,
+          1136.2,
+          1173.0,
+          1182.4,
+          1321.0,
+          1460.2333333333333,
+          1484.45,
+          1634.0,
+          2600.133333333333,
+          2600.133333333333,
+          2729.5333333333333,
+          2752.0,
+          2839.9,
+          3120.0,
+          3134.5833333333335,
+          4304.95
+        ],
         "scorable_count": 52,
         "selections_with_admitted_event": 1,
+        "share_with_relevant_event_under_12h": 0.11538461538461539,
+        "share_with_relevant_event_under_24h": 0.21153846153846154,
         "top_10_movers_with_admitted_event": 1,
         "with_admitted_event": 45,
         "with_any_article": 45
@@ -2362,8 +2393,33 @@
           "OTHER": 16
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 989.2375,
+          "p50": 1459.225,
+          "p75": 2502.7333333333336
+        },
+        "freshest_relevant_event_ages_minutes": [
+          68.88333333333334,
+          200.4,
+          929.9333333333333,
+          959.95,
+          999.0,
+          1179.6833333333334,
+          1321.0,
+          1434.0,
+          1484.45,
+          1605.0,
+          2094.633333333333,
+          2392.0,
+          2834.9333333333334,
+          2953.366666666667,
+          2954.3333333333335,
+          4023.133333333333
+        ],
         "scorable_count": 29,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.06896551724137931,
+        "share_with_relevant_event_under_24h": 0.27586206896551724,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 23,
         "with_any_article": 23
@@ -2380,8 +2436,29 @@
           "OTHER": 10
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 903.2791666666667,
+          "p50": 1379.9666666666667,
+          "p75": 1557.175
+        },
+        "freshest_relevant_event_ages_minutes": [
+          51.166666666666664,
+          51.166666666666664,
+          74.06666666666666,
+          1179.6833333333334,
+          1182.4,
+          1360.0,
+          1399.9333333333334,
+          1455.0,
+          1556.2333333333333,
+          1560.0,
+          2051.0,
+          4048.4333333333334
+        ],
         "scorable_count": 32,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.09375,
+        "share_with_relevant_event_under_24h": 0.21875,
         "top_10_movers_with_admitted_event": 1,
         "with_admitted_event": 20,
         "with_any_article": 20
@@ -2401,8 +2478,30 @@
           "OTHER": 10
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 95.8,
+          "p50": 1123.15,
+          "p75": 1558.0
+        },
+        "freshest_relevant_event_ages_minutes": [
+          35.0,
+          51.166666666666664,
+          84.96666666666667,
+          95.8,
+          153.68333333333334,
+          746.0,
+          1123.15,
+          1179.6833333333334,
+          1506.0,
+          1558.0,
+          2094.633333333333,
+          2600.133333333333,
+          2842.0
+        ],
         "scorable_count": 31,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.16129032258064516,
+        "share_with_relevant_event_under_24h": 0.25806451612903225,
         "top_10_movers_with_admitted_event": 1,
         "with_admitted_event": 19,
         "with_any_article": 19
@@ -2411,8 +2510,16 @@
         "by_event_type": {},
         "by_source_tier": {},
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": null,
+          "p50": null,
+          "p75": null
+        },
+        "freshest_relevant_event_ages_minutes": [],
         "scorable_count": 0,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": null,
+        "share_with_relevant_event_under_24h": null,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 0,
         "with_any_article": 0
@@ -2428,8 +2535,20 @@
           "OTHER": 6
         },
         "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 1063.6750000000002,
+          "p50": 1182.4,
+          "p75": 1566.3416666666667
+        },
+        "freshest_relevant_event_ages_minutes": [
+          944.95,
+          1182.4,
+          1950.2833333333333
+        ],
         "scorable_count": 17,
         "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.0,
+        "share_with_relevant_event_under_24h": 0.11764705882352941,
         "top_10_movers_with_admitted_event": 0,
         "with_admitted_event": 7,
         "with_any_article": 7
@@ -2440,8 +2559,83 @@
       "OTHER": 68
     },
     "fetch_errors": 0,
+    "freshest_relevant_event_age_minutes": {
+      "p25": 754.0,
+      "p50": 1340.5,
+      "p75": 2094.633333333333
+    },
+    "freshest_relevant_event_ages_minutes": [
+      29.35,
+      35.0,
+      50.81666666666667,
+      51.166666666666664,
+      51.166666666666664,
+      51.166666666666664,
+      68.88333333333334,
+      74.06666666666666,
+      84.96666666666667,
+      95.8,
+      114.0,
+      122.25,
+      153.68333333333334,
+      172.0,
+      200.4,
+      200.4,
+      746.0,
+      778.0,
+      929.9333333333333,
+      944.95,
+      959.95,
+      999.0,
+      1123.15,
+      1136.2,
+      1173.0,
+      1179.6833333333334,
+      1179.6833333333334,
+      1179.6833333333334,
+      1182.4,
+      1182.4,
+      1182.4,
+      1321.0,
+      1321.0,
+      1360.0,
+      1399.9333333333334,
+      1434.0,
+      1455.0,
+      1460.2333333333333,
+      1484.45,
+      1484.45,
+      1506.0,
+      1556.2333333333333,
+      1558.0,
+      1560.0,
+      1605.0,
+      1634.0,
+      1950.2833333333333,
+      2051.0,
+      2094.633333333333,
+      2094.633333333333,
+      2392.0,
+      2600.133333333333,
+      2600.133333333333,
+      2600.133333333333,
+      2729.5333333333333,
+      2752.0,
+      2834.9333333333334,
+      2839.9,
+      2842.0,
+      2953.366666666667,
+      2954.3333333333335,
+      3120.0,
+      3134.5833333333335,
+      4023.133333333333,
+      4048.4333333333334,
+      4304.95
+    ],
     "scorable_count": 161,
     "selections_with_admitted_event": 1,
+    "share_with_relevant_event_under_12h": 0.09937888198757763,
+    "share_with_relevant_event_under_24h": 0.2236024844720497,
     "top_10_movers_with_admitted_event": 3,
     "with_admitted_event": 114,
     "with_any_article": 114
@@ -2509,7 +2703,7 @@
     {
       "benchmark_rank": 10,
       "premarket_real_bars_60m": 11,
-      "score_pct": 31.0,
+      "score_pct": 33.0,
       "ticker": "SWBI"
     }
   ],
