@@ -16,8 +16,9 @@ from trainer.replay_provenance import current_provenance, check_resume
 RUN_FILES = (
     "flatfile_replay_manifest.json", "replay_summary.pdf", legacy_name("replay_report"),
     "scorable_outcomes.csv", "eligible_outcomes.csv",
+    "orb_daily.csv",
 )
-DAY_KINDS = ("postmortem", "benchmark_result", "scorable_outcomes", "eligible_outcomes", "replay_report")
+DAY_KINDS = ("postmortem", "benchmark_result", "scorable_outcomes", "eligible_outcomes", "orb_outcomes", "replay_report")
 
 
 def compact_copy(source: Path, destination: Path) -> None:
@@ -89,13 +90,15 @@ def prune_flatfiles(root: Path, start: str, end: str) -> None:
 
 def render_index(backlog: dict, results: Path, repository: str) -> str:
     rows = ["# Replay results", "", "Research diagnostics only; this branch is never merged into main.", "",
-            "| Unit | Status | Days | WIN/MISS/TIE | Primary return | ATR return | Reachability | Code SHA | Run |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
+            "| Unit | Status | Days | WIN/MISS/TIE | Primary return | ATR return | ORB paper L+S net | ORB cash long net | Reachability | Code SHA | Run |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
     labels = {"SCOUT_OUTPERFORMED": "WIN", "SCOUT_UNDERPERFORMED": "MISS", "SCOUT_TIED": "TIE"}
+    all_orb_paper = 0.0
+    all_orb_cash = 0.0
     for unit in backlog["units"]:
         status = effective_status(backlog, unit)
         verdicts, reachability = Counter(), Counter()
-        primary, atr = 0.0, 0.0
+        primary, atr, orb_paper, orb_cash = 0.0, 0.0, 0.0, 0.0
         root = results / unit["id"]
         path = root / "flatfile_replay_manifest.json"
         manifest = read(path) if path.is_file() and status != "PENDING" else {}
@@ -107,6 +110,17 @@ def render_index(backlog: dict, results: Path, repository: str) -> str:
             path = day_file(root, trading_date, "postmortem")
             postmortem = read(path) if path.is_file() else {}
             reachability.update(postmortem.get("reachability", {}))
+            orb_summary = postmortem.get("orb", {}).get("summary", {})
+            orb_paper += float(
+                orb_summary.get("paper", {}).get("long_plus_short", {}).get(
+                    "net_realized_return_pct"
+                ) or 0.0
+            )
+            orb_cash += float(
+                orb_summary.get("cash", {}).get("long_only", {}).get(
+                    "net_realized_return_pct"
+                ) or 0.0
+            )
             for policy in postmortem.get("execution_policy_review", []):
                 if policy.get("exit_mode") == "ATR":
                     atr += float(policy.get("cohort_summaries", {}).get("SCOUT_SELECTION", {}).get("realized_return_pct") or 0)
@@ -114,7 +128,13 @@ def render_index(backlog: dict, results: Path, repository: str) -> str:
         run = unit.get("last_run_id")
         link = f"[run {run}](https://github.com/{repository}/actions/runs/{run})" if run else "—"
         done = 0 if status == "PENDING" else unit.get("days_completed", 0)
-        rows.append(f"| {unit['id']} | {status} | {done}/{unit.get('days_requested', 0)} | {verdicts['WIN']}/{verdicts['MISS']}/{verdicts['TIE']} | {primary:.6f}% | {atr:.6f}% | {counts} | {unit.get('code_sha') or '—'} | {link} |")
+        all_orb_paper += orb_paper
+        all_orb_cash += orb_cash
+        rows.append(f"| {unit['id']} | {status} | {done}/{unit.get('days_requested', 0)} | {verdicts['WIN']}/{verdicts['MISS']}/{verdicts['TIE']} | {primary:.6f}% | {atr:.6f}% | {orb_paper:.6f}% | {orb_cash:.6f}% | {counts} | {unit.get('code_sha') or '—'} | {link} |")
+    rows.extend([
+        "",
+        f"Across-unit ORB net return sums: paper long+short={all_orb_paper:.6f}%; cash long-only={all_orb_cash:.6f}%.",
+    ])
     return "\n".join(rows) + "\n"
 
 

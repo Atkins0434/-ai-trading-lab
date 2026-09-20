@@ -38,7 +38,13 @@ def price_tier(price):
     return "25_plus"
 
 
-def cost_fields(trade, day_mfe_pct=None, config=None):
+def cost_fields(
+    trade,
+    day_mfe_pct=None,
+    config=None,
+    *,
+    entry_phase="entry_at_open_bps",
+):
     config = config if config is not None else load_execution_costs()
     components = dict.fromkeys(("entry_slippage_usd", "exit_slippage_usd", "commissions_usd", "regulatory_fees_usd"), 0.0)
     if trade.get("trade_executed"):
@@ -48,7 +54,9 @@ def cost_fields(trade, day_mfe_pct=None, config=None):
         local_time = exit_at.astimezone(ZoneInfo("America/New_York")).time()
         phase = ("session_end_exit_bps" if trade["exit_reason"] == "SESSION_END" else
                  "exit_first_5_minutes_bps" if local_time < time(9, 35) else "exit_after_5_minutes_bps")
-        components["entry_slippage_usd"] = entry * shares * config["slippage"]["entry_at_open_bps"][price_tier(entry)] / 10000
+        if entry_phase not in config["slippage"]:
+            raise ValueError(f"Unknown entry cost phase: {entry_phase}")
+        components["entry_slippage_usd"] = entry * shares * config["slippage"][entry_phase][price_tier(entry)] / 10000
         components["exit_slippage_usd"] = exit_price * shares * config["slippage"][phase][price_tier(exit_price)] / 10000
         components["commissions_usd"] = 2 * max(shares * config["commission_per_share_usd"], config["commission_minimum_per_order_usd"])
         components["regulatory_fees_usd"] = shares * config["regulatory_fees_per_share_sold_usd"]

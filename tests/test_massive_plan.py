@@ -150,5 +150,5 @@ def test_flatfile_range_workflow_resumes_and_verifies_multi_day_output():
     assert 'if day.get("status") != "COMPLETE"' in workflow
     assert '"PAUSED_WALL_BUDGET"' in workflow
     assert "Each run saves a new flat-file cache entry." in workflow
-    assert 'data/reference_cache data/news_cache "$OUTPUT_ROOT"' in workflow
+    assert 'data/reference_cache data/news_cache data/opening_volume_cache "$OUTPUT_ROOT"' in workflow
     assert "flat-file-replay-range-${{ steps.replay.outputs.start_date }}" in workflow

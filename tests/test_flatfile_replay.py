@@ -425,6 +425,11 @@ def test_smoke_day_grades_benchmark_but_skips_trainer_postmortem(
     )
     monkeypatch.setattr(
         flatfile_replay,
+        "build_orb_research",
+        lambda *args, **kwargs: {"orb_universe_count": 0},
+    )
+    monkeypatch.setattr(
+        flatfile_replay,
         "build_postmortem",
         lambda *args, **kwargs: pytest.fail(
             "Smoke evidence must never enter the Trainer postmortem."

@@ -12,6 +12,7 @@ DAY_FILE_KINDS = (
     "postmortem_report", "research_alpha_report", "research_universe",
     "research_alpha_batch_manifest", "historical_news_backfill",
     "catalyst_shadow_metrics", "ticker_replay_queue",
+    "orb_outcomes",
 )
 
 

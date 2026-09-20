@@ -75,8 +75,8 @@ def test_compact_copy_positive_allowlist(tmp_path):
     (source / "new_giant_payload.bin").write_bytes(b"do not copy")
     (source / "replay_stdout.json").write_text("do not copy")
     compact_copy(source, dest)
-    assert set(DAY_KINDS) == {"postmortem", "benchmark_result", "scorable_outcomes", "eligible_outcomes", "replay_report"}
-    assert set(RUN_FILES) == {"flatfile_replay_manifest.json", "replay_summary.pdf", "replay_report.pdf", "scorable_outcomes.csv", "eligible_outcomes.csv"}
+    assert set(DAY_KINDS) == {"postmortem", "benchmark_result", "scorable_outcomes", "eligible_outcomes", "orb_outcomes", "replay_report"}
+    assert set(RUN_FILES) == {"flatfile_replay_manifest.json", "replay_summary.pdf", "replay_report.pdf", "scorable_outcomes.csv", "eligible_outcomes.csv", "orb_daily.csv"}
     expected = {Path(name) for name in RUN_FILES} | {day_file(Path('.'), day, kind) for kind in DAY_KINDS}
     assert {p.relative_to(dest) for p in dest.rglob('*') if p.is_file()} == expected
     for relative in expected:

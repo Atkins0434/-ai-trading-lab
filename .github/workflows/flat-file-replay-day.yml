@@ -44,6 +44,7 @@ jobs:
           path: |
             data/reference_cache/
             data/news_cache/
+            data/opening_volume_cache/
           key: massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}
           restore-keys: |
             massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
@@ -108,6 +109,14 @@ jobs:
             --start "$TRADING_DATE" \
             --end "$TRADING_DATE" \
             | tee "$OUTPUT_ROOT/coverage_before.json"
+
+      - name: Warm ORB opening-volume baseline
+        shell: bash
+        env:
+          MASSIVE_S3_ACCESS_KEY_ID: ${{ secrets.MASSIVE_S3_ACCESS_KEY_ID }}
+          MASSIVE_S3_SECRET_ACCESS_KEY: ${{ secrets.MASSIVE_S3_SECRET_ACCESS_KEY }}
+          TRADING_DATE: ${{ steps.replay.outputs.trading_date }}
+        run: python -m trainer.orb_warmup --end "$TRADING_DATE"
 
       - name: Inspect AAL cached minute bars
         shell: bash
@@ -177,6 +186,7 @@ jobs:
           replay_path = output_root / "flatfile_replay_manifest.json"
           outcome_path = daily_path(day_root, day_root.name, "end_of_day_outcome")
           benchmark_path = daily_path(day_root, day_root.name, "benchmark_result")
+          postmortem_path = daily_path(day_root, day_root.name, "postmortem")
           started_at = int(os.environ.get("REPLAY_STARTED_AT", str(int(time.time()))))
 
           print("Flat-File Replay Day summary")
@@ -441,6 +451,28 @@ jobs:
                       )
               else:
                   print("Execution policy summaries: unavailable")
+              if postmortem_path.is_file():
+                  orb = json.loads(
+                      postmortem_path.read_text(encoding="utf-8")
+                  ).get("orb", {})
+                  print(
+                      "ORB: "
+                      f"universe={orb.get('orb_universe_count', 0)}, "
+                      f"selected={sum(1 for item in orb.get('ranked_candidates', []) if item.get('selected'))}"
+                  )
+                  for variant, cohorts in orb.get("summary", {}).items():
+                      if not isinstance(cohorts, dict):
+                          continue
+                      for cohort in ("long_only", "long_plus_short"):
+                          summary = cohorts.get(cohort)
+                          if summary:
+                              print(
+                                  f"  {variant}.{cohort}: "
+                                  f"triggered={summary['triggered']}, "
+                                  f"gross={summary['gross_realized_return_pct']:.4f}%, "
+                                  f"net={summary['net_realized_return_pct']:.4f}%, "
+                                  f"sum_R={summary['sum_r']:.4f}"
+                              )
           else:
               print(f"Replay manifest unavailable: {replay_path}")
 
@@ -477,9 +509,11 @@ jobs:
             "$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" replay_report)"
             "$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" scorable_outcomes)"
             "$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" eligible_outcomes)"
+            "$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" orb_outcomes)"
             "$OUTPUT_ROOT/replay_summary.pdf"
             "$OUTPUT_ROOT/scorable_outcomes.csv"
             "$OUTPUT_ROOT/eligible_outcomes.csv"
+            "$OUTPUT_ROOT/orb_daily.csv"
           )
           if [ -z "$MAX_TICKERS" ]; then
             required+=("$(python -m trainer.output_paths "$OUTPUT_ROOT" "$TRADING_DATE" postmortem)")
@@ -502,7 +536,7 @@ jobs:
         shell: bash
         run: |
           echo "GitHub Actions cache storage is limited to 10 GB per repository."
-          for directory in data/flatfiles data/reference_cache data/news_cache; do
+          for directory in data/flatfiles data/reference_cache data/news_cache data/opening_volume_cache; do
             if [ -d "$directory" ]; then
               human_size="$(du -sh "$directory" | cut -f1)"
               byte_size="$(du -sb "$directory" | cut -f1)"

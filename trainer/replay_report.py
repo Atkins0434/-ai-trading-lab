@@ -36,6 +36,7 @@ from trainer.universe_manifest import (
 from trainer.validate_contracts import load_json
 from trainer.scorable_outcomes import concatenate_completed_outcomes
 from trainer.scorable_outcomes_schema import METRIC_IDS
+from trainer.orb import write_orb_daily_csv
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -467,6 +468,7 @@ def build_daily_report_model(
         "threshold_reviews": threshold_reviews,
         "execution_policies": execution_policies,
         "execution_comparison_rows": execution_comparison_rows,
+        "orb": (postmortem or {}).get("orb"),
     }
 
 
@@ -840,6 +842,51 @@ def _postmortem(story: list[Any], model: dict[str, Any], styles: dict[str, Parag
     story.append(_table(threshold_rows, [0.35*inch,0.65*inch,0.75*inch,0.8*inch,4.8*inch], right_columns=(0,2,3), font_size=6))
 
 
+def _orb_research(story: list[Any], model: dict[str, Any], styles: dict[str, ParagraphStyle]) -> None:
+    orb = model.get("orb")
+    if not orb:
+        return
+    _page(story, f"Independent ORB research ({orb.get('orb_version', 'unknown')})", styles)
+    story.append(Paragraph(
+        "ORB is graded independently and does not enter Scout selection, verdicts, exploration, or promotion gates.",
+        styles["body"],
+    ))
+    rows = [["Variant", "Cohort", "Candidates", "Triggered", "Hit rate", "Mean R", "Sum R", "Gross", "Net"]]
+    for variant, cohorts in orb.get("summary", {}).items():
+        if not isinstance(cohorts, dict):
+            continue
+        for cohort in ("long_only", "long_plus_short"):
+            summary = cohorts.get(cohort)
+            if not summary:
+                continue
+            rows.append([
+                variant, cohort, str(summary["candidates"]),
+                str(summary["triggered"]), _fmt_pct(summary["hit_rate_pct"]),
+                _fmt_number(summary["mean_r"]), _fmt_number(summary["sum_r"]),
+                _fmt_pct(summary["gross_realized_return_pct"]),
+                _fmt_pct(summary["net_realized_return_pct"]),
+            ])
+    story.append(_table(rows, [0.75*inch,1.05*inch,0.7*inch,0.65*inch,0.7*inch,0.65*inch,0.65*inch,0.75*inch,0.75*inch], right_columns=(2,3,4,5,6,7,8), font_size=6))
+    overlap = orb.get("overlap", {})
+    story.append(Paragraph(
+        f"ORB universe: {orb.get('orb_universe_count', 0)}; overlap among selected candidates — "
+        f"Scout scorable {overlap.get('scout_scorable', 0)}, Scout selected {overlap.get('scout_selected', 0)}, "
+        f"top-10 mover {overlap.get('top_10_mover', 0)}.",
+        styles["body"],
+    ))
+    candidates = [["Rank", "Ticker", "Open RVOL", "Direction", "Outside Scout band", "Scout scorable", "Scout selected", "Top-10"]]
+    for item in orb.get("ranked_candidates", [])[:40]:
+        candidates.append([
+            item.get("rank") or "—", item["ticker"],
+            _fmt_number(item.get("relative_volume_open")), item["direction"],
+            "YES" if item.get("outside_scout_band") else "NO",
+            "YES" if item.get("scout_scorable") else "NO",
+            "YES" if item.get("scout_selected") else "NO",
+            "YES" if item.get("top_10_mover") else "NO",
+        ])
+    story.append(_table(candidates, [0.45*inch,0.65*inch,0.75*inch,0.7*inch,1.0*inch,0.9*inch,0.85*inch,0.55*inch], right_columns=(0,2), font_size=5.8))
+
+
 def generate_daily_replay_report(
     day_dir: Path,
     output_path: Path | None = None,
@@ -860,6 +907,7 @@ def generate_daily_replay_report(
     _scorability(story, model, styles)
     _candidates(story, model, styles)
     _postmortem(story, model, styles)
+    _orb_research(story, model, styles)
     document = SimpleDocTemplate(
         str(output_path), pagesize=landscape(letter), rightMargin=MARGIN,
         leftMargin=MARGIN, topMargin=25, bottomMargin=34,
@@ -912,6 +960,7 @@ def generate_cumulative_replay_report(
         output_root, list(manifest.get("completed_dates", []))
     )
     models = _completed_day_models(output_root)
+    write_orb_daily_csv(output_root, list(manifest.get("completed_dates", [])))
     output_path = output_path or output_root / "replay_summary.pdf"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     styles = _styles()
@@ -944,6 +993,42 @@ def generate_cumulative_replay_report(
                             _fmt_pct(sum(s["net_realized_return_pct"] for s in costed) if costed else None),
                             _fmt_number(mean(captures) if captures else None), str(len(costed))])
     story.append(_table(cost_totals, [2.5*inch,1.3*inch,1.3*inch,1.1*inch,0.9*inch], font_size=7))
+    orb_rows = [["Date", "Variant", "Cohort", "Candidates", "Triggered", "Mean R", "Sum R", "Gross", "Net"]]
+    orb_totals: dict[tuple[str, str], dict[str, float]] = {}
+    for model in models:
+        orb = model.get("orb") or {}
+        for variant, cohorts in orb.get("summary", {}).items():
+            if not isinstance(cohorts, dict):
+                continue
+            for cohort in ("long_only", "long_plus_short"):
+                summary = cohorts.get(cohort)
+                if not summary:
+                    continue
+                orb_rows.append([
+                    model["trading_date"], variant, cohort,
+                    str(summary["candidates"]), str(summary["triggered"]),
+                    _fmt_number(summary["mean_r"]), _fmt_number(summary["sum_r"]),
+                    _fmt_pct(summary["gross_realized_return_pct"]),
+                    _fmt_pct(summary["net_realized_return_pct"]),
+                ])
+                total = orb_totals.setdefault((variant, cohort), {
+                    "candidates": 0, "triggered": 0, "sum_r": 0.0,
+                    "gross": 0.0, "net": 0.0,
+                })
+                total["candidates"] += summary["candidates"]
+                total["triggered"] += summary["triggered"]
+                total["sum_r"] += summary["sum_r"]
+                total["gross"] += summary["gross_realized_return_pct"]
+                total["net"] += summary["net_realized_return_pct"]
+    for (variant, cohort), total in sorted(orb_totals.items()):
+        orb_rows.append([
+            "TOTAL", variant, cohort, str(int(total["candidates"])),
+            str(int(total["triggered"])), "—", _fmt_number(total["sum_r"]),
+            _fmt_pct(total["gross"]), _fmt_pct(total["net"]),
+        ])
+    if len(orb_rows) > 1:
+        story.append(Paragraph("Independent ORB research", styles["subsection"]))
+        story.append(_table(orb_rows, [0.8*inch,0.65*inch,1.0*inch,0.65*inch,0.6*inch,0.6*inch,0.6*inch,0.7*inch,0.7*inch], right_columns=(3,4,5,6,7,8), font_size=5.5))
     rows = [["Date", "Universe", "Scorable", "Selected", "Scout return", "Baseline return", "Verdict"]]
     for model in models:
         rows.append([

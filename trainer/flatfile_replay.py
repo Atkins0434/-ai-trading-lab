@@ -22,6 +22,7 @@ from trainer.flatfile_snapshot import (
     load_flatfile_replay_config,
 )
 from trainer.outcome_grader import grade_replay_outcomes
+from trainer.orb import build_orb_research, load_orb_config
 from trainer.postmortem import build_postmortem
 from trainer.postmortem_report import generate_postmortem_pdf
 from trainer.providers.massive import MassiveClient
@@ -53,6 +54,7 @@ REPLAY_PHASES = (
     "scoring",
     "grading",
     "benchmark",
+    "orb",
     "postmortem",
     "report",
 )
@@ -98,6 +100,7 @@ def _new_day_record(
         "scored_ticker_count": 0,
         "bar_statistics": None,
         "scorability_statistics": None,
+        "orb_universe_count": 0,
         "excluded_tickers": [],
         "files": [],
         "reference_cache": {
@@ -146,6 +149,7 @@ def _normalize_day_record(
     normalized.setdefault("max_tickers", max_tickers)
     normalized.setdefault("bar_statistics", None)
     normalized.setdefault("scorability_statistics", None)
+    normalized.setdefault("orb_universe_count", 0)
     normalized.setdefault("excluded_tickers", [])
     normalized.setdefault(
         "research_evidence",
@@ -328,6 +332,7 @@ def _run_flatfile_day_impl(
     postmortem_path = daily_path(day_dir, day_dir.name, "postmortem")
     postmortem_pdf_path = daily_path(day_dir, day_dir.name, "postmortem_report")
     replay_report_path = daily_path(day_dir, day_dir.name, "replay_report")
+    orb_path = daily_path(day_dir, day_dir.name, "orb_outcomes")
 
     with _tracked_phase(progress, "universe", progress_callback):
         freeze_config = {"morning_freeze_time": morning_freeze_time}
@@ -451,6 +456,18 @@ def _run_flatfile_day_impl(
         )
         artifacts["scorable_outcomes"] = relative(scorable_path)
         artifacts["eligible_outcomes"] = relative(eligible_path)
+    with _tracked_phase(progress, "orb", progress_callback):
+        orb_result = build_orb_research(
+            trading_date,
+            universe,
+            flatfiles,
+            scout,
+            benchmark,
+            strategy_capital_usd=strategy_capital,
+            output_path=orb_path,
+        )
+        progress["orb_universe_count"] = orb_result["orb_universe_count"]
+        artifacts["orb_outcomes"] = relative(orb_path)
     if smoke_mode:
         postmortem_started = time.perf_counter()
         progress["current_phase"] = "postmortem"
@@ -479,6 +496,7 @@ def _run_flatfile_day_impl(
                 bar_statistics=progress["bar_statistics"],
                 scorability_statistics=progress["scorability_statistics"],
                 strategy_capital_usd=strategy_capital,
+                orb_result=orb_result,
             )
             _write_json(postmortem_path, postmortem)
             generate_postmortem_pdf(
@@ -623,6 +641,7 @@ def run_flatfile_replay(
     forced_resume = False
     previous_provenance = None
     active_plan = load_massive_plan()
+    active_orb_config = load_orb_config()
     universe_config = load_universe_config()
     universe_policy = {
         "version": universe_config["version"],
@@ -714,6 +733,7 @@ def run_flatfile_replay(
             "forced_resume": forced_resume,
             "previous_provenance": previous_provenance,
             "cost_model_id": load_execution_costs()["cost_model_id"],
+            "orb_version": active_orb_config["orb_version"],
             "version": "flatfile_replay_manifest_v1.0",
             "file_naming": "dated_v1",
             "run_id": f"flatfile-{dates[0]}-to-{dates[-1]}",

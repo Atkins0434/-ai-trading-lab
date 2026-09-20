@@ -1,0 +1,20 @@
+{
+  "orb_version": "orb_v1.0",
+  "universe": {
+    "common_stock_types": ["CS", "COMMON_STOCK", "COMMON_EQUITY"],
+    "allowed_exchanges": ["XNAS", "XNYS", "XASE"],
+    "minimum_open_price_usd": 5.0,
+    "minimum_average_daily_volume": 1000000,
+    "minimum_atr_14_usd": 0.5
+  },
+  "opening_volume_lookback_sessions": 14,
+  "minimum_baseline_sessions": 7,
+  "minimum_relative_volume": 2.0,
+  "top_n": 20,
+  "entry_cutoff_time": "15:30:00",
+  "atr_stop_fraction": 0.1,
+  "risk_per_trade_pct": 1.0,
+  "paper_leverage_cap": 4.0,
+  "cash_leverage_cap": 1.0,
+  "opening_volume_cache_root": "data/opening_volume_cache"
+}

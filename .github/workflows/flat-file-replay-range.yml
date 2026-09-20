@@ -103,6 +103,7 @@ jobs:
           path: |
             data/reference_cache/
             data/news_cache/
+            data/opening_volume_cache/
           key: massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}
           restore-keys: |
             massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
@@ -116,6 +117,14 @@ jobs:
             replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.cache_config.outputs.scout_id }}-${{ steps.cache_config.outputs.metric_count }}-${{ steps.cache_config.outputs.dataset_version }}-${{ steps.cache_config.outputs.provenance_key }}-${{ steps.replay.outputs.max_tickers }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-
 
       - run: pip install -r requirements.txt
+
+      - name: Warm ORB opening-volume baseline
+        shell: bash
+        env:
+          MASSIVE_S3_ACCESS_KEY_ID: ${{ secrets.MASSIVE_S3_ACCESS_KEY_ID }}
+          MASSIVE_S3_SECRET_ACCESS_KEY: ${{ secrets.MASSIVE_S3_SECRET_ACCESS_KEY }}
+          START_DATE: ${{ steps.replay.outputs.start_date }}
+        run: python -m trainer.orb_warmup --end "$START_DATE"
 
       - name: Report cached flat-file coverage
         shell: bash
@@ -232,7 +241,7 @@ jobs:
               manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
           if not summary_path.is_file():
               missing.append(str(summary_path))
-          for filename in ("scorable_outcomes.csv", "eligible_outcomes.csv"):
+          for filename in ("scorable_outcomes.csv", "eligible_outcomes.csv", "orb_daily.csv"):
               path = output_root / filename
               if not path.is_file():
                   missing.append(str(path))
@@ -248,6 +257,7 @@ jobs:
                   daily_path(day_root, day_root.name, "replay_report"),
                   daily_path(day_root, day_root.name, "scorable_outcomes"),
                   daily_path(day_root, day_root.name, "eligible_outcomes"),
+                  daily_path(day_root, day_root.name, "orb_outcomes"),
               ]
               if not smoke_mode:
                   required.append(daily_path(day_root, day_root.name, "postmortem"))
@@ -277,7 +287,7 @@ jobs:
         run: |
           echo "GitHub Actions cache storage is limited to 10 GB per repository."
           echo "Each run saves a new flat-file cache entry."
-          for directory in data/flatfiles data/reference_cache data/news_cache "$OUTPUT_ROOT"; do
+          for directory in data/flatfiles data/reference_cache data/news_cache data/opening_volume_cache "$OUTPUT_ROOT"; do
             if [ -d "$directory" ]; then
               human_size="$(du -sh "$directory" | cut -f1)"
               byte_size="$(du -sb "$directory" | cut -f1)"

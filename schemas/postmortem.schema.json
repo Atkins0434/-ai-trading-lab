@@ -10,7 +10,7 @@
     "execution_policy_version", "massive_plan", "universe_mode", "universe_manifest_hash",
     "universe_coverage", "research_evidence", "promotion_eligible", "result",
     "scout_performance", "benchmark_performance", "unreachable_mover_count",
-    "unreachable_pct", "universe_scorability", "reachability", "shadow_scores", "reversal_cohort",
+    "unreachable_pct", "universe_scorability", "reachability", "shadow_scores", "reversal_cohort", "orb",
     "missed_opportunities", "execution_policy_review",
     "execution_policy_verdict",
     "feature_failures", "feature_proposals"
@@ -43,6 +43,7 @@
       "type": "array", "items": {"$ref": "#/$defs/shadowScore"}
     },
     "reversal_cohort": {"$ref": "#/$defs/reversalCohort"},
+    "orb": {"$ref": "#/$defs/orbResearch"},
     "missed_opportunities": {
       "type": "array", "items": {"$ref": "#/$defs/missedOpportunity"}
     },
@@ -63,6 +64,35 @@
     "net_scout_won": {"type": ["boolean", "null"]}
   },
   "$defs": {
+    "orbResearch": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "orb_version", "trading_date", "orb_universe_count",
+        "universe_exclusions", "unresolved_bar_rows", "ranked_candidates", "not_rankable",
+        "summary", "overlap", "cost_model_id"
+      ],
+      "properties": {
+        "orb_version": {"type": "string", "minLength": 1},
+        "trading_date": {"type": "string", "format": "date"},
+        "orb_universe_count": {"type": "integer", "minimum": 0},
+        "universe_exclusions": {"type": "array", "items": {"type": "object"}},
+        "unresolved_bar_rows": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "ranked_candidates": {"type": "array", "items": {"type": "object"}},
+        "not_rankable": {"type": "array", "items": {"type": "object"}},
+        "summary": {"type": "object"},
+        "overlap": {
+          "type": "object", "additionalProperties": false,
+          "required": ["scout_scorable", "scout_selected", "top_10_mover"],
+          "properties": {
+            "scout_scorable": {"type": "integer", "minimum": 0},
+            "scout_selected": {"type": "integer", "minimum": 0},
+            "top_10_mover": {"type": "integer", "minimum": 0}
+          }
+        },
+        "cost_model_id": {"type": ["string", "null"]}
+      }
+    },
     "newsCoverageCounts": {"type": "object", "additionalProperties": false, "required": ["scorable_count", "with_any_article", "with_admitted_event", "top_10_movers_with_admitted_event", "selections_with_admitted_event", "fetch_errors", "by_source_tier", "by_event_type"], "properties": {"scorable_count": {"type": "integer", "minimum": 0}, "with_any_article": {"type": "integer", "minimum": 0}, "with_admitted_event": {"type": "integer", "minimum": 0}, "top_10_movers_with_admitted_event": {"type": "integer", "minimum": 0}, "selections_with_admitted_event": {"type": "integer", "minimum": 0}, "fetch_errors": {"type": "integer", "minimum": 0}, "by_source_tier": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}, "by_event_type": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}, "share_with_relevant_event_under_12h": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "share_with_relevant_event_under_24h": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "freshest_relevant_event_ages_minutes": {"type": "array", "items": {"type": "number", "minimum": 0}}, "freshest_relevant_event_age_minutes": {"type": "object", "additionalProperties": false, "required": ["p25", "p50", "p75"], "properties": {"p25": {"type": ["number", "null"], "minimum": 0}, "p50": {"type": ["number", "null"], "minimum": 0}, "p75": {"type": ["number", "null"], "minimum": 0}}}}},
     "newsCoverage": {"type": "object", "additionalProperties": false, "required": ["scorable_count", "with_any_article", "with_admitted_event", "top_10_movers_with_admitted_event", "selections_with_admitted_event", "fetch_errors", "by_source_tier", "by_event_type", "by_price_tier"], "properties": {"scorable_count": {"type": "integer", "minimum": 0}, "with_any_article": {"type": "integer", "minimum": 0}, "with_admitted_event": {"type": "integer", "minimum": 0}, "top_10_movers_with_admitted_event": {"type": "integer", "minimum": 0}, "selections_with_admitted_event": {"type": "integer", "minimum": 0}, "fetch_errors": {"type": "integer", "minimum": 0}, "by_source_tier": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}, "by_event_type": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}, "by_price_tier": {"type": "object", "additionalProperties": {"$ref": "#/$defs/newsCoverageCounts"}}, "share_with_relevant_event_under_12h": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "share_with_relevant_event_under_24h": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "freshest_relevant_event_ages_minutes": {"type": "array", "items": {"type": "number", "minimum": 0}}, "freshest_relevant_event_age_minutes": {"type": "object", "additionalProperties": false, "required": ["p25", "p50", "p75"], "properties": {"p25": {"type": ["number", "null"], "minimum": 0}, "p50": {"type": ["number", "null"], "minimum": 0}, "p75": {"type": ["number", "null"], "minimum": 0}}}}},
     "massivePlan": {
