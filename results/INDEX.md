@@ -4,7 +4,7 @@ Research diagnostics only; this branch is never merged into main.
 
 | Unit | Status | Days | WIN/MISS/TIE | Primary return | ATR return | Reachability | Code SHA | Run |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 2024-04-A | PENDING | 0/11 | 0/0/0 | 0.000000% | 0.000000% | — | a6fcd54b26fbfb85d88f3afc4f9636e5a9f86d02 | [run 35420330654](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35420330654) |
+| 2024-04-A | COMPLETE | 11/11 | 1/2/8 | 0.423497% | -9.227070% | bars_0=37, bars_10_29=22, bars_1_9=36, opening_range_reachable_count=4, picked=0, visible_guardrail_rejected=2, visible_reversal_candidate=0, visible_scored_low=13 | 25438eecdfc35640c18df4b90661a1f3530ccbb1 | [run 35489036030](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35489036030) |
 | 2024-04-B | PENDING | 0/11 | 0/0/0 | 0.000000% | 0.000000% | — | a6fcd54b26fbfb85d88f3afc4f9636e5a9f86d02 | [run 35438008008](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35438008008) |
 | 2024-05-A | PENDING | 0/11 | 0/0/0 | 0.000000% | 0.000000% | — | a6fcd54b26fbfb85d88f3afc4f9636e5a9f86d02 | [run 35452655297](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35452655297) |
 | 2024-05-B | PENDING | 0/11 | 0/0/0 | 0.000000% | 0.000000% | — | e50b1dc6837af20c9d3fd45ced01df6606ae0258 | [run 35467171974](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35467171974) |

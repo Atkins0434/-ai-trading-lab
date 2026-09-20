@@ -16,6 +16,7 @@
     "2024-04-12",
     "2024-04-15"
   ],
+  "cost_model_id": "execution_costs_v1.0",
   "current_phase": null,
   "current_trading_date": null,
   "datasets": [
@@ -518,11 +519,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 262
-          },
-          "0001593275": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 150
           },
           "0001596993": {
             "real_premarket": 4,
@@ -1128,6 +1124,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 291
+          },
+          "0001876431": {
+            "real_premarket": 4,
+            "real_premarket_60m": 0,
+            "real_regular": 79
           },
           "0001877787": {
             "real_premarket": 0,
@@ -5794,11 +5795,6 @@
             "real_premarket_60m": 0,
             "real_regular": 361
           },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 132
-          },
           "BBG001SDLX20": {
             "real_premarket": 1,
             "real_premarket_60m": 0,
@@ -6809,11 +6805,6 @@
             "real_premarket_60m": 2,
             "real_regular": 385
           },
-          "BBG001SPDGN6": {
-            "real_premarket": 2,
-            "real_premarket_60m": 0,
-            "real_regular": 283
-          },
           "BBG001SPKBJ4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -6908,6 +6899,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 83
+          },
+          "BBG001SQSKT3": {
+            "real_premarket": 22,
+            "real_premarket_60m": 15,
+            "real_regular": 390
           },
           "BBG001SQV7W4": {
             "real_premarket": 0,
@@ -7679,6 +7675,11 @@
             "real_premarket_60m": 5,
             "real_regular": 347
           },
+          "BBG001TCT0B5": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 217
+          },
           "BBG001TCYZ77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -8129,11 +8130,6 @@
             "real_premarket_60m": 2,
             "real_regular": 343
           },
-          "BBG00226DGP2": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 124
-          },
           "BBG002293Q93": {
             "real_premarket": 12,
             "real_premarket_60m": 6,
@@ -8499,11 +8495,6 @@
             "real_premarket_60m": 6,
             "real_regular": 245
           },
-          "BBG003LB3VC0": {
-            "real_premarket": 3,
-            "real_premarket_60m": 1,
-            "real_regular": 115
-          },
           "BBG003LFWPT4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -8608,11 +8599,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 56
-          },
-          "BBG004KB3SZ1": {
-            "real_premarket": 21,
-            "real_premarket_60m": 12,
-            "real_regular": 387
           },
           "BBG004KDL523": {
             "real_premarket": 0,
@@ -8913,6 +8899,11 @@
             "real_premarket": 2,
             "real_premarket_60m": 1,
             "real_regular": 137
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 150
           },
           "BBG0067QVJ69": {
             "real_premarket": 0,
@@ -10244,6 +10235,11 @@
             "real_premarket_60m": 0,
             "real_regular": 236
           },
+          "BBG00JSBZQF1": {
+            "real_premarket": 13,
+            "real_premarket_60m": 11,
+            "real_regular": 242
+          },
           "BBG00JVRRR41": {
             "real_premarket": 2,
             "real_premarket_60m": 1,
@@ -11309,11 +11305,6 @@
             "real_premarket_60m": 2,
             "real_regular": 388
           },
-          "BBG00XWZB4W8": {
-            "real_premarket": 4,
-            "real_premarket_60m": 1,
-            "real_regular": 334
-          },
           "BBG00XWZGGJ1": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -12289,11 +12280,6 @@
             "real_premarket_60m": 0,
             "real_regular": 377
           },
-          "BBG0192379X7": {
-            "real_premarket": 35,
-            "real_premarket_60m": 8,
-            "real_regular": 361
-          },
           "BBG019980TF2": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -12448,11 +12434,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 142
-          },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 15
           },
           "BBG01JFZ96Y3": {
             "real_premarket": 0,
@@ -13626,11 +13607,6 @@
             "real_premarket_60m": 10,
             "real_regular": 389
           },
-          "AURA": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 124
-          },
           "AVA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -14705,6 +14681,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 178
+          },
+          "CELH": {
+            "real_premarket": 22,
+            "real_premarket_60m": 15,
+            "real_regular": 390
           },
           "CELU": {
             "real_premarket": 0,
@@ -16196,11 +16177,6 @@
             "real_premarket_60m": 0,
             "real_regular": 229
           },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 15
-          },
           "ENLC": {
             "real_premarket": 3,
             "real_premarket_60m": 2,
@@ -16350,11 +16326,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 236
-          },
-          "ESPR": {
-            "real_premarket": 21,
-            "real_premarket_60m": 12,
-            "real_regular": 387
           },
           "ESQ": {
             "real_premarket": 0,
@@ -17561,11 +17532,6 @@
             "real_premarket_60m": 0,
             "real_regular": 386
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 132
-          },
           "HA": {
             "real_premarket": 2,
             "real_premarket_60m": 0,
@@ -17686,11 +17652,6 @@
             "real_premarket_60m": 2,
             "real_regular": 371
           },
-          "HEAR": {
-            "real_premarket": 2,
-            "real_premarket_60m": 0,
-            "real_regular": 283
-          },
           "HEES": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -17710,11 +17671,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 152
-          },
-          "HG": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 150
           },
           "HGTY": {
             "real_premarket": 0,
@@ -18045,6 +18001,11 @@
             "real_premarket": 8,
             "real_premarket_60m": 6,
             "real_regular": 313
+          },
+          "HYMC": {
+            "real_premarket": 13,
+            "real_premarket_60m": 11,
+            "real_regular": 242
           },
           "HZO": {
             "real_premarket": 0,
@@ -20326,11 +20287,6 @@
             "real_premarket_60m": 1,
             "real_regular": 200
           },
-          "NRDY": {
-            "real_premarket": 4,
-            "real_premarket_60m": 1,
-            "real_regular": 334
-          },
           "NRIX": {
             "real_premarket": 2,
             "real_premarket_60m": 0,
@@ -20750,6 +20706,11 @@
             "real_premarket": 20,
             "real_premarket_60m": 6,
             "real_regular": 390
+          },
+          "ONTF": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 217
           },
           "ONTO": {
             "real_premarket": 0,
@@ -21441,6 +21402,11 @@
             "real_premarket_60m": 0,
             "real_regular": 263
           },
+          "PRE": {
+            "real_premarket": 4,
+            "real_premarket_60m": 0,
+            "real_regular": 79
+          },
           "PRFT": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -21625,11 +21591,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 369
-          },
-          "QBTS": {
-            "real_premarket": 35,
-            "real_premarket_60m": 8,
-            "real_regular": 361
           },
           "QCRH": {
             "real_premarket": 0,
@@ -22315,11 +22276,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 93
-          },
-          "SCM": {
-            "real_premarket": 3,
-            "real_premarket_60m": 1,
-            "real_regular": 115
           },
           "SCOR": {
             "real_premarket": 0,
@@ -23240,6 +23196,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 120
+          },
+          "SYRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 150
           },
           "TAC": {
             "real_premarket": 4,
@@ -28254,9 +28215,9 @@
             "timestamp": "2024-04-01T15:59:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 11458,
-        "real_premarket_bar_count_60m": 4387,
-        "real_regular_bar_count": 613916,
+        "real_premarket_bar_count": 11432,
+        "real_premarket_bar_count_60m": 4391,
+        "real_regular_bar_count": 613093,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -28366,7 +28327,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "a43b2bae778f259c37124b42aa2327e0",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-14.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-14.csv.gz",
@@ -28376,7 +28337,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "b7832beb95fdf81b919e5ffc99ab5578",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-15.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-15.csv.gz",
@@ -28386,7 +28347,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "28ebaec1adadf91d09512090b8ec5cdb",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-18.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-18.csv.gz",
@@ -28396,7 +28357,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "6cb8d16bb7edadd3cf2ee51be629de72",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-19.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-19.csv.gz",
@@ -28406,7 +28367,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "e1b268295c1cbaa2fd492a5010214d96",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-20.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-20.csv.gz",
@@ -28416,7 +28377,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "801a04cbb8e9b8ec1c0cdc22356fca2f",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-21.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-21.csv.gz",
@@ -28426,7 +28387,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "f2e9ac3ddc0eaf14b178f3bbbb9bc246",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-22.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-22.csv.gz",
@@ -28436,7 +28397,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "1d46dde02180b37fc45777fa188b957d",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-25.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-25.csv.gz",
@@ -28446,7 +28407,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "4932eed697c9b3cee010c415b7b44b4e",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-26.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-26.csv.gz",
@@ -28456,7 +28417,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "6d8210c75288e8d634b94acbbec04d4a",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-27.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-27.csv.gz",
@@ -28466,7 +28427,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "b58dde66648b78b46b63d75373c202f0",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-03-28.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/03/2024-03-28.csv.gz",
@@ -28576,7 +28537,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "ae994a033cd210f800e82aaee8d2bb1f",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-15.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-15.csv.gz",
@@ -28586,7 +28547,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "e071b19cafda0b17093908f0ae8d2b7a",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-18.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-18.csv.gz",
@@ -28596,7 +28557,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "845a37d9f71d7bd6f16a52904b68ced0",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-19.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-19.csv.gz",
@@ -28606,7 +28567,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "a501229b7f5677be9d4902581a05ce47",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-20.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-20.csv.gz",
@@ -28616,7 +28577,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "8ca76450df29d005457d91a4598d6e65",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-21.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-21.csv.gz",
@@ -28626,7 +28587,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "0872861d3b9acc31a8ccca788fa58cb4",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-22.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-22.csv.gz",
@@ -28636,7 +28597,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "404df70e3b000788ecd5e476d3f02263",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-25.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-25.csv.gz",
@@ -28646,7 +28607,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "1d7e9975885fa5acf7e2615bcd043ecd",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-26.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-26.csv.gz",
@@ -28656,7 +28617,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "ba7c6ccff879ef152529a7ac2d8f36b2",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-27.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-27.csv.gz",
@@ -28666,7 +28627,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "daf7297a1fa173f98f79e4426b058bc0",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-03-28.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/03/2024-03-28.csv.gz",
@@ -28686,6 +28647,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 113,
+        "hits": 0,
+        "tickers_with_zero_articles": 69
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -28697,38 +28664,54 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 0.932,
-        "download": 6.391,
-        "grading": 49.461,
-        "postmortem": 0.091,
-        "report": 3.206,
-        "scoring": 8.708,
-        "snapshot": 733.621,
-        "universe": 23.161
+        "benchmark": 1.202,
+        "download": 16.9,
+        "grading": 63.28,
+        "postmortem": 0.129,
+        "report": 3.875,
+        "scoring": 14.72,
+        "snapshot": 901.029,
+        "universe": 30.161
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 833,
         "errors": 0,
-        "fetches": 846,
-        "hits": 10201,
+        "fetches": 883,
+        "hits": 10164,
         "listed_after_lagged_date": 0,
-        "quarter_reuse_hits": 10201,
+        "quarter_reuse_hits": 10164,
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5466,
+          "without": 5581
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.987143431096826,
-        "not_scorable_ticker_count": 2457,
+        "not_scorable_share": 0.9871227364185111,
+        "not_scorable_ticker_count": 2453,
         "scorable_ticker_count": 32,
-        "universe_ticker_count": 2489
+        "universe_ticker_count": 2485
       },
+      "scorable_count": 32,
       "scored_ticker_count": 32,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.14147246066490055,
       "status": "COMPLETE",
       "trading_date": "2024-04-01",
-      "universe_manifest_hash": "sha256:6a10af7bd64072765ac012aebb320301dbf8ff3a18f76624a058f8e62dd50904",
-      "universe_size": 2489
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:fa7084bba2f3cf3d6c67d76a0f994d2137d363c9df88e09033a3f58b583d9033",
+      "universe_size": 2485
     },
     {
       "artifacts": {
@@ -28790,6 +28773,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 21
+          },
+          "0000911421": {
+            "real_premarket": 3,
+            "real_premarket_60m": 3,
+            "real_regular": 51
           },
           "0000911971": {
             "real_premarket": 0,
@@ -29225,11 +29213,6 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 279
-          },
-          "0001593275": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 120
           },
           "0001596993": {
             "real_premarket": 10,
@@ -34481,11 +34464,6 @@
             "real_premarket_60m": 1,
             "real_regular": 374
           },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 66
-          },
           "BBG001SDLX20": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -35571,6 +35549,11 @@
             "real_premarket_60m": 0,
             "real_regular": 79
           },
+          "BBG001SQSKT3": {
+            "real_premarket": 20,
+            "real_premarket_60m": 16,
+            "real_regular": 390
+          },
           "BBG001SQV7W4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -36336,6 +36319,11 @@
             "real_premarket_60m": 5,
             "real_regular": 370
           },
+          "BBG001TCT0B5": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 169
+          },
           "BBG001TCYZ77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -36786,11 +36774,6 @@
             "real_premarket_60m": 3,
             "real_regular": 370
           },
-          "BBG00226DGP2": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 170
-          },
           "BBG002293Q93": {
             "real_premarket": 7,
             "real_premarket_60m": 4,
@@ -37156,11 +37139,6 @@
             "real_premarket_60m": 10,
             "real_regular": 227
           },
-          "BBG003LB3VC0": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 125
-          },
           "BBG003LFWPT4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -37265,11 +37243,6 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 72
-          },
-          "BBG004KB3SZ1": {
-            "real_premarket": 29,
-            "real_premarket_60m": 14,
-            "real_regular": 385
           },
           "BBG004KDL523": {
             "real_premarket": 0,
@@ -37575,6 +37548,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 148
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 207
           },
           "BBG0067QVJ69": {
             "real_premarket": 0,
@@ -38706,11 +38684,6 @@
             "real_premarket_60m": 0,
             "real_regular": 60
           },
-          "BBG00HFZPB97": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 64
-          },
           "BBG00HJ4P6S2": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -38905,6 +38878,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 269
+          },
+          "BBG00JSBZQF1": {
+            "real_premarket": 28,
+            "real_premarket_60m": 17,
+            "real_regular": 351
           },
           "BBG00JVRRR41": {
             "real_premarket": 9,
@@ -39966,11 +39944,6 @@
             "real_premarket_60m": 7,
             "real_regular": 388
           },
-          "BBG00XWZB4W8": {
-            "real_premarket": 2,
-            "real_premarket_60m": 0,
-            "real_regular": 319
-          },
           "BBG00XWZGGJ1": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -40456,6 +40429,11 @@
             "real_premarket_60m": 2,
             "real_regular": 120
           },
+          "BBG0105XBRJ8": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 194
+          },
           "BBG010FNXN77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -40931,11 +40909,6 @@
             "real_premarket_60m": 0,
             "real_regular": 387
           },
-          "BBG0192379X7": {
-            "real_premarket": 62,
-            "real_premarket_60m": 21,
-            "real_regular": 388
-          },
           "BBG019980TF2": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -41090,11 +41063,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 168
-          },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 23
           },
           "BBG01JFZ96Y3": {
             "real_premarket": 0,
@@ -42258,11 +42226,6 @@
             "real_premarket_60m": 10,
             "real_regular": 390
           },
-          "AURA": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 170
-          },
           "AVA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -43288,6 +43251,11 @@
             "real_premarket_60m": 0,
             "real_regular": 229
           },
+          "CCSI": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 194
+          },
           "CDE": {
             "real_premarket": 54,
             "real_premarket_60m": 19,
@@ -43337,6 +43305,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 178
+          },
+          "CELH": {
+            "real_premarket": 20,
+            "real_premarket_60m": 16,
+            "real_regular": 390
           },
           "CELU": {
             "real_premarket": 1,
@@ -44813,11 +44786,6 @@
             "real_premarket_60m": 0,
             "real_regular": 135
           },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 23
-          },
           "ENLC": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -44967,11 +44935,6 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 297
-          },
-          "ESPR": {
-            "real_premarket": 29,
-            "real_premarket_60m": 14,
-            "real_regular": 385
           },
           "ESQ": {
             "real_premarket": 0,
@@ -45317,11 +45280,6 @@
             "real_premarket": 5,
             "real_premarket_60m": 3,
             "real_regular": 390
-          },
-          "FHTX": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 64
           },
           "FIBK": {
             "real_premarket": 0,
@@ -46168,11 +46126,6 @@
             "real_premarket_60m": 0,
             "real_regular": 376
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 66
-          },
           "HA": {
             "real_premarket": 2,
             "real_premarket_60m": 2,
@@ -46312,11 +46265,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 132
-          },
-          "HG": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 120
           },
           "HGTY": {
             "real_premarket": 0,
@@ -46647,6 +46595,11 @@
             "real_premarket": 5,
             "real_premarket_60m": 5,
             "real_regular": 300
+          },
+          "HYMC": {
+            "real_premarket": 28,
+            "real_premarket_60m": 17,
+            "real_regular": 351
           },
           "HZO": {
             "real_premarket": 0,
@@ -48923,11 +48876,6 @@
             "real_premarket_60m": 0,
             "real_regular": 138
           },
-          "NRDY": {
-            "real_premarket": 2,
-            "real_premarket_60m": 0,
-            "real_regular": 319
-          },
           "NRIX": {
             "real_premarket": 3,
             "real_premarket_60m": 1,
@@ -49342,6 +49290,11 @@
             "real_premarket": 14,
             "real_premarket_60m": 13,
             "real_regular": 383
+          },
+          "ONTF": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 169
           },
           "ONTO": {
             "real_premarket": 0,
@@ -50033,6 +49986,11 @@
             "real_premarket_60m": 0,
             "real_regular": 257
           },
+          "PRE": {
+            "real_premarket": 3,
+            "real_premarket_60m": 3,
+            "real_regular": 51
+          },
           "PRFT": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -50212,11 +50170,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 353
-          },
-          "QBTS": {
-            "real_premarket": 62,
-            "real_premarket_60m": 21,
-            "real_regular": 388
           },
           "QCRH": {
             "real_premarket": 0,
@@ -50902,11 +50855,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 87
-          },
-          "SCM": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 125
           },
           "SCOR": {
             "real_premarket": 0,
@@ -51832,6 +51780,11 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 192
+          },
+          "SYRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 207
           },
           "TAC": {
             "real_premarket": 0,
@@ -54551,9 +54504,9 @@
             "timestamp": "2024-04-02T15:59:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 12388,
-        "real_premarket_bar_count_60m": 5617,
-        "real_regular_bar_count": 610901,
+        "real_premarket_bar_count": 12346,
+        "real_premarket_bar_count_60m": 5618,
+        "real_regular_bar_count": 610603,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -54983,6 +54936,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 158,
+        "hits": 0,
+        "tickers_with_zero_articles": 78
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -54994,15 +54953,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 0.98,
-        "download": 5.663,
-        "grading": 48.889,
-        "postmortem": 0.118,
-        "report": 3.355,
-        "scoring": 8.793,
-        "snapshot": 726.463,
-        "universe": 22.352
+        "benchmark": 1.266,
+        "download": 5.489,
+        "grading": 63.167,
+        "postmortem": 0.166,
+        "report": 4.021,
+        "scoring": 15.616,
+        "snapshot": 897.7,
+        "universe": 28.248
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 831,
         "errors": 0,
@@ -55013,19 +54973,34 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5454,
+          "without": 5586
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.981421647819063,
-        "not_scorable_ticker_count": 2430,
+        "not_scorable_share": 0.9813991103922362,
+        "not_scorable_ticker_count": 2427,
         "scorable_ticker_count": 46,
-        "universe_ticker_count": 2476
+        "universe_ticker_count": 2473
       },
+      "scorable_count": 46,
       "scored_ticker_count": 46,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.7603033552933801,
       "status": "COMPLETE",
       "trading_date": "2024-04-02",
-      "universe_manifest_hash": "sha256:a1a6513796f3519029a1c3816cef3a1796a7ca62be5177d9380a62a336e3a096",
-      "universe_size": 2476
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:4328a3584d53ef83ff3657a971c18ed17e2d9917dee885d71eefff92e93aa47d",
+      "universe_size": 2473
     },
     {
       "artifacts": {
@@ -55522,11 +55497,6 @@
             "real_premarket": 2,
             "real_premarket_60m": 0,
             "real_regular": 321
-          },
-          "0001593275": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 82
           },
           "0001596993": {
             "real_premarket": 7,
@@ -56137,6 +56107,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 263
+          },
+          "0001876431": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 64
           },
           "0001877787": {
             "real_premarket": 1,
@@ -60788,11 +60763,6 @@
             "real_premarket_60m": 0,
             "real_regular": 375
           },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 84
-          },
           "BBG001SDLX20": {
             "real_premarket": 1,
             "real_premarket_60m": 0,
@@ -61888,6 +61858,11 @@
             "real_premarket_60m": 0,
             "real_regular": 43
           },
+          "BBG001SQSKT3": {
+            "real_premarket": 9,
+            "real_premarket_60m": 5,
+            "real_regular": 390
+          },
           "BBG001SQV7W4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -62057,6 +62032,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 190
+          },
+          "BBG001ST9B63": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 5
           },
           "BBG001STH2P3": {
             "real_premarket": 0,
@@ -62643,6 +62623,11 @@
             "real_premarket_60m": 5,
             "real_regular": 389
           },
+          "BBG001TCT0B5": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 149
+          },
           "BBG001TCYZ77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -63093,11 +63078,6 @@
             "real_premarket_60m": 0,
             "real_regular": 384
           },
-          "BBG00226DGP2": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 103
-          },
           "BBG002293Q93": {
             "real_premarket": 4,
             "real_premarket_60m": 2,
@@ -63462,11 +63442,6 @@
             "real_premarket": 9,
             "real_premarket_60m": 7,
             "real_regular": 234
-          },
-          "BBG003LB3VC0": {
-            "real_premarket": 1,
-            "real_premarket_60m": 0,
-            "real_regular": 81
           },
           "BBG003LFWPT4": {
             "real_premarket": 0,
@@ -63872,6 +63847,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 189
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 226
           },
           "BBG0067QVJ69": {
             "real_premarket": 0,
@@ -65153,10 +65133,10 @@
             "real_premarket_60m": 3,
             "real_regular": 390
           },
-          "BBG00JHNJX06": {
-            "real_premarket": 2,
-            "real_premarket_60m": 0,
-            "real_regular": 384
+          "BBG00JHNKKR3": {
+            "real_premarket": 3,
+            "real_premarket_60m": 1,
+            "real_regular": 369
           },
           "BBG00JKZKM16": {
             "real_premarket": 0,
@@ -65197,6 +65177,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 284
+          },
+          "BBG00JSBZQF1": {
+            "real_premarket": 173,
+            "real_premarket_60m": 50,
+            "real_regular": 372
           },
           "BBG00JVRRR41": {
             "real_premarket": 0,
@@ -66242,11 +66227,6 @@
             "real_premarket": 47,
             "real_premarket_60m": 14,
             "real_regular": 390
-          },
-          "BBG00XWZB4W8": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 247
           },
           "BBG00XWZGGJ1": {
             "real_premarket": 1,
@@ -67347,11 +67327,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 116
-          },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 23
           },
           "BBG01JFZ96Y3": {
             "real_premarket": 1,
@@ -68510,11 +68485,6 @@
             "real_premarket_60m": 5,
             "real_regular": 388
           },
-          "AURA": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 103
-          },
           "AVA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -69584,6 +69554,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 168
+          },
+          "CELH": {
+            "real_premarket": 9,
+            "real_premarket_60m": 5,
+            "real_regular": 390
           },
           "CELU": {
             "real_premarket": 1,
@@ -71065,11 +71040,6 @@
             "real_premarket_60m": 1,
             "real_regular": 201
           },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 23
-          },
           "ENLC": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -71720,10 +71690,10 @@
             "real_premarket_60m": 2,
             "real_regular": 381
           },
-          "FOXA": {
-            "real_premarket": 2,
-            "real_premarket_60m": 0,
-            "real_regular": 384
+          "FOX": {
+            "real_premarket": 3,
+            "real_premarket_60m": 1,
+            "real_regular": 369
           },
           "FOXF": {
             "real_premarket": 0,
@@ -72405,11 +72375,6 @@
             "real_premarket_60m": 0,
             "real_regular": 335
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 84
-          },
           "HA": {
             "real_premarket": 1,
             "real_premarket_60m": 0,
@@ -72464,6 +72429,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 100
+          },
+          "HBCP": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 5
           },
           "HBI": {
             "real_premarket": 4,
@@ -72549,11 +72519,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 132
-          },
-          "HG": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 82
           },
           "HGTY": {
             "real_premarket": 1,
@@ -72884,6 +72849,11 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 226
+          },
+          "HYMC": {
+            "real_premarket": 173,
+            "real_premarket_60m": 50,
+            "real_regular": 372
           },
           "HZO": {
             "real_premarket": 0,
@@ -75155,11 +75125,6 @@
             "real_premarket_60m": 0,
             "real_regular": 182
           },
-          "NRDY": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 247
-          },
           "NRIX": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -75589,6 +75554,11 @@
             "real_premarket": 5,
             "real_premarket_60m": 5,
             "real_regular": 390
+          },
+          "ONTF": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 149
           },
           "ONTO": {
             "real_premarket": 0,
@@ -76279,6 +76249,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 217
+          },
+          "PRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 64
           },
           "PRFT": {
             "real_premarket": 0,
@@ -77134,11 +77109,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 53
-          },
-          "SCM": {
-            "real_premarket": 1,
-            "real_premarket_60m": 0,
-            "real_regular": 81
           },
           "SCOR": {
             "real_premarket": 0,
@@ -78049,6 +78019,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 171
+          },
+          "SYRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 226
           },
           "TAC": {
             "real_premarket": 0,
@@ -81828,9 +81803,9 @@
             "timestamp": "2024-04-03T15:58:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 8729,
-        "real_premarket_bar_count_60m": 3830,
-        "real_regular_bar_count": 597262,
+        "real_premarket_bar_count": 8911,
+        "real_premarket_bar_count_60m": 3886,
+        "real_regular_bar_count": 597833,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -82260,6 +82235,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 103,
+        "hits": 0,
+        "tickers_with_zero_articles": 28
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -82271,15 +82252,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.01,
-        "download": 6.001,
-        "grading": 48.292,
-        "postmortem": 0.146,
-        "report": 3.165,
-        "scoring": 8.46,
-        "snapshot": 727.345,
-        "universe": 23.836
+        "benchmark": 1.308,
+        "download": 6.676,
+        "grading": 61.945,
+        "postmortem": 0.21,
+        "report": 3.702,
+        "scoring": 14.396,
+        "snapshot": 899.239,
+        "universe": 27.359
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 832,
         "errors": 0,
@@ -82290,18 +82272,33 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5449,
+          "without": 5588
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.9902755267423015,
-        "not_scorable_ticker_count": 2444,
-        "scorable_ticker_count": 24,
+        "not_scorable_share": 0.9898703403565641,
+        "not_scorable_ticker_count": 2443,
+        "scorable_ticker_count": 25,
         "universe_ticker_count": 2468
       },
-      "scored_ticker_count": 24,
+      "scorable_count": 25,
+      "scored_ticker_count": 25,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.20044715133761415,
       "status": "COMPLETE",
       "trading_date": "2024-04-03",
-      "universe_manifest_hash": "sha256:15f13db24e2e101f44eb763da24196b37f8c1a4ef62fea28df672568b589bad8",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:deac8a1acc41c499a795c0e56b6a84b1784ff1ce37e5c6a4a711adca7d31d9c8",
       "universe_size": 2468
     },
     {
@@ -82800,11 +82797,6 @@
             "real_premarket_60m": 0,
             "real_regular": 343
           },
-          "0001593275": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 114
-          },
           "0001596993": {
             "real_premarket": 7,
             "real_premarket_60m": 4,
@@ -82994,6 +82986,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 287
+          },
+          "0001707303": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 170
           },
           "0001707753": {
             "real_premarket": 1,
@@ -83414,6 +83411,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 302
+          },
+          "0001876431": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 33
           },
           "0001877787": {
             "real_premarket": 0,
@@ -86345,6 +86347,11 @@
             "real_premarket_60m": 0,
             "real_regular": 171
           },
+          "BBG001S7HS29": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 26
+          },
           "BBG001S7HTB7": {
             "real_premarket": 1,
             "real_premarket_60m": 0,
@@ -88055,11 +88062,6 @@
             "real_premarket_60m": 1,
             "real_regular": 382
           },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 90
-          },
           "BBG001SDLX20": {
             "real_premarket": 74,
             "real_premarket_60m": 45,
@@ -89135,6 +89137,11 @@
             "real_premarket_60m": 0,
             "real_regular": 60
           },
+          "BBG001SQSKT3": {
+            "real_premarket": 29,
+            "real_premarket_60m": 23,
+            "real_regular": 389
+          },
           "BBG001SQV7W4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -89895,6 +89902,11 @@
             "real_premarket_60m": 25,
             "real_regular": 385
           },
+          "BBG001TCT0B5": {
+            "real_premarket": 1,
+            "real_premarket_60m": 1,
+            "real_regular": 143
+          },
           "BBG001TCYZ77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -90355,11 +90367,6 @@
             "real_premarket_60m": 3,
             "real_regular": 340
           },
-          "BBG00226DGP2": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 100
-          },
           "BBG002293Q93": {
             "real_premarket": 9,
             "real_premarket_60m": 6,
@@ -90729,11 +90736,6 @@
             "real_premarket": 13,
             "real_premarket_60m": 7,
             "real_regular": 335
-          },
-          "BBG003LB3VC0": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 88
           },
           "BBG003LFWPT4": {
             "real_premarket": 0,
@@ -91144,6 +91146,11 @@
             "real_premarket": 1,
             "real_premarket_60m": 0,
             "real_regular": 171
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 162
           },
           "BBG0067QVJ69": {
             "real_premarket": 57,
@@ -92474,6 +92481,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 287
+          },
+          "BBG00JSBZQF1": {
+            "real_premarket": 39,
+            "real_premarket_60m": 23,
+            "real_regular": 315
           },
           "BBG00JVRRR41": {
             "real_premarket": 1,
@@ -94025,6 +94037,11 @@
             "real_premarket_60m": 0,
             "real_regular": 217
           },
+          "BBG0105XBRJ8": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 197
+          },
           "BBG010FNXN77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -94500,11 +94517,6 @@
             "real_premarket_60m": 0,
             "real_regular": 375
           },
-          "BBG0192379X7": {
-            "real_premarket": 40,
-            "real_premarket_60m": 17,
-            "real_regular": 378
-          },
           "BBG019980TF2": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -94654,11 +94666,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 140
-          },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 37
           },
           "BBG01JFZ96Y3": {
             "real_premarket": 0,
@@ -95817,11 +95824,6 @@
             "real_premarket_60m": 5,
             "real_regular": 389
           },
-          "AURA": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 100
-          },
           "AVA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -96842,6 +96844,11 @@
             "real_premarket_60m": 0,
             "real_regular": 141
           },
+          "CCSI": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 197
+          },
           "CDE": {
             "real_premarket": 45,
             "real_premarket_60m": 22,
@@ -96891,6 +96898,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 216
+          },
+          "CELH": {
+            "real_premarket": 29,
+            "real_premarket_60m": 23,
+            "real_regular": 389
           },
           "CELU": {
             "real_premarket": 0,
@@ -98062,6 +98074,11 @@
             "real_premarket_60m": 3,
             "real_regular": 382
           },
+          "DOGZ": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 170
+          },
           "DOLE": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -98371,11 +98388,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 210
-          },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 37
           },
           "ENLC": {
             "real_premarket": 0,
@@ -99132,6 +99144,11 @@
             "real_premarket_60m": 1,
             "real_regular": 281
           },
+          "FSTR": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 26
+          },
           "FSV": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -99727,11 +99744,6 @@
             "real_premarket_60m": 0,
             "real_regular": 340
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 90
-          },
           "HA": {
             "real_premarket": 2,
             "real_premarket_60m": 2,
@@ -99876,11 +99888,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 118
-          },
-          "HG": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 114
           },
           "HGTY": {
             "real_premarket": 0,
@@ -100211,6 +100218,11 @@
             "real_premarket": 2,
             "real_premarket_60m": 2,
             "real_regular": 350
+          },
+          "HYMC": {
+            "real_premarket": 39,
+            "real_premarket_60m": 23,
+            "real_regular": 315
           },
           "HZO": {
             "real_premarket": 0,
@@ -102907,6 +102919,11 @@
             "real_premarket_60m": 1,
             "real_regular": 390
           },
+          "ONTF": {
+            "real_premarket": 1,
+            "real_premarket_60m": 1,
+            "real_regular": 143
+          },
           "ONTO": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -103597,6 +103614,11 @@
             "real_premarket_60m": 0,
             "real_regular": 195
           },
+          "PRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 33
+          },
           "PRFT": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -103776,11 +103798,6 @@
             "real_premarket": 2,
             "real_premarket_60m": 0,
             "real_regular": 349
-          },
-          "QBTS": {
-            "real_premarket": 40,
-            "real_premarket_60m": 17,
-            "real_regular": 378
           },
           "QCRH": {
             "real_premarket": 0,
@@ -104461,11 +104478,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 77
-          },
-          "SCM": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 88
           },
           "SCOR": {
             "real_premarket": 0,
@@ -105376,6 +105388,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 176
+          },
+          "SYRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 162
           },
           "TAC": {
             "real_premarket": 0,
@@ -108525,9 +108542,9 @@
             "timestamp": "2024-04-04T15:58:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 10684,
-        "real_premarket_bar_count_60m": 4928,
-        "real_regular_bar_count": 609117,
+        "real_premarket_bar_count": 10712,
+        "real_premarket_bar_count_60m": 4957,
+        "real_regular_bar_count": 609745,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -108957,6 +108974,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 138,
+        "hits": 0,
+        "tickers_with_zero_articles": 38
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -108968,15 +108991,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.036,
-        "download": 5.854,
-        "grading": 47.939,
-        "postmortem": 0.173,
-        "report": 3.238,
-        "scoring": 8.817,
-        "snapshot": 728.987,
-        "universe": 22.326
+        "benchmark": 1.348,
+        "download": 6.511,
+        "grading": 63.506,
+        "postmortem": 0.241,
+        "report": 4.114,
+        "scoring": 15.069,
+        "snapshot": 893.672,
+        "universe": 27.09
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 831,
         "errors": 0,
@@ -108987,19 +109011,34 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5440,
+          "without": 5592
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.9830234438156831,
-        "not_scorable_ticker_count": 2432,
+        "not_scorable_share": 0.9830371567043619,
+        "not_scorable_ticker_count": 2434,
         "scorable_ticker_count": 42,
-        "universe_ticker_count": 2474
+        "universe_ticker_count": 2476
       },
+      "scorable_count": 42,
       "scored_ticker_count": 42,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.750851928149242,
       "status": "COMPLETE",
       "trading_date": "2024-04-04",
-      "universe_manifest_hash": "sha256:1830698236be99495d6f78d27d75140e6e956ba4cce2d4d51871b1261b5f1e04",
-      "universe_size": 2474
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:f9cfeac89c51ac0880f4266daddb6e95b2f85213510608be13913418cdd3374c",
+      "universe_size": 2476
     },
     {
       "artifacts": {
@@ -109061,6 +109100,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 41
+          },
+          "0000911421": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 44
           },
           "0000911971": {
             "real_premarket": 0,
@@ -109497,11 +109541,6 @@
             "real_premarket_60m": 0,
             "real_regular": 339
           },
-          "0001593275": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 132
-          },
           "0001596993": {
             "real_premarket": 3,
             "real_premarket_60m": 2,
@@ -109691,6 +109730,11 @@
             "real_premarket": 5,
             "real_premarket_60m": 1,
             "real_regular": 261
+          },
+          "0001707303": {
+            "real_premarket": 4,
+            "real_premarket_60m": 4,
+            "real_regular": 225
           },
           "0001707753": {
             "real_premarket": 1,
@@ -114787,11 +114831,6 @@
             "real_premarket_60m": 2,
             "real_regular": 364
           },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 92
-          },
           "BBG001SDLX20": {
             "real_premarket": 1,
             "real_premarket_60m": 1,
@@ -115872,6 +115911,11 @@
             "real_premarket_60m": 0,
             "real_regular": 65
           },
+          "BBG001SQSKT3": {
+            "real_premarket": 14,
+            "real_premarket_60m": 10,
+            "real_regular": 390
+          },
           "BBG001SQV7W4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -116282,11 +116326,6 @@
             "real_premarket_60m": 0,
             "real_regular": 279
           },
-          "BBG001T4HJ52": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 180
-          },
           "BBG001T4JCN5": {
             "real_premarket": 4,
             "real_premarket_60m": 4,
@@ -116622,6 +116661,11 @@
             "real_premarket_60m": 9,
             "real_regular": 359
           },
+          "BBG001TCT0B5": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 143
+          },
           "BBG001TCYZ77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -116927,11 +116971,6 @@
             "real_premarket_60m": 5,
             "real_regular": 296
           },
-          "BBG001V18W74": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 120
-          },
           "BBG001V1C792": {
             "real_premarket": 5,
             "real_premarket_60m": 2,
@@ -117076,11 +117115,6 @@
             "real_premarket": 8,
             "real_premarket_60m": 7,
             "real_regular": 328
-          },
-          "BBG00226DGP2": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 90
           },
           "BBG002293Q93": {
             "real_premarket": 11,
@@ -117456,11 +117490,6 @@
             "real_premarket": 9,
             "real_premarket_60m": 6,
             "real_regular": 276
-          },
-          "BBG003LB3VC0": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 82
           },
           "BBG003LFWPT4": {
             "real_premarket": 0,
@@ -117866,6 +117895,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 182
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 159
           },
           "BBG0067QVJ69": {
             "real_premarket": 0,
@@ -119196,6 +119230,11 @@
             "real_premarket": 2,
             "real_premarket_60m": 2,
             "real_regular": 341
+          },
+          "BBG00JSBZQF1": {
+            "real_premarket": 24,
+            "real_premarket_60m": 12,
+            "real_regular": 282
           },
           "BBG00JVRRR41": {
             "real_premarket": 1,
@@ -121197,11 +121236,6 @@
             "real_premarket_60m": 0,
             "real_regular": 359
           },
-          "BBG0192379X7": {
-            "real_premarket": 27,
-            "real_premarket_60m": 14,
-            "real_regular": 355
-          },
           "BBG019980TF2": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -121351,11 +121385,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 104
-          },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 31
           },
           "BBG01JFZ96Y3": {
             "real_premarket": 1,
@@ -122524,11 +122553,6 @@
             "real_premarket_60m": 2,
             "real_regular": 387
           },
-          "AURA": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 90
-          },
           "AVA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -123603,6 +123627,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 109
+          },
+          "CELH": {
+            "real_premarket": 14,
+            "real_premarket_60m": 10,
+            "real_regular": 390
           },
           "CELU": {
             "real_premarket": 0,
@@ -124779,6 +124808,11 @@
             "real_premarket_60m": 3,
             "real_regular": 370
           },
+          "DOGZ": {
+            "real_premarket": 4,
+            "real_premarket_60m": 4,
+            "real_regular": 225
+          },
           "DOLE": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -125083,11 +125117,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 174
-          },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 31
           },
           "ENLC": {
             "real_premarket": 0,
@@ -126419,11 +126448,6 @@
             "real_premarket_60m": 1,
             "real_regular": 333
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 92
-          },
           "HA": {
             "real_premarket": 2,
             "real_premarket_60m": 1,
@@ -126568,11 +126592,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 114
-          },
-          "HG": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 132
           },
           "HGTY": {
             "real_premarket": 0,
@@ -126898,6 +126917,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 45
+          },
+          "HYMC": {
+            "real_premarket": 24,
+            "real_premarket_60m": 12,
+            "real_regular": 282
           },
           "HZO": {
             "real_premarket": 0,
@@ -128108,11 +128132,6 @@
             "real_premarket": 20,
             "real_premarket_60m": 13,
             "real_regular": 390
-          },
-          "LUNG": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 180
           },
           "LVRO": {
             "real_premarket": 0,
@@ -129609,6 +129628,11 @@
             "real_premarket_60m": 3,
             "real_regular": 390
           },
+          "ONTF": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 143
+          },
           "ONTO": {
             "real_premarket": 1,
             "real_premarket_60m": 1,
@@ -130299,6 +130323,11 @@
             "real_premarket_60m": 0,
             "real_regular": 204
           },
+          "PRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 44
+          },
           "PRFT": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -130478,11 +130507,6 @@
             "real_premarket": 3,
             "real_premarket_60m": 1,
             "real_regular": 349
-          },
-          "QBTS": {
-            "real_premarket": 27,
-            "real_premarket_60m": 14,
-            "real_regular": 355
           },
           "QCRH": {
             "real_premarket": 0,
@@ -131163,11 +131187,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 37
-          },
-          "SCM": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 82
           },
           "SCOR": {
             "real_premarket": 0,
@@ -132079,6 +132098,11 @@
             "real_premarket_60m": 0,
             "real_regular": 220
           },
+          "SYRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 159
+          },
           "TAC": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -132593,11 +132617,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 373
-          },
-          "TRUE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 120
           },
           "TRUP": {
             "real_premarket": 0,
@@ -134902,9 +134921,9 @@
             "timestamp": "2024-04-05T15:59:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 9750,
-        "real_premarket_bar_count_60m": 5204,
-        "real_regular_bar_count": 596062,
+        "real_premarket_bar_count": 9764,
+        "real_premarket_bar_count_60m": 5215,
+        "real_regular_bar_count": 596223,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -135334,6 +135353,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 142,
+        "hits": 0,
+        "tickers_with_zero_articles": 33
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -135345,15 +135370,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.079,
-        "download": 4.266,
-        "grading": 47.948,
-        "postmortem": 0.205,
-        "report": 3.215,
-        "scoring": 8.825,
-        "snapshot": 726.39,
-        "universe": 23.392
+        "benchmark": 1.401,
+        "download": 6.929,
+        "grading": 62.671,
+        "postmortem": 0.293,
+        "report": 4.066,
+        "scoring": 15.22,
+        "snapshot": 897.848,
+        "universe": 27.121
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 832,
         "errors": 0,
@@ -135364,19 +135390,34 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5433,
+          "without": 5597
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.9838318512530315,
-        "not_scorable_ticker_count": 2434,
+        "not_scorable_share": 0.9838187702265372,
+        "not_scorable_ticker_count": 2432,
         "scorable_ticker_count": 40,
-        "universe_ticker_count": 2474
+        "universe_ticker_count": 2472
       },
+      "scorable_count": 40,
       "scored_ticker_count": 40,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.1578731946907723,
       "status": "COMPLETE",
       "trading_date": "2024-04-05",
-      "universe_manifest_hash": "sha256:87965b38a93a7a44ad456af084c84a45fc247a835946c9acab3d37627bc46dc3",
-      "universe_size": 2474
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:86141bc4cfce02554ed05a202232c7a9f3e94cb6e7554fc16e3a8f5311ddf65d",
+      "universe_size": 2472
     },
     {
       "artifacts": {
@@ -135874,11 +135915,6 @@
             "real_premarket_60m": 0,
             "real_regular": 322
           },
-          "0001593275": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 91
-          },
           "0001596993": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -136068,6 +136104,11 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 311
+          },
+          "0001707303": {
+            "real_premarket": 1,
+            "real_premarket_60m": 0,
+            "real_regular": 108
           },
           "0001707753": {
             "real_premarket": 0,
@@ -136488,6 +136529,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 261
+          },
+          "0001876431": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 53
           },
           "0001877787": {
             "real_premarket": 8,
@@ -138573,11 +138619,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 254
-          },
-          "BBG001S6JC97": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 307
           },
           "BBG001S6JGT6": {
             "real_premarket": 0,
@@ -141149,11 +141190,6 @@
             "real_premarket_60m": 0,
             "real_regular": 356
           },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 105
-          },
           "BBG001SDLX20": {
             "real_premarket": 5,
             "real_premarket_60m": 3,
@@ -142234,6 +142270,11 @@
             "real_premarket_60m": 0,
             "real_regular": 43
           },
+          "BBG001SQSKT3": {
+            "real_premarket": 17,
+            "real_premarket_60m": 10,
+            "real_regular": 387
+          },
           "BBG001SQV7W4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -142989,6 +143030,11 @@
             "real_premarket_60m": 5,
             "real_regular": 344
           },
+          "BBG001TCT0B5": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 120
+          },
           "BBG001TCYZ77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -143299,11 +143345,6 @@
             "real_premarket_60m": 4,
             "real_regular": 272
           },
-          "BBG001V18W74": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 109
-          },
           "BBG001V1C792": {
             "real_premarket": 1,
             "real_premarket_60m": 0,
@@ -143448,11 +143489,6 @@
             "real_premarket": 2,
             "real_premarket_60m": 1,
             "real_regular": 348
-          },
-          "BBG00226DGP2": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 80
           },
           "BBG002293Q93": {
             "real_premarket": 1,
@@ -143823,11 +143859,6 @@
             "real_premarket": 25,
             "real_premarket_60m": 18,
             "real_regular": 269
-          },
-          "BBG003LB3VC0": {
-            "real_premarket": 4,
-            "real_premarket_60m": 4,
-            "real_regular": 79
           },
           "BBG003LFWPT4": {
             "real_premarket": 0,
@@ -144233,6 +144264,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 138
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 182
           },
           "BBG0067QVJ69": {
             "real_premarket": 0,
@@ -145434,11 +145470,6 @@
             "real_premarket_60m": 0,
             "real_regular": 153
           },
-          "BBG00HXSHDR8": {
-            "real_premarket": 1,
-            "real_premarket_60m": 0,
-            "real_regular": 200
-          },
           "BBG00HY28L05": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -145514,10 +145545,10 @@
             "real_premarket_60m": 0,
             "real_regular": 390
           },
-          "BBG00JHNJX06": {
-            "real_premarket": 2,
-            "real_premarket_60m": 2,
-            "real_regular": 390
+          "BBG00JHNKKR3": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 355
           },
           "BBG00JKZKM16": {
             "real_premarket": 1,
@@ -145558,6 +145589,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 293
+          },
+          "BBG00JSBZQF1": {
+            "real_premarket": 28,
+            "real_premarket_60m": 12,
+            "real_regular": 274
           },
           "BBG00JVRRR41": {
             "real_premarket": 0,
@@ -147479,11 +147515,6 @@
             "real_premarket_60m": 0,
             "real_regular": 209
           },
-          "BBG0157C6630": {
-            "real_premarket": 3,
-            "real_premarket_60m": 0,
-            "real_regular": 299
-          },
           "BBG015P1Z2Y7": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -147558,11 +147589,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 359
-          },
-          "BBG0192379X7": {
-            "real_premarket": 48,
-            "real_premarket_60m": 13,
-            "real_regular": 346
           },
           "BBG019980TF2": {
             "real_premarket": 0,
@@ -147713,11 +147739,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 98
-          },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 32
           },
           "BBG01JFZ96Y3": {
             "real_premarket": 0,
@@ -148881,11 +148902,6 @@
             "real_premarket_60m": 1,
             "real_regular": 388
           },
-          "AURA": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 80
-          },
           "AVA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -149506,11 +149522,6 @@
             "real_premarket_60m": 0,
             "real_regular": 167
           },
-          "BRCC": {
-            "real_premarket": 3,
-            "real_premarket_60m": 0,
-            "real_regular": 299
-          },
           "BRKL": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -149965,6 +149976,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 119
+          },
+          "CELH": {
+            "real_premarket": 17,
+            "real_premarket_60m": 10,
+            "real_regular": 387
           },
           "CELU": {
             "real_premarket": 0,
@@ -151141,6 +151157,11 @@
             "real_premarket_60m": 2,
             "real_regular": 367
           },
+          "DOGZ": {
+            "real_premarket": 1,
+            "real_premarket_60m": 0,
+            "real_regular": 108
+          },
           "DOLE": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -151361,11 +151382,6 @@
             "real_premarket_60m": 0,
             "real_regular": 115
           },
-          "EGHT": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 307
-          },
           "EGIO": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -151445,11 +151461,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 231
-          },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 32
           },
           "ENLC": {
             "real_premarket": 0,
@@ -152066,11 +152077,6 @@
             "real_premarket_60m": 1,
             "real_regular": 341
           },
-          "FNKO": {
-            "real_premarket": 1,
-            "real_premarket_60m": 0,
-            "real_regular": 200
-          },
           "FOLD": {
             "real_premarket": 1,
             "real_premarket_60m": 1,
@@ -152096,10 +152102,10 @@
             "real_premarket_60m": 2,
             "real_regular": 358
           },
-          "FOXA": {
-            "real_premarket": 2,
-            "real_premarket_60m": 2,
-            "real_regular": 390
+          "FOX": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 355
           },
           "FOXF": {
             "real_premarket": 1,
@@ -152786,11 +152792,6 @@
             "real_premarket_60m": 0,
             "real_regular": 317
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 105
-          },
           "HA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -152935,11 +152936,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 75
-          },
-          "HG": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 91
           },
           "HGTY": {
             "real_premarket": 0,
@@ -153265,6 +153261,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 98
+          },
+          "HYMC": {
+            "real_premarket": 28,
+            "real_premarket_60m": 12,
+            "real_regular": 274
           },
           "HZO": {
             "real_premarket": 0,
@@ -155961,6 +155962,11 @@
             "real_premarket_60m": 2,
             "real_regular": 390
           },
+          "ONTF": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 120
+          },
           "ONTO": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -156646,6 +156652,11 @@
             "real_premarket_60m": 0,
             "real_regular": 208
           },
+          "PRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 53
+          },
           "PRFT": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -156820,11 +156831,6 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 360
-          },
-          "QBTS": {
-            "real_premarket": 48,
-            "real_premarket_60m": 13,
-            "real_regular": 346
           },
           "QCRH": {
             "real_premarket": 0,
@@ -157510,11 +157516,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 48
-          },
-          "SCM": {
-            "real_premarket": 4,
-            "real_premarket_60m": 4,
-            "real_regular": 79
           },
           "SCOR": {
             "real_premarket": 4,
@@ -158416,6 +158417,11 @@
             "real_premarket_60m": 0,
             "real_regular": 117
           },
+          "SYRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 182
+          },
           "TAC": {
             "real_premarket": 5,
             "real_premarket_60m": 4,
@@ -158930,11 +158936,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 232
-          },
-          "TRUE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 109
           },
           "TRUP": {
             "real_premarket": 1,
@@ -161609,9 +161610,9 @@
             "timestamp": "2024-04-08T15:59:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 10325,
-        "real_premarket_bar_count_60m": 4042,
-        "real_regular_bar_count": 573166,
+        "real_premarket_bar_count": 10313,
+        "real_premarket_bar_count_60m": 4045,
+        "real_regular_bar_count": 572607,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -162041,6 +162042,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 106,
+        "hits": 0,
+        "tickers_with_zero_articles": 45
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -162052,15 +162059,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.07,
-        "download": 6.151,
-        "grading": 46.041,
-        "postmortem": 0.237,
-        "report": 3.195,
-        "scoring": 8.887,
-        "snapshot": 722.584,
-        "universe": 22.628
+        "benchmark": 1.389,
+        "download": 6.898,
+        "grading": 59.358,
+        "postmortem": 0.315,
+        "report": 3.807,
+        "scoring": 14.755,
+        "snapshot": 890.994,
+        "universe": 27.45
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 833,
         "errors": 0,
@@ -162071,19 +162079,34 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5428,
+          "without": 5601
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.9846216106839336,
-        "not_scorable_ticker_count": 2433,
+        "not_scorable_share": 0.984596676124848,
+        "not_scorable_ticker_count": 2429,
         "scorable_ticker_count": 38,
-        "universe_ticker_count": 2471
+        "universe_ticker_count": 2467
       },
+      "scorable_count": 38,
       "scored_ticker_count": 38,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.23918368921551783,
       "status": "COMPLETE",
       "trading_date": "2024-04-08",
-      "universe_manifest_hash": "sha256:f8c64ddd6ed3eba5d4d249ee93960f3bafad0101b1e0b90d4655e43befb5e126",
-      "universe_size": 2471
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:137ff9b7e6499da3c0e8b7f520f1cc73bdc749d643b2e5a83b1ff1ca93df28ad",
+      "universe_size": 2467
     },
     {
       "artifacts": {
@@ -162581,11 +162604,6 @@
             "real_premarket_60m": 0,
             "real_regular": 322
           },
-          "0001593275": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 204
-          },
           "0001596993": {
             "real_premarket": 1,
             "real_premarket_60m": 1,
@@ -162775,6 +162793,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 293
+          },
+          "0001707303": {
+            "real_premarket": 3,
+            "real_premarket_60m": 0,
+            "real_regular": 126
           },
           "0001707753": {
             "real_premarket": 0,
@@ -163195,6 +163218,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 287
+          },
+          "0001876431": {
+            "real_premarket": 3,
+            "real_premarket_60m": 0,
+            "real_regular": 82
           },
           "0001877787": {
             "real_premarket": 0,
@@ -167876,11 +167904,6 @@
             "real_premarket_60m": 0,
             "real_regular": 348
           },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 80
-          },
           "BBG001SDLX20": {
             "real_premarket": 1,
             "real_premarket_60m": 1,
@@ -168966,6 +168989,11 @@
             "real_premarket_60m": 0,
             "real_regular": 62
           },
+          "BBG001SQSKT3": {
+            "real_premarket": 7,
+            "real_premarket_60m": 3,
+            "real_regular": 389
+          },
           "BBG001SQV7W4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -169726,6 +169754,11 @@
             "real_premarket_60m": 8,
             "real_regular": 349
           },
+          "BBG001TCT0B5": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 128
+          },
           "BBG001TCYZ77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -170186,11 +170219,6 @@
             "real_premarket_60m": 3,
             "real_regular": 328
           },
-          "BBG00226DGP2": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 114
-          },
           "BBG002293Q93": {
             "real_premarket": 2,
             "real_premarket_60m": 2,
@@ -170560,11 +170588,6 @@
             "real_premarket": 6,
             "real_premarket_60m": 3,
             "real_regular": 213
-          },
-          "BBG003LB3VC0": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 83
           },
           "BBG003LFWPT4": {
             "real_premarket": 0,
@@ -170975,6 +170998,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 197
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 165
           },
           "BBG0067QVJ69": {
             "real_premarket": 0,
@@ -172186,11 +172214,6 @@
             "real_premarket_60m": 0,
             "real_regular": 133
           },
-          "BBG00HXSHDR8": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 176
-          },
           "BBG00HY28L05": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -172310,6 +172333,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 280
+          },
+          "BBG00JSBZQF1": {
+            "real_premarket": 18,
+            "real_premarket_60m": 6,
+            "real_regular": 188
           },
           "BBG00JVRRR41": {
             "real_premarket": 0,
@@ -173991,11 +174019,6 @@
             "real_premarket_60m": 0,
             "real_regular": 10
           },
-          "BBG011PTS834": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 144
-          },
           "BBG011RJST56": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -174246,11 +174269,6 @@
             "real_premarket_60m": 0,
             "real_regular": 179
           },
-          "BBG0157C6630": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 242
-          },
           "BBG015P1Z2Y7": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -174475,11 +174493,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 83
-          },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 53
           },
           "BBG01JFZ96Y3": {
             "real_premarket": 1,
@@ -175643,11 +175656,6 @@
             "real_premarket_60m": 6,
             "real_regular": 385
           },
-          "AURA": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 114
-          },
           "AVA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -176263,11 +176271,6 @@
             "real_premarket_60m": 0,
             "real_regular": 297
           },
-          "BRCC": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 242
-          },
           "BRKL": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -176728,6 +176731,11 @@
             "real_premarket_60m": 0,
             "real_regular": 125
           },
+          "CELH": {
+            "real_premarket": 7,
+            "real_premarket_60m": 3,
+            "real_regular": 389
+          },
           "CELU": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -177187,11 +177195,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 338
-          },
-          "COOK": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 144
           },
           "COOP": {
             "real_premarket": 0,
@@ -177918,6 +177921,11 @@
             "real_premarket_60m": 0,
             "real_regular": 370
           },
+          "DOGZ": {
+            "real_premarket": 3,
+            "real_premarket_60m": 0,
+            "real_regular": 126
+          },
           "DOLE": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -178222,11 +178230,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 218
-          },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 53
           },
           "ENLC": {
             "real_premarket": 0,
@@ -178857,11 +178860,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 376
-          },
-          "FNKO": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 176
           },
           "FOLD": {
             "real_premarket": 0,
@@ -179578,11 +179576,6 @@
             "real_premarket_60m": 0,
             "real_regular": 327
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 80
-          },
           "HA": {
             "real_premarket": 1,
             "real_premarket_60m": 0,
@@ -179722,11 +179715,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 94
-          },
-          "HG": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 204
           },
           "HGTY": {
             "real_premarket": 0,
@@ -180052,6 +180040,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 76
+          },
+          "HYMC": {
+            "real_premarket": 18,
+            "real_premarket_60m": 6,
+            "real_regular": 188
           },
           "HZO": {
             "real_premarket": 0,
@@ -182763,6 +182756,11 @@
             "real_premarket_60m": 4,
             "real_regular": 390
           },
+          "ONTF": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 128
+          },
           "ONTO": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -183447,6 +183445,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 272
+          },
+          "PRE": {
+            "real_premarket": 3,
+            "real_premarket_60m": 0,
+            "real_regular": 82
           },
           "PRFT": {
             "real_premarket": 0,
@@ -184317,11 +184320,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 51
-          },
-          "SCM": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 83
           },
           "SCOR": {
             "real_premarket": 2,
@@ -185237,6 +185235,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 172
+          },
+          "SYRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 165
           },
           "TAC": {
             "real_premarket": 0,
@@ -188426,9 +188429,9 @@
             "timestamp": "2024-04-09T15:59:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 8191,
-        "real_premarket_bar_count_60m": 3460,
-        "real_regular_bar_count": 593772,
+        "real_premarket_bar_count": 8221,
+        "real_premarket_bar_count_60m": 3468,
+        "real_regular_bar_count": 593754,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -188858,6 +188861,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 95,
+        "hits": 0,
+        "tickers_with_zero_articles": 43
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -188869,15 +188878,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.11,
-        "download": 5.815,
-        "grading": 47.465,
-        "postmortem": 0.283,
-        "report": 3.204,
-        "scoring": 8.715,
-        "snapshot": 726.486,
-        "universe": 23.224
+        "benchmark": 1.432,
+        "download": 6.848,
+        "grading": 62.242,
+        "postmortem": 0.359,
+        "report": 3.869,
+        "scoring": 14.696,
+        "snapshot": 890.835,
+        "universe": 27.008
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 832,
         "errors": 0,
@@ -188888,19 +188898,34 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5420,
+          "without": 5604
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.9895245769540693,
-        "not_scorable_ticker_count": 2456,
+        "not_scorable_share": 0.989516129032258,
+        "not_scorable_ticker_count": 2454,
         "scorable_ticker_count": 26,
-        "universe_ticker_count": 2482
+        "universe_ticker_count": 2480
       },
+      "scorable_count": 26,
       "scored_ticker_count": 26,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.24868908081430516,
       "status": "COMPLETE",
       "trading_date": "2024-04-09",
-      "universe_manifest_hash": "sha256:c69ffc41e63de46f9ab8f976be09fe607c8059ba67fda4ffdc38aa6a19f60541",
-      "universe_size": 2482
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:fc9cdf4cec0746bb6fab579127cc1cbbd5a8a5f1667d6ef66cf320e324ac1cea",
+      "universe_size": 2480
     },
     {
       "artifacts": {
@@ -189392,11 +189417,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 315
-          },
-          "0001593275": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 216
           },
           "0001596993": {
             "real_premarket": 3,
@@ -190012,6 +190032,11 @@
             "real_premarket": 3,
             "real_premarket_60m": 3,
             "real_regular": 272
+          },
+          "0001876431": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 78
           },
           "0001877787": {
             "real_premarket": 1,
@@ -194273,6 +194298,11 @@
             "real_premarket_60m": 3,
             "real_regular": 304
           },
+          "BBG001SBWGV7": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 383
+          },
           "BBG001SBWXG7": {
             "real_premarket": 2,
             "real_premarket_60m": 2,
@@ -194672,11 +194702,6 @@
             "real_premarket": 7,
             "real_premarket_60m": 7,
             "real_regular": 386
-          },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 123
           },
           "BBG001SDLX20": {
             "real_premarket": 7,
@@ -195762,6 +195787,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 67
+          },
+          "BBG001SQSKT3": {
+            "real_premarket": 31,
+            "real_premarket_60m": 25,
+            "real_regular": 390
           },
           "BBG001SQV7W4": {
             "real_premarket": 1,
@@ -196988,11 +197018,6 @@
             "real_premarket_60m": 13,
             "real_regular": 358
           },
-          "BBG00226DGP2": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 171
-          },
           "BBG002293Q93": {
             "real_premarket": 12,
             "real_premarket_60m": 11,
@@ -197363,11 +197388,6 @@
             "real_premarket_60m": 14,
             "real_regular": 190
           },
-          "BBG003LB3VC0": {
-            "real_premarket": 1,
-            "real_premarket_60m": 0,
-            "real_regular": 107
-          },
           "BBG003LFWPT4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -197467,11 +197487,6 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 93
-          },
-          "BBG004KB3SZ1": {
-            "real_premarket": 45,
-            "real_premarket_60m": 20,
-            "real_regular": 389
           },
           "BBG004KDL523": {
             "real_premarket": 0,
@@ -197777,6 +197792,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 146
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 249
           },
           "BBG0067QVJ69": {
             "real_premarket": 0,
@@ -198988,11 +199008,6 @@
             "real_premarket_60m": 0,
             "real_regular": 201
           },
-          "BBG00HXSHDR8": {
-            "real_premarket": 18,
-            "real_premarket_60m": 8,
-            "real_regular": 315
-          },
           "BBG00HY28L05": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -199112,6 +199127,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 260
+          },
+          "BBG00JSBZQF1": {
+            "real_premarket": 17,
+            "real_premarket_60m": 12,
+            "real_regular": 199
           },
           "BBG00JVRRR41": {
             "real_premarket": 0,
@@ -201048,11 +201068,6 @@
             "real_premarket_60m": 0,
             "real_regular": 258
           },
-          "BBG0157C6630": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 256
-          },
           "BBG015P1Z2Y7": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -201277,11 +201292,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 84
-          },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 41
           },
           "BBG01JFZ96Y3": {
             "real_premarket": 1,
@@ -202435,11 +202445,6 @@
             "real_premarket_60m": 18,
             "real_regular": 389
           },
-          "AURA": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 171
-          },
           "AVA": {
             "real_premarket": 9,
             "real_premarket_60m": 9,
@@ -203055,11 +203060,6 @@
             "real_premarket_60m": 1,
             "real_regular": 253
           },
-          "BRCC": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 256
-          },
           "BRKL": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -203114,6 +203114,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 217
+          },
+          "BSY": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 383
           },
           "BTDR": {
             "real_premarket": 17,
@@ -203509,6 +203514,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 142
+          },
+          "CELH": {
+            "real_premarket": 31,
+            "real_premarket_60m": 25,
+            "real_regular": 390
           },
           "CELU": {
             "real_premarket": 0,
@@ -205000,11 +205010,6 @@
             "real_premarket_60m": 0,
             "real_regular": 247
           },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 41
-          },
           "ENLC": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -205154,11 +205159,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 287
-          },
-          "ESPR": {
-            "real_premarket": 45,
-            "real_premarket_60m": 20,
-            "real_regular": 389
           },
           "ESQ": {
             "real_premarket": 0,
@@ -205629,11 +205629,6 @@
             "real_premarket": 6,
             "real_premarket_60m": 2,
             "real_regular": 388
-          },
-          "FNKO": {
-            "real_premarket": 18,
-            "real_premarket_60m": 8,
-            "real_regular": 315
           },
           "FOLD": {
             "real_premarket": 0,
@@ -206345,11 +206340,6 @@
             "real_premarket_60m": 2,
             "real_regular": 370
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 123
-          },
           "HA": {
             "real_premarket": 2,
             "real_premarket_60m": 1,
@@ -206494,11 +206484,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 128
-          },
-          "HG": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 216
           },
           "HGTY": {
             "real_premarket": 0,
@@ -206824,6 +206809,11 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 89
+          },
+          "HYMC": {
+            "real_premarket": 17,
+            "real_premarket_60m": 12,
+            "real_regular": 199
           },
           "HZO": {
             "real_premarket": 2,
@@ -210235,6 +210225,11 @@
             "real_premarket_60m": 0,
             "real_regular": 266
           },
+          "PRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 78
+          },
           "PRFT": {
             "real_premarket": 2,
             "real_premarket_60m": 2,
@@ -211104,11 +211099,6 @@
             "real_premarket": 1,
             "real_premarket_60m": 0,
             "real_regular": 67
-          },
-          "SCM": {
-            "real_premarket": 1,
-            "real_premarket_60m": 0,
-            "real_regular": 107
           },
           "SCOR": {
             "real_premarket": 0,
@@ -212029,6 +212019,11 @@
             "real_premarket": 1,
             "real_premarket_60m": 0,
             "real_regular": 213
+          },
+          "SYRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 249
           },
           "TAC": {
             "real_premarket": 3,
@@ -215133,9 +215128,9 @@
             "timestamp": "2024-04-10T15:59:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 12771,
-        "real_premarket_bar_count_60m": 8816,
-        "real_regular_bar_count": 649568,
+        "real_premarket_bar_count": 12755,
+        "real_premarket_bar_count_60m": 8825,
+        "real_regular_bar_count": 649249,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -215565,6 +215560,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 259,
+        "hits": 0,
+        "tickers_with_zero_articles": 107
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -215576,15 +215577,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.258,
-        "download": 6.41,
-        "grading": 52.348,
-        "postmortem": 0.293,
-        "report": 4.039,
-        "scoring": 9.125,
-        "snapshot": 730.365,
-        "universe": 53.207
+        "benchmark": 1.597,
+        "download": 6.936,
+        "grading": 66.982,
+        "postmortem": 0.392,
+        "report": 4.768,
+        "scoring": 17.199,
+        "snapshot": 888.011,
+        "universe": 37.382
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 833,
         "errors": 0,
@@ -215592,22 +215594,37 @@
         "hits": 10191,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10191,
-        "transient_retries": 6,
+        "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5419,
+          "without": 5607
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.9661153691004437,
-        "not_scorable_ticker_count": 2395,
+        "not_scorable_share": 0.9660743134087237,
+        "not_scorable_ticker_count": 2392,
         "scorable_ticker_count": 84,
-        "universe_ticker_count": 2479
+        "universe_ticker_count": 2476
       },
+      "scorable_count": 84,
       "scored_ticker_count": 84,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -1.4673033967496074,
       "status": "COMPLETE",
       "trading_date": "2024-04-10",
-      "universe_manifest_hash": "sha256:4325413bfbe707f985eda9c4f5429efa73428e960f8626d773f78be5e98aecb9",
-      "universe_size": 2479
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:5ff5fb9308a89971000432d5a36a3e48a620e295f1faa710d4527c77690d24f6",
+      "universe_size": 2476
     },
     {
       "artifacts": {
@@ -215669,6 +215686,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 26
+          },
+          "0000911421": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 76
           },
           "0000911971": {
             "real_premarket": 1,
@@ -216100,11 +216122,6 @@
             "real_premarket_60m": 0,
             "real_regular": 277
           },
-          "0001593275": {
-            "real_premarket": 6,
-            "real_premarket_60m": 5,
-            "real_regular": 236
-          },
           "0001596993": {
             "real_premarket": 9,
             "real_premarket_60m": 5,
@@ -216294,6 +216311,11 @@
             "real_premarket": 7,
             "real_premarket_60m": 5,
             "real_regular": 351
+          },
+          "0001707303": {
+            "real_premarket": 4,
+            "real_premarket_60m": 3,
+            "real_regular": 75
           },
           "0001707753": {
             "real_premarket": 0,
@@ -221370,11 +221392,6 @@
             "real_premarket_60m": 0,
             "real_regular": 379
           },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 114
-          },
           "BBG001SDLX20": {
             "real_premarket": 2,
             "real_premarket_60m": 2,
@@ -222455,6 +222472,11 @@
             "real_premarket_60m": 0,
             "real_regular": 44
           },
+          "BBG001SQSKT3": {
+            "real_premarket": 9,
+            "real_premarket_60m": 7,
+            "real_regular": 389
+          },
           "BBG001SQV7W4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -223210,6 +223232,11 @@
             "real_premarket_60m": 18,
             "real_regular": 384
           },
+          "BBG001TCT0B5": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 141
+          },
           "BBG001TCYZ77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -223379,11 +223406,6 @@
             "real_premarket": 2,
             "real_premarket_60m": 1,
             "real_regular": 328
-          },
-          "BBG001V0GD97": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 215
           },
           "BBG001V0GFD7": {
             "real_premarket": 0,
@@ -223659,11 +223681,6 @@
             "real_premarket": 3,
             "real_premarket_60m": 2,
             "real_regular": 345
-          },
-          "BBG00226DGP2": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 92
           },
           "BBG002293Q93": {
             "real_premarket": 15,
@@ -224039,11 +224056,6 @@
             "real_premarket": 7,
             "real_premarket_60m": 4,
             "real_regular": 228
-          },
-          "BBG003LB3VC0": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 130
           },
           "BBG003LFWPT4": {
             "real_premarket": 0,
@@ -224444,6 +224456,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 182
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 176
           },
           "BBG0067QVJ69": {
             "real_premarket": 0,
@@ -225655,11 +225672,6 @@
             "real_premarket_60m": 0,
             "real_regular": 184
           },
-          "BBG00HXSHDR8": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 261
-          },
           "BBG00HY28L05": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -225779,6 +225791,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 276
+          },
+          "BBG00JSBZQF1": {
+            "real_premarket": 92,
+            "real_premarket_60m": 41,
+            "real_regular": 368
           },
           "BBG00JVRRR41": {
             "real_premarket": 2,
@@ -227925,11 +227942,6 @@
             "real_premarket_60m": 0,
             "real_regular": 93
           },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 27
-          },
           "BBG01JFZ96Y3": {
             "real_premarket": 1,
             "real_premarket_60m": 1,
@@ -229087,11 +229099,6 @@
             "real_premarket_60m": 0,
             "real_regular": 388
           },
-          "AURA": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 92
-          },
           "AVA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -230156,6 +230163,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 92
+          },
+          "CELH": {
+            "real_premarket": 9,
+            "real_premarket_60m": 7,
+            "real_regular": 389
           },
           "CELU": {
             "real_premarket": 0,
@@ -231337,6 +231349,11 @@
             "real_premarket_60m": 1,
             "real_regular": 371
           },
+          "DOGZ": {
+            "real_premarket": 4,
+            "real_premarket_60m": 3,
+            "real_regular": 75
+          },
           "DOLE": {
             "real_premarket": 6,
             "real_premarket_60m": 2,
@@ -231626,11 +231643,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 139
-          },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 27
           },
           "ENLC": {
             "real_premarket": 0,
@@ -232246,11 +232258,6 @@
             "real_premarket": 2,
             "real_premarket_60m": 1,
             "real_regular": 388
-          },
-          "FNKO": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 261
           },
           "FOLD": {
             "real_premarket": 0,
@@ -232952,11 +232959,6 @@
             "real_premarket_60m": 1,
             "real_regular": 338
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 114
-          },
           "HA": {
             "real_premarket": 1,
             "real_premarket_60m": 1,
@@ -233096,11 +233098,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 142
-          },
-          "HG": {
-            "real_premarket": 6,
-            "real_premarket_60m": 5,
-            "real_regular": 236
           },
           "HGTY": {
             "real_premarket": 0,
@@ -233426,6 +233423,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 57
+          },
+          "HYMC": {
+            "real_premarket": 92,
+            "real_premarket_60m": 41,
+            "real_regular": 368
           },
           "HZO": {
             "real_premarket": 1,
@@ -234581,11 +234583,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 78
-          },
-          "LRMR": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 215
           },
           "LRN": {
             "real_premarket": 0,
@@ -236147,6 +236144,11 @@
             "real_premarket_60m": 9,
             "real_regular": 389
           },
+          "ONTF": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 141
+          },
           "ONTO": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -236836,6 +236838,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 196
+          },
+          "PRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 76
           },
           "PRFT": {
             "real_premarket": 0,
@@ -237701,11 +237708,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 62
-          },
-          "SCM": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 130
           },
           "SCOR": {
             "real_premarket": 0,
@@ -238606,6 +238608,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 158
+          },
+          "SYRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 176
           },
           "TAC": {
             "real_premarket": 0,
@@ -241800,9 +241807,9 @@
             "timestamp": "2024-04-11T15:59:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 9736,
-        "real_premarket_bar_count_60m": 4900,
-        "real_regular_bar_count": 596883,
+        "real_premarket_bar_count": 9834,
+        "real_premarket_bar_count_60m": 4945,
+        "real_regular_bar_count": 597033,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -242232,6 +242239,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 139,
+        "hits": 0,
+        "tickers_with_zero_articles": 44
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -242243,15 +242256,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.195,
-        "download": 6.071,
-        "grading": 47.816,
-        "postmortem": 0.329,
-        "report": 3.57,
-        "scoring": 8.926,
-        "snapshot": 724.172,
-        "universe": 23.809
+        "benchmark": 1.493,
+        "download": 5.867,
+        "grading": 61.468,
+        "postmortem": 0.426,
+        "report": 4.198,
+        "scoring": 15.095,
+        "snapshot": 885.306,
+        "universe": 39.648
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 823,
         "errors": 0,
@@ -242262,19 +242276,34 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5418,
+          "without": 5613
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.9833806242399675,
-        "not_scorable_ticker_count": 2426,
-        "scorable_ticker_count": 41,
-        "universe_ticker_count": 2467
+        "not_scorable_share": 0.9829683698296837,
+        "not_scorable_ticker_count": 2424,
+        "scorable_ticker_count": 42,
+        "universe_ticker_count": 2466
       },
-      "scored_ticker_count": 41,
+      "scorable_count": 42,
+      "scored_ticker_count": 42,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.3014860343888498,
       "status": "COMPLETE",
       "trading_date": "2024-04-11",
-      "universe_manifest_hash": "sha256:c08839bbf3ce20e1dc8b6e6ac673f12bee3035f9a6aceea4db68d7f64441da56",
-      "universe_size": 2467
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:72133becaf11f0ce485fe8422646f7e81e965df1d4449bfcc6fdad5df790f827",
+      "universe_size": 2466
     },
     {
       "artifacts": {
@@ -242761,11 +242790,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 254
-          },
-          "0001593275": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 239
           },
           "0001596993": {
             "real_premarket": 5,
@@ -243371,6 +243395,11 @@
             "real_premarket": 2,
             "real_premarket_60m": 0,
             "real_regular": 270
+          },
+          "0001876431": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 21
           },
           "0001877787": {
             "real_premarket": 0,
@@ -244427,11 +244456,6 @@
             "real_premarket_60m": 0,
             "real_regular": 78
           },
-          "BBG001S5TB09": {
-            "real_premarket": 40,
-            "real_premarket_60m": 21,
-            "real_regular": 389
-          },
           "BBG001S5TC16": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -245481,11 +245505,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 281
-          },
-          "BBG001S6JC97": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 328
           },
           "BBG001S6JGT6": {
             "real_premarket": 0,
@@ -248042,11 +248061,6 @@
             "real_premarket_60m": 0,
             "real_regular": 372
           },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 74
-          },
           "BBG001SDLX20": {
             "real_premarket": 2,
             "real_premarket_60m": 0,
@@ -249127,6 +249141,11 @@
             "real_premarket_60m": 0,
             "real_regular": 52
           },
+          "BBG001SQSKT3": {
+            "real_premarket": 10,
+            "real_premarket_60m": 3,
+            "real_regular": 390
+          },
           "BBG001SQV7W4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -249887,6 +249906,11 @@
             "real_premarket_60m": 12,
             "real_regular": 362
           },
+          "BBG001TCT0B5": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 149
+          },
           "BBG001TCYZ77": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -250341,11 +250365,6 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 376
-          },
-          "BBG00226DGP2": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 92
           },
           "BBG002293Q93": {
             "real_premarket": 4,
@@ -251131,6 +251150,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 125
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 212
           },
           "BBG0067QVJ69": {
             "real_premarket": 0,
@@ -252461,6 +252485,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 238
+          },
+          "BBG00JSBZQF1": {
+            "real_premarket": 121,
+            "real_premarket_60m": 32,
+            "real_regular": 339
           },
           "BBG00JVRRR41": {
             "real_premarket": 1,
@@ -254622,11 +254651,6 @@
             "real_premarket_60m": 0,
             "real_regular": 86
           },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 37
-          },
           "BBG01JFZ96Y3": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -255779,11 +255803,6 @@
             "real_premarket_60m": 1,
             "real_regular": 382
           },
-          "AURA": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 92
-          },
           "AVA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -256853,6 +256872,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 111
+          },
+          "CELH": {
+            "real_premarket": 10,
+            "real_premarket_60m": 3,
+            "real_regular": 390
           },
           "CELU": {
             "real_premarket": 0,
@@ -258254,11 +258278,6 @@
             "real_premarket_60m": 0,
             "real_regular": 149
           },
-          "EGHT": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 328
-          },
           "EGIO": {
             "real_premarket": 5,
             "real_premarket_60m": 0,
@@ -258333,11 +258352,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 236
-          },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 37
           },
           "ENLC": {
             "real_premarket": 0,
@@ -259664,11 +259678,6 @@
             "real_premarket_60m": 1,
             "real_regular": 371
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 74
-          },
           "HA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -259808,11 +259817,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 119
-          },
-          "HG": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 239
           },
           "HGTY": {
             "real_premarket": 0,
@@ -260138,6 +260142,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 52
+          },
+          "HYMC": {
+            "real_premarket": 121,
+            "real_premarket_60m": 32,
+            "real_regular": 339
           },
           "HZO": {
             "real_premarket": 0,
@@ -262849,6 +262858,11 @@
             "real_premarket_60m": 16,
             "real_regular": 388
           },
+          "ONTF": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 149
+          },
           "ONTO": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -263548,6 +263562,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 249
+          },
+          "PRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 21
           },
           "PRFT": {
             "real_premarket": 0,
@@ -265339,6 +265358,11 @@
             "real_premarket_60m": 0,
             "real_regular": 131
           },
+          "SYRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 212
+          },
           "TAC": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -265468,11 +265492,6 @@
             "real_premarket": 1,
             "real_premarket_60m": 0,
             "real_regular": 324
-          },
-          "TELL": {
-            "real_premarket": 40,
-            "real_premarket_60m": 21,
-            "real_regular": 389
           },
           "TENB": {
             "real_premarket": 0,
@@ -268627,9 +268646,9 @@
             "timestamp": "2024-04-12T15:59:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 9378,
-        "real_premarket_bar_count_60m": 4151,
-        "real_regular_bar_count": 604496,
+        "real_premarket_bar_count": 9468,
+        "real_premarket_bar_count_60m": 4164,
+        "real_regular_bar_count": 604448,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -269059,6 +269078,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 117,
+        "hits": 0,
+        "tickers_with_zero_articles": 31
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -269070,15 +269095,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.21,
-        "download": 6.471,
-        "grading": 48.706,
-        "postmortem": 0.378,
-        "report": 3.387,
-        "scoring": 8.808,
-        "snapshot": 723.962,
-        "universe": 50.24
+        "benchmark": 1.534,
+        "download": 7.125,
+        "grading": 62.8,
+        "postmortem": 0.469,
+        "report": 4.264,
+        "scoring": 15.072,
+        "snapshot": 886.779,
+        "universe": 26.736
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 822,
         "errors": 0,
@@ -269086,22 +269112,37 @@
         "hits": 10206,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10206,
-        "transient_retries": 4,
+        "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5417,
+          "without": 5616
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.9878689850384149,
-        "not_scorable_ticker_count": 2443,
-        "scorable_ticker_count": 30,
-        "universe_ticker_count": 2473
+        "not_scorable_share": 0.9874595469255664,
+        "not_scorable_ticker_count": 2441,
+        "scorable_ticker_count": 31,
+        "universe_ticker_count": 2472
       },
-      "scored_ticker_count": 30,
+      "scorable_count": 31,
+      "scored_ticker_count": 31,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.7413127413127474,
       "status": "COMPLETE",
       "trading_date": "2024-04-12",
-      "universe_manifest_hash": "sha256:8787743a05db81b75c11a7b9416ef21802759ae755c6872444a02f2e3d08719e",
-      "universe_size": 2473
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:09e7036321a85fddaf630b5817401c7cbc1155bf98118f4af216c1b31de6ecae",
+      "universe_size": 2472
     },
     {
       "artifacts": {
@@ -269163,6 +269204,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 25
+          },
+          "0000911421": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 35
           },
           "0000911971": {
             "real_premarket": 3,
@@ -269588,11 +269634,6 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 307
-          },
-          "0001593275": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 267
           },
           "0001596993": {
             "real_premarket": 0,
@@ -271238,11 +271279,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 84
-          },
-          "BBG001S5TB09": {
-            "real_premarket": 60,
-            "real_premarket_60m": 25,
-            "real_regular": 390
           },
           "BBG001S5TC16": {
             "real_premarket": 0,
@@ -274849,11 +274885,6 @@
             "real_premarket_60m": 0,
             "real_regular": 363
           },
-          "BBG001SDL5X7": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 75
-          },
           "BBG001SDLX20": {
             "real_premarket": 1,
             "real_premarket_60m": 0,
@@ -275383,11 +275414,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 82
-          },
-          "BBG001SKDJH8": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 234
           },
           "BBG001SKF1N8": {
             "real_premarket": 3,
@@ -275938,6 +275964,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 45
+          },
+          "BBG001SQSKT3": {
+            "real_premarket": 14,
+            "real_premarket_60m": 8,
+            "real_regular": 390
           },
           "BBG001SQV7W4": {
             "real_premarket": 0,
@@ -276589,11 +276620,6 @@
             "real_premarket_60m": 0,
             "real_regular": 309
           },
-          "BBG001T8S8C7": {
-            "real_premarket": 4,
-            "real_premarket_60m": 1,
-            "real_regular": 310
-          },
           "BBG001T90D25": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -276688,6 +276714,11 @@
             "real_premarket": 14,
             "real_premarket_60m": 7,
             "real_regular": 349
+          },
+          "BBG001TCT0B5": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 141
           },
           "BBG001TCYZ77": {
             "real_premarket": 0,
@@ -277143,11 +277174,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 334
-          },
-          "BBG00226DGP2": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 69
           },
           "BBG002293Q93": {
             "real_premarket": 7,
@@ -277928,6 +277954,11 @@
             "real_premarket": 1,
             "real_premarket_60m": 0,
             "real_regular": 168
+          },
+          "BBG0067L94C1": {
+            "real_premarket": 1,
+            "real_premarket_60m": 1,
+            "real_regular": 207
           },
           "BBG0067QVJ69": {
             "real_premarket": 0,
@@ -279243,6 +279274,11 @@
             "real_premarket": 1,
             "real_premarket_60m": 1,
             "real_regular": 282
+          },
+          "BBG00JSBZQF1": {
+            "real_premarket": 43,
+            "real_premarket_60m": 25,
+            "real_regular": 290
           },
           "BBG00JVRRR41": {
             "real_premarket": 2,
@@ -280579,11 +280615,6 @@
             "real_premarket_60m": 0,
             "real_regular": 379
           },
-          "BBG00Z6F0ML0": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 49
-          },
           "BBG00Z6F87V4": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -281369,11 +281400,6 @@
             "real_premarket_60m": 0,
             "real_regular": 99
           },
-          "BBG01J1GCYX6": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 41
-          },
           "BBG01JFZ96Y3": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -281961,11 +281987,6 @@
             "real_premarket_60m": 0,
             "real_regular": 213
           },
-          "ALTI": {
-            "real_premarket": 1,
-            "real_premarket_60m": 1,
-            "real_regular": 49
-          },
           "ALTR": {
             "real_premarket": 1,
             "real_premarket_60m": 1,
@@ -282525,11 +282546,6 @@
             "real_premarket": 2,
             "real_premarket_60m": 2,
             "real_regular": 383
-          },
-          "AURA": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 69
           },
           "AVA": {
             "real_premarket": 0,
@@ -283590,6 +283606,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 91
+          },
+          "CELH": {
+            "real_premarket": 14,
+            "real_premarket_60m": 8,
+            "real_regular": 390
           },
           "CELU": {
             "real_premarket": 4,
@@ -285056,11 +285077,6 @@
             "real_premarket_60m": 0,
             "real_regular": 222
           },
-          "ENGN": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 41
-          },
           "ENLC": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -285120,11 +285136,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 206
-          },
-          "EPAM": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 234
           },
           "EPC": {
             "real_premarket": 0,
@@ -286381,11 +286392,6 @@
             "real_premarket_60m": 0,
             "real_regular": 339
           },
-          "GYRE": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 75
-          },
           "HA": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -286525,11 +286531,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 168
-          },
-          "HG": {
-            "real_premarket": 0,
-            "real_premarket_60m": 0,
-            "real_regular": 267
           },
           "HGTY": {
             "real_premarket": 0,
@@ -286850,6 +286851,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 85
+          },
+          "HYMC": {
+            "real_premarket": 43,
+            "real_premarket_60m": 25,
+            "real_regular": 290
           },
           "HZO": {
             "real_premarket": 1,
@@ -287960,11 +287966,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 111
-          },
-          "LOVE": {
-            "real_premarket": 4,
-            "real_premarket_60m": 1,
-            "real_regular": 310
           },
           "LPG": {
             "real_premarket": 0,
@@ -289566,6 +289567,11 @@
             "real_premarket_60m": 5,
             "real_regular": 390
           },
+          "ONTF": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 141
+          },
           "ONTO": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -290265,6 +290271,11 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 249
+          },
+          "PRE": {
+            "real_premarket": 0,
+            "real_premarket_60m": 0,
+            "real_regular": 35
           },
           "PRFT": {
             "real_premarket": 0,
@@ -292031,6 +292042,11 @@
             "real_premarket_60m": 0,
             "real_regular": 222
           },
+          "SYRE": {
+            "real_premarket": 1,
+            "real_premarket_60m": 1,
+            "real_regular": 207
+          },
           "TAC": {
             "real_premarket": 0,
             "real_premarket_60m": 0,
@@ -292155,11 +292171,6 @@
             "real_premarket": 0,
             "real_premarket_60m": 0,
             "real_regular": 322
-          },
-          "TELL": {
-            "real_premarket": 60,
-            "real_premarket_60m": 25,
-            "real_regular": 390
           },
           "TENB": {
             "real_premarket": 0,
@@ -296334,9 +296345,9 @@
             "timestamp": "2024-04-15T15:59:00-04:00"
           }
         ],
-        "real_premarket_bar_count": 9997,
-        "real_premarket_bar_count_60m": 4083,
-        "real_regular_bar_count": 627109,
+        "real_premarket_bar_count": 9990,
+        "real_premarket_bar_count_60m": 4090,
+        "real_regular_bar_count": 626737,
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
@@ -296766,6 +296777,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 118,
+        "hits": 0,
+        "tickers_with_zero_articles": 73
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -296777,15 +296794,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.242,
-        "download": 6.162,
-        "grading": 49.692,
-        "postmortem": 0.379,
-        "report": 3.61,
-        "scoring": 8.971,
-        "snapshot": 721.954,
-        "universe": 22.449
+        "benchmark": 1.614,
+        "download": 7.155,
+        "grading": 65.769,
+        "postmortem": 0.508,
+        "report": 4.312,
+        "scoring": 15.094,
+        "snapshot": 891.469,
+        "universe": 26.033
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 813,
         "errors": 0,
@@ -296796,24 +296814,40 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5414,
+          "without": 5610
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
-        "not_scorable_share": 0.9886039886039886,
-        "not_scorable_ticker_count": 2429,
+        "not_scorable_share": 0.9885900570497147,
+        "not_scorable_ticker_count": 2426,
         "scorable_ticker_count": 28,
-        "universe_ticker_count": 2457
+        "universe_ticker_count": 2454
       },
+      "scorable_count": 28,
       "scored_ticker_count": 28,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.8495644514045281,
       "status": "COMPLETE",
       "trading_date": "2024-04-15",
-      "universe_manifest_hash": "sha256:b57b66b4a37b756342517edb4c8d5223c1656391d410a18c4a078d016abb0e1b",
-      "universe_size": 2457
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:7dc86eed4a6a26490157e90f49a910f62138b251e01ee696bfa19319a480254b",
+      "universe_size": 2454
     }
   ],
   "end_date": "2024-04-15",
   "failed_dates": {},
   "file_naming": "dated_v1",
+  "forced_resume": false,
   "massive_plan": {
     "flat_files": true,
     "history_years": 10,
@@ -296822,14 +296856,32 @@
   },
   "max_tickers": null,
   "morning_freeze_time": "09:15:00",
+  "previous_provenance": null,
+  "provenance": {
+    "comparison_policy_paths": [
+      "config/execution_policy_atr.json"
+    ],
+    "cost_model_id": "execution_costs_v1.0",
+    "dataset_version": 5,
+    "feature_registry_id": "feature_registry_alpha_v1.0",
+    "git_sha": "25438eecdfc35640c18df4b90661a1f3530ccbb1",
+    "metric_count": 25,
+    "rubric_version": "alpha_v1.3_25m",
+    "scout_id": "research_scout_alpha_v1.3"
+  },
+  "reachable_metric_count": 25,
   "reference_cache_summary": {
     "definitive_misses": 9115,
     "errors": 0,
-    "fetches": 9186,
-    "hits": 112167,
+    "fetches": 9223,
+    "hits": 112130,
     "listed_after_lagged_date": 0,
-    "quarter_reuse_hits": 112167,
-    "transient_retries": 10,
+    "quarter_reuse_hits": 112130,
+    "sic_code_coverage": {
+      "with": 59758,
+      "without": 61595
+    },
+    "transient_retries": 0,
     "unresolved_failures": 0
   },
   "remaining_dates": [],
@@ -296855,6 +296907,13 @@
   "start_date": "2024-04-01",
   "status": "COMPLETE",
   "strategy_capital_usd": 2500.0,
+  "unavailable_metrics": [
+    "call_options_confirmation",
+    "analyst_revision_strength",
+    "positive_social_attention_acceleration",
+    "spread_quality",
+    "order_book_depth_quality"
+  ],
   "universe_policy": {
     "shares_outstanding_lag_days": 120,
     "ticker_overview_cache_policy": "EARLIER_OR_EQUAL_SAME_CALENDAR_QUARTER",
