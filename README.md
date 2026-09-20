@@ -185,6 +185,30 @@ sizes, SHA-256 checksums, universe sizes, real-bar counts, and the share of
 eligible tickers that are not scorable. The day fails only when no ticker is
 scorable.
 
+### Independent ORB research
+
+Flat-file replay also grades `orb_v1.0`, an independent 09:35 opening-range
+breakout study. ORB has its own common-stock, price, liquidity, ATR, opening
+relative-volume, ranking, and risk-sizing rules in `config/orb_v1.json`. It is
+reported beside Scout but never changes Scout scoring, selection, verdicts,
+benchmark baselines, exploration cohorts, or promotion gates. Long signals are
+graded in both paper (4x exposure cap) and cash (1x, no shorts) variants; short
+signals remain hypothetical and appear only in the paper long-plus-short view.
+
+Before the first date in a backfill, warm the prior-session opening-volume
+baseline (the replay workflows do this automatically):
+
+```bash
+python -m trainer.orb_warmup --end 2024-03-15
+```
+
+The warm-up retains only `data/opening_volume_cache/<date>.json` and deletes
+the downloaded minute files. Each completed day writes
+`orb_outcomes_<date>.csv`; cumulative reporting writes `orb_daily.csv` with
+daily net returns and equity-index values by sizing variant and cohort. These
+artifacts use the same execution-cost model as Scout, including the configured
+after-open entry slippage schedule.
+
 ## Research Scout Alpha
 
 Research Scout Alpha is isolated from Production Scout. It scores only the

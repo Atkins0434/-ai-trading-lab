@@ -144,9 +144,18 @@ jobs:
           path: |
             data/reference_cache/
             data/news_cache/
+            data/opening_volume_cache/
           key: massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-
+
+      - name: Warm ORB opening-volume baseline
+        if: steps.unit.outputs.id != ''
+        env:
+          MASSIVE_S3_ACCESS_KEY_ID: ${{ secrets.MASSIVE_S3_ACCESS_KEY_ID }}
+          MASSIVE_S3_SECRET_ACCESS_KEY: ${{ secrets.MASSIVE_S3_SECRET_ACCESS_KEY }}
+          START: ${{ steps.unit.outputs.start }}
+        run: python -m trainer.orb_warmup --end "$START"
 
       - name: Run replay
         id: replay
@@ -225,7 +234,7 @@ jobs:
           END: ${{ steps.unit.outputs.end }}
         run: |
           python -m trainer.replay_scheduled prune --start "$START" --end "$END"
-          du -sh data/flatfiles data/reference_cache data/news_cache || true
+          du -sh data/flatfiles data/reference_cache data/news_cache data/opening_volume_cache || true
           echo 'Actions cache is 10 GB per repository; each run saves a new flat-file entry containing only this unit.'
       - name: Save bounded flat-file cache
         if: always() && steps.unit.outputs.id != '' && steps.prune.outcome == 'success'
@@ -242,6 +251,7 @@ jobs:
           path: |
             data/reference_cache/
             data/news_cache/
+            data/opening_volume_cache/
           key: massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Fail job for failed replay
         if: always() && steps.unit.outputs.id != '' && steps.finalize.outputs.status != 'COMPLETE' && steps.finalize.outputs.status != 'PAUSED'

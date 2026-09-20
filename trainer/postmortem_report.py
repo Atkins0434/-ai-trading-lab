@@ -262,5 +262,39 @@ def generate_postmortem_pdf(
     if outcome_result is not None:
         policies, rows = _execution_matrix(outcome_result, benchmark)
         _cost_tables(story, {"execution_policies": policies, "execution_comparison_rows": rows}, _styles())
+    orb = postmortem.get("orb")
+    if orb:
+        story.extend([PageBreak(), Paragraph(
+            f"Independent ORB research ({orb.get('orb_version', 'unknown')})",
+            title,
+        )])
+        orb_rows = [["Variant", "Cohort", "Candidates", "Triggered", "Hit rate", "Mean R", "Sum R", "Gross", "Net"]]
+        for variant, cohorts in orb.get("summary", {}).items():
+            if not isinstance(cohorts, dict):
+                continue
+            for cohort in ("long_only", "long_plus_short"):
+                summary = cohorts.get(cohort)
+                if not summary:
+                    continue
+                orb_rows.append([
+                    variant, cohort, summary["candidates"], summary["triggered"],
+                    _pct(summary["hit_rate_pct"]),
+                    "N/A" if summary["mean_r"] is None else f"{summary['mean_r']:.2f}",
+                    f"{summary['sum_r']:.2f}",
+                    _pct(summary["gross_realized_return_pct"]),
+                    _pct(summary["net_realized_return_pct"]),
+                ])
+        orb_table = Table(orb_rows, colWidths=[0.8*inch,1.1*inch,0.7*inch,0.7*inch,0.7*inch,0.65*inch,0.65*inch,0.75*inch,0.75*inch], repeatRows=1)
+        orb_table.setStyle(TableStyle([
+            ("BACKGROUND", (0,0), (-1,0), navy),
+            ("TEXTCOLOR", (0,0), (-1,0), colors.white),
+            ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+            ("FONTSIZE", (0,0), (-1,-1), 6),
+            ("GRID", (0,0), (-1,-1), 0.35, colors.HexColor("#D1D5DB")),
+        ]))
+        story.extend([
+            Paragraph("Independent of Scout selection, verdicts, exploration, and promotion gates.", small),
+            orb_table,
+        ])
     story.append(Paragraph(GROSS_FOOTER, small))
     doc.build(story)

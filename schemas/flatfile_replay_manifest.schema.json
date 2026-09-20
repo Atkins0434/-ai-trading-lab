@@ -9,7 +9,7 @@
     "current_trading_date", "current_phase", "smoke_mode", "max_tickers", "massive_plan",
     "datasets", "baseline_lookback_sessions", "strategy_capital_usd",
     "morning_freeze_time",
-    "comparison_policy_paths",
+    "comparison_policy_paths", "orb_version",
     "selection_policy", "universe_policy", "requested_dates",
     "completed_dates", "remaining_dates", "failed_dates", "reference_cache_summary", "days"
   ],
@@ -17,7 +17,7 @@
     "reachable_metric_count": {"type": ["integer", "null"], "minimum": 0},
     "unavailable_metrics": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
 
-    "provenance": {"type": "object", "additionalProperties": false, "required": ["scout_id", "rubric_version", "feature_registry_id", "metric_count", "dataset_version", "comparison_policy_paths", "cost_model_id", "git_sha"], "properties": {"scout_id": {"type": "string"}, "rubric_version": {"type": "string"}, "feature_registry_id": {"type": "string"}, "metric_count": {"type": "integer", "minimum": 1}, "dataset_version": {"type": "integer", "minimum": 1}, "comparison_policy_paths": {"type": "array", "items": {"type": "string"}}, "cost_model_id": {"type": "string"}, "git_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}}},
+    "provenance": {"type": "object", "additionalProperties": false, "required": ["scout_id", "rubric_version", "feature_registry_id", "metric_count", "dataset_version", "comparison_policy_paths", "cost_model_id", "orb_config_hash", "git_sha"], "properties": {"scout_id": {"type": "string"}, "rubric_version": {"type": "string"}, "feature_registry_id": {"type": "string"}, "metric_count": {"type": "integer", "minimum": 1}, "dataset_version": {"type": "integer", "minimum": 1}, "comparison_policy_paths": {"type": "array", "items": {"type": "string"}}, "cost_model_id": {"type": "string"}, "orb_config_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}, "git_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}}},
     "forced_resume": {"type": "boolean"},
     "previous_provenance": {"type": ["object", "null"]},
     "file_naming": {"const": "dated_v1"},
@@ -29,7 +29,7 @@
     "current_trading_date": {"type": ["string", "null"], "format": "date"},
     "current_phase": {
       "type": ["string", "null"],
-      "enum": [null, "STARTING", "download", "universe", "snapshot", "scoring", "grading", "benchmark", "postmortem", "report"]
+      "enum": [null, "STARTING", "download", "universe", "snapshot", "scoring", "grading", "benchmark", "orb", "postmortem", "report"]
     },
     "smoke_mode": {"type": "boolean"},
     "max_tickers": {"type": ["integer", "null"], "minimum": 1},
@@ -93,7 +93,8 @@
       "type": "array",
       "items": {"$ref": "#/$defs/day"}
     },
-    "cost_model_id": {"type": "string"}
+    "cost_model_id": {"type": "string"},
+    "orb_version": {"type": "string", "minLength": 1}
   },
   "$defs": {
     "massivePlan": {
@@ -173,12 +174,12 @@
         "status": {"enum": ["IN_PROGRESS", "COMPLETE", "UNSUPPORTED", "FAILED"]},
         "current_phase": {
           "type": ["string", "null"],
-          "enum": [null, "download", "universe", "snapshot", "scoring", "grading", "benchmark", "postmortem", "report"]
+          "enum": [null, "download", "universe", "snapshot", "scoring", "grading", "benchmark", "orb", "postmortem", "report"]
         },
         "phase_status": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["download", "universe", "snapshot", "scoring", "grading", "benchmark", "postmortem", "report"],
+          "required": ["download", "universe", "snapshot", "scoring", "grading", "benchmark", "orb", "postmortem", "report"],
           "properties": {
             "download": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
             "universe": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
@@ -186,6 +187,7 @@
             "scoring": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
             "grading": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
             "benchmark": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
+            "orb": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
             "postmortem": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]},
             "report": {"enum": ["PENDING", "IN_PROGRESS", "COMPLETE", "FAILED", "SKIPPED"]}
           }
@@ -193,7 +195,7 @@
         "phase_wall_time_seconds": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["download", "universe", "snapshot", "scoring", "grading", "benchmark", "postmortem", "report"],
+          "required": ["download", "universe", "snapshot", "scoring", "grading", "benchmark", "orb", "postmortem", "report"],
           "properties": {
             "download": {"type": ["number", "null"], "minimum": 0},
             "universe": {"type": ["number", "null"], "minimum": 0},
@@ -201,6 +203,7 @@
             "scoring": {"type": ["number", "null"], "minimum": 0},
             "grading": {"type": ["number", "null"], "minimum": 0},
             "benchmark": {"type": ["number", "null"], "minimum": 0},
+            "orb": {"type": ["number", "null"], "minimum": 0},
             "postmortem": {"type": ["number", "null"], "minimum": 0},
             "report": {"type": ["number", "null"], "minimum": 0}
           }
@@ -214,6 +217,7 @@
           "pattern": "^sha256:[0-9a-f]{64}$"
         },
         "scored_ticker_count": {"type": "integer", "minimum": 0},
+        "orb_universe_count": {"type": "integer", "minimum": 0},
         "bar_statistics": {"$ref": "#/$defs/statistics"},
         "scorability_statistics": {"$ref": "#/$defs/statistics"},
         "excluded_tickers": {

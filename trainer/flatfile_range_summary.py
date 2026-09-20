@@ -128,6 +128,7 @@ def _day_evidence(
         "news_coverage": postmortem.get("news_coverage", {}),
         "reachability": postmortem.get("reachability", {}),
         "reversal_cohort": postmortem.get("reversal_cohort", {}),
+        "orb": postmortem.get("orb", {}),
     }
 
 
@@ -152,6 +153,8 @@ def render_range_summary(
             f"scorable={day.get('scored_ticker_count', 0)} "
             f"selected={_fmt(evidence['selected_count'])} "
             f"reversal_candidates={int(evidence['reversal_cohort'].get('candidate_count', 0))} "
+            f"orb_universe={int(evidence['orb'].get('orb_universe_count', 0))} "
+            f"orb_candidates={sum(1 for item in evidence['orb'].get('ranked_candidates', []) if item.get('selected'))} "
             f"primary_return={_fmt(primary.get('return_pct'), suffix='%')} "
             f"atr_return={_fmt(atr.get('return_pct'), suffix='%')} "
             f"primary_net_return={_fmt(primary.get('net_return_pct'), suffix='%')} "
@@ -183,6 +186,7 @@ def render_range_summary(
     reversal_day_mfe: list[float] = []
     reversal_policy_returns: Counter[str] = Counter()
     net_reversal_returns: dict[str, list[float]] = {}
+    orb_returns: Counter[str] = Counter()
     for date_value in completed:
         evidence = evidence_by_date.get(date_value)
         if evidence is None:
@@ -216,6 +220,15 @@ def render_range_summary(
             policy_id: float(value)
             for policy_id, value in cohort.get("policy_returns", {}).items()
         })
+        for variant, cohorts in evidence.get("orb", {}).get("summary", {}).items():
+            if not isinstance(cohorts, dict):
+                continue
+            for cohort in ("long_only", "long_plus_short"):
+                summary = cohorts.get(cohort)
+                if summary:
+                    orb_returns[f"{variant}.{cohort}"] += float(
+                        summary.get("net_realized_return_pct") or 0.0
+                    )
 
     primary_ids = [
         evidence["primary_policy_id"]
@@ -234,6 +247,12 @@ def render_range_summary(
         "Cumulative",
         "Net reversal exploration return sums (costed days): " + (
             "; ".join(f"{key}={_fmt(sum(values), suffix='%')} ({len(values)} days)" for key, values in sorted(net_reversal_returns.items())) or "n/a"
+        ),
+        "ORB cumulative net returns: " + (
+            "; ".join(
+                f"{key}={_fmt(value, suffix='%')}"
+                for key, value in sorted(orb_returns.items())
+            ) or "n/a"
         ),
         f"Net WIN/TIE/MISS: {net_verdicts['WIN']}/{net_verdicts['TIE']}/{net_verdicts['MISS']}",
         f"Gross WIN to net TIE/MISS: {flips}",

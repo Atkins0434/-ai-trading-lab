@@ -402,6 +402,7 @@ def build_postmortem(
     bar_statistics: dict[str, Any] | None = None,
     scorability_statistics: dict[str, Any] | None = None,
     strategy_capital_usd: float = 2500.0,
+    orb_result: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     try:
         universe_metadata = assert_matching_universe(
@@ -663,6 +664,27 @@ def build_postmortem(
             outcome_result,
             strategy_capital_usd,
         ),
+        "orb": orb_result or {
+            "orb_version": "orb_v1.0",
+            "trading_date": snapshot["trading_date"],
+            "orb_universe_count": 0,
+            "universe_exclusions": [],
+            "unresolved_bar_rows": {},
+            "ranked_candidates": [],
+            "not_rankable": [],
+            "summary": {
+                "paper": {"long_only": {}, "long_plus_short": {}},
+                "cash": {
+                    "long_only": {}, "long_plus_short": {},
+                    "shorts_enabled": False,
+                },
+            },
+            "overlap": {
+                "scout_scorable": 0, "scout_selected": 0,
+                "top_10_mover": 0,
+            },
+            "cost_model_id": benchmark_result.get("cost_model_id"),
+        },
         "missed_opportunities": missed,
         "execution_policy_review": execution_review,
         "execution_policy_verdict": execution_verdict,

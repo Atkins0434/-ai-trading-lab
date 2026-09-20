@@ -8,6 +8,8 @@ from pathlib import Path
 import subprocess
 import sys
 
+from trainer.orb import orb_config_hash
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -31,6 +33,7 @@ def current_provenance(comparison_policy_paths=None) -> dict:
         "dataset_version": config("replay_backlog.json")["dataset_version"],
         "comparison_policy_paths": [str(path) for path in comparison_policy_paths],
         "cost_model_id": config("execution_costs.json")["cost_model_id"],
+        "orb_config_hash": orb_config_hash(),
         "git_sha": git_sha,
     }
 

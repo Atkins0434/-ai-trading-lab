@@ -36,7 +36,7 @@ def test_identical_provenance_resumes(tmp_path):
     assert not list(tmp_path.glob("replay.stale-*"))
 
 
-@pytest.mark.parametrize("field", ["scout_id", "rubric_version", "feature_registry_id", "metric_count", "dataset_version", "comparison_policy_paths", "cost_model_id", "git_sha"])
+@pytest.mark.parametrize("field", ["scout_id", "rubric_version", "feature_registry_id", "metric_count", "dataset_version", "comparison_policy_paths", "cost_model_id", "orb_config_hash", "git_sha"])
 def test_mismatched_provenance_archives_and_runs_fresh(tmp_path, capsys, field):
     root = tmp_path / "replay"
     calls = []

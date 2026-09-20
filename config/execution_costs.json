@@ -6,6 +6,7 @@
   "slippage": {
     "mode": "TIERED_BY_PRICE_AND_TIME",
     "entry_at_open_bps": {"under_2": 150, "2_to_5": 100, "5_to_10": 60, "10_to_25": 35, "25_plus": 20},
+    "entry_after_open_bps": {"under_2": 75, "2_to_5": 50, "5_to_10": 30, "10_to_25": 18, "25_plus": 10},
     "exit_first_5_minutes_bps": {"under_2": 150, "2_to_5": 100, "5_to_10": 60, "10_to_25": 35, "25_plus": 20},
     "exit_after_5_minutes_bps": {"under_2": 75, "2_to_5": 50, "5_to_10": 30, "10_to_25": 18, "25_plus": 10},
     "session_end_exit_bps": {"under_2": 50, "2_to_5": 35, "5_to_10": 20, "10_to_25": 12, "25_plus": 8}
