@@ -15,6 +15,7 @@
     "2024-03-13",
     "2024-03-14"
   ],
+  "cost_model_id": "execution_costs_v1.0",
   "current_phase": null,
   "current_trading_date": null,
   "datasets": [
@@ -26444,6 +26445,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 132,
+        "hits": 0,
+        "tickers_with_zero_articles": 25
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -26455,24 +26462,31 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.203,
-        "download": 9.664,
-        "grading": 65.894,
-        "postmortem": 0.105,
-        "report": 3.8,
-        "scoring": 11.163,
-        "snapshot": 889.483,
-        "universe": 10.58
+        "benchmark": 1.282,
+        "download": 10.649,
+        "grading": 68.424,
+        "postmortem": 0.123,
+        "report": 4.224,
+        "scoring": 14.386,
+        "snapshot": 891.636,
+        "universe": 94.041
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 826,
         "errors": 0,
-        "fetches": 0,
-        "hits": 11069,
+        "fetches": 11069,
+        "hits": 0,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 0,
         "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5561,
+          "without": 5508
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -26481,11 +26495,20 @@
         "scorable_ticker_count": 39,
         "universe_ticker_count": 2468
       },
+      "scorable_count": 39,
       "scored_ticker_count": 39,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.11021886317115459,
       "status": "COMPLETE",
       "trading_date": "2024-03-01",
-      "universe_manifest_hash": "sha256:940a84e4db1e527139198b0a1e6b833ff5933ea7c14b90172255fcdd4477ed7e",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:6b1565fcb73d15680629c02df4289a5bfc1874ff0b2fe6752838afdc6d05a276",
       "universe_size": 2468
     },
     {
@@ -52430,6 +52453,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 165,
+        "hits": 0,
+        "tickers_with_zero_articles": 92
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -52441,24 +52470,31 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.23,
-        "download": 2.487,
-        "grading": 64.043,
-        "postmortem": 0.137,
-        "report": 3.828,
-        "scoring": 11.427,
-        "snapshot": 895.924,
-        "universe": 11.629
+        "benchmark": 1.313,
+        "download": 2.493,
+        "grading": 66.382,
+        "postmortem": 0.155,
+        "report": 4.348,
+        "scoring": 14.679,
+        "snapshot": 900.62,
+        "universe": 19.123
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 825,
         "errors": 0,
-        "fetches": 0,
-        "hits": 11069,
+        "fetches": 830,
+        "hits": 10239,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10239,
         "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5557,
+          "without": 5512
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -52467,11 +52503,20 @@
         "scorable_ticker_count": 52,
         "universe_ticker_count": 2474
       },
+      "scorable_count": 52,
       "scored_ticker_count": 52,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.23203665789217073,
       "status": "COMPLETE",
       "trading_date": "2024-03-04",
-      "universe_manifest_hash": "sha256:f07bf001b68dd3fca97645812bad932c293c2d150bab360a0cfd562261ddbdbf",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:34b9b495936775cefe1c9844514e0ddc7aef0c7a88d4d81ec1338d418778341a",
       "universe_size": 2474
     },
     {
@@ -79126,6 +79171,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 146,
+        "hits": 0,
+        "tickers_with_zero_articles": 62
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -79137,24 +79188,31 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.281,
-        "download": 2.584,
-        "grading": 64.926,
-        "postmortem": 0.177,
-        "report": 3.761,
-        "scoring": 11.259,
-        "snapshot": 899.866,
-        "universe": 11.224
+        "benchmark": 1.348,
+        "download": 2.713,
+        "grading": 66.711,
+        "postmortem": 0.191,
+        "report": 4.1,
+        "scoring": 14.398,
+        "snapshot": 898.242,
+        "universe": 20.303
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 824,
         "errors": 0,
-        "fetches": 0,
-        "hits": 11067,
+        "fetches": 830,
+        "hits": 10237,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10237,
         "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5552,
+          "without": 5515
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -79163,11 +79221,20 @@
         "scorable_ticker_count": 42,
         "universe_ticker_count": 2467
       },
+      "scorable_count": 42,
       "scored_ticker_count": 42,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.44114776498144337,
       "status": "COMPLETE",
       "trading_date": "2024-03-05",
-      "universe_manifest_hash": "sha256:dcbf12f3fab4776b925706aa13c765a3d252629a7ec7a850f3f899fe89d187da",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:0dec137f8025ceb8d46eb649b583315741e53bac88241439f18379027fa5b8f1",
       "universe_size": 2467
     },
     {
@@ -105451,6 +105518,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 155,
+        "hits": 0,
+        "tickers_with_zero_articles": 50
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -105462,24 +105535,31 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.293,
-        "download": 3.713,
-        "grading": 64.426,
-        "postmortem": 0.21,
-        "report": 3.828,
-        "scoring": 11.374,
-        "snapshot": 899.136,
-        "universe": 11.42
+        "benchmark": 1.372,
+        "download": 3.642,
+        "grading": 66.724,
+        "postmortem": 0.229,
+        "report": 4.394,
+        "scoring": 14.632,
+        "snapshot": 904.486,
+        "universe": 19.389
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 825,
         "errors": 0,
-        "fetches": 0,
-        "hits": 11071,
+        "fetches": 829,
+        "hits": 10242,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10242,
         "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5552,
+          "without": 5519
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -105488,11 +105568,20 @@
         "scorable_ticker_count": 49,
         "universe_ticker_count": 2467
       },
+      "scorable_count": 49,
       "scored_ticker_count": 49,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.5895342876296401,
       "status": "COMPLETE",
       "trading_date": "2024-03-06",
-      "universe_manifest_hash": "sha256:ff8aa45c77f20ad306c1d5a4f5f0d5f6dba83ddde56139e4d08f3ffe77ac1745",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:a14dabbd62f8e24ae65aaa49f96d461967f099aaaddcb2b32625c8a048de483c",
       "universe_size": 2467
     },
     {
@@ -131297,6 +131386,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 142,
+        "hits": 0,
+        "tickers_with_zero_articles": 38
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -131308,24 +131403,31 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.314,
-        "download": 5.831,
-        "grading": 61.554,
-        "postmortem": 0.248,
-        "report": 3.747,
-        "scoring": 11.172,
-        "snapshot": 899.984,
-        "universe": 10.906
+        "benchmark": 1.38,
+        "download": 2.907,
+        "grading": 64.111,
+        "postmortem": 0.269,
+        "report": 4.205,
+        "scoring": 14.514,
+        "snapshot": 904.469,
+        "universe": 18.615
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 822,
         "errors": 0,
-        "fetches": 0,
-        "hits": 11076,
+        "fetches": 835,
+        "hits": 10241,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10241,
         "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5549,
+          "without": 5527
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -131334,11 +131436,20 @@
         "scorable_ticker_count": 45,
         "universe_ticker_count": 2464
       },
+      "scorable_count": 45,
       "scored_ticker_count": 45,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.5218244237371198,
       "status": "COMPLETE",
       "trading_date": "2024-03-07",
-      "universe_manifest_hash": "sha256:cb6166969e021fb5e9fcda2f320ac4ae856ee95a0a92b7fde02f5d74f7ddd94a",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:10e05a2e5c7d302b9122370ba41f0526a7e3bfe394dc6a39dad3647bd694ae1b",
       "universe_size": 2464
     },
     {
@@ -158093,6 +158204,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 161,
+        "hits": 0,
+        "tickers_with_zero_articles": 47
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -158104,24 +158221,31 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.374,
-        "download": 3.686,
-        "grading": 63.714,
-        "postmortem": 0.293,
-        "report": 3.904,
-        "scoring": 11.337,
-        "snapshot": 900.966,
-        "universe": 11.294
+        "benchmark": 1.475,
+        "download": 4.353,
+        "grading": 65.416,
+        "postmortem": 0.321,
+        "report": 4.663,
+        "scoring": 14.65,
+        "snapshot": 903.042,
+        "universe": 18.841
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 813,
         "errors": 0,
-        "fetches": 0,
-        "hits": 11072,
+        "fetches": 823,
+        "hits": 10249,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10249,
         "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5545,
+          "without": 5527
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -158130,11 +158254,20 @@
         "scorable_ticker_count": 55,
         "universe_ticker_count": 2463
       },
+      "scorable_count": 55,
       "scored_ticker_count": 55,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.2544628115227092,
       "status": "COMPLETE",
       "trading_date": "2024-03-08",
-      "universe_manifest_hash": "sha256:ebb672bc4cb058cc36feb52ff57d75d30e849dd416801a2903fd55d00aaef6a0",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:8b46b80c4ace7d8d19d67734bcc7eef1f2c9a9d425ff114f91325f2b2b8cc418",
       "universe_size": 2463
     },
     {
@@ -184469,6 +184602,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 108,
+        "hits": 0,
+        "tickers_with_zero_articles": 44
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -184480,24 +184619,31 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.384,
-        "download": 2.755,
-        "grading": 63.438,
-        "postmortem": 0.328,
-        "report": 3.787,
-        "scoring": 11.26,
-        "snapshot": 897.241,
-        "universe": 11.255
+        "benchmark": 1.463,
+        "download": 2.936,
+        "grading": 65.08,
+        "postmortem": 0.355,
+        "report": 4.336,
+        "scoring": 14.357,
+        "snapshot": 908.612,
+        "universe": 20.271
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 814,
         "errors": 0,
-        "fetches": 0,
-        "hits": 11069,
+        "fetches": 816,
+        "hits": 10253,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10253,
         "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5540,
+          "without": 5529
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -184506,11 +184652,20 @@
         "scorable_ticker_count": 31,
         "universe_ticker_count": 2473
       },
+      "scorable_count": 31,
       "scored_ticker_count": 31,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.2384116313609058,
       "status": "COMPLETE",
       "trading_date": "2024-03-11",
-      "universe_manifest_hash": "sha256:ab60b5e06a2be601ad12762e974c4a4b1d9e9390aa0e4df035aef22648548750",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:966d2a8b4e79d71d2049ea7b333592f9b6f09417df0a62e8011072eb0b110a2d",
       "universe_size": 2473
     },
     {
@@ -211525,6 +211680,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 145,
+        "hits": 0,
+        "tickers_with_zero_articles": 57
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -211536,24 +211697,31 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.42,
-        "download": 2.665,
-        "grading": 62.472,
-        "postmortem": 0.364,
-        "report": 3.854,
-        "scoring": 11.228,
-        "snapshot": 901.666,
-        "universe": 12.194
+        "benchmark": 1.579,
+        "download": 2.847,
+        "grading": 64.799,
+        "postmortem": 0.407,
+        "report": 4.372,
+        "scoring": 14.352,
+        "snapshot": 904.615,
+        "universe": 19.307
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 814,
         "errors": 0,
-        "fetches": 0,
-        "hits": 11059,
+        "fetches": 816,
+        "hits": 10243,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10243,
         "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5528,
+          "without": 5531
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -211562,11 +211730,20 @@
         "scorable_ticker_count": 44,
         "universe_ticker_count": 2463
       },
+      "scorable_count": 44,
       "scored_ticker_count": 44,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.34032232827413733,
       "status": "COMPLETE",
       "trading_date": "2024-03-12",
-      "universe_manifest_hash": "sha256:7ffe3cefb9e88375c2a9fd328f2784215532f5b58795fb0c32ee99403503e857",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:42f9590e3cb0788f8b984dcdd8eeeaba24a887259413434f2c3d112bb217352e",
       "universe_size": 2463
     },
     {
@@ -238741,6 +238918,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 106,
+        "hits": 0,
+        "tickers_with_zero_articles": 32
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -238752,24 +238935,31 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.446,
-        "download": 2.71,
-        "grading": 60.984,
-        "postmortem": 0.394,
-        "report": 3.791,
-        "scoring": 11.109,
-        "snapshot": 898.839,
-        "universe": 12.144
+        "benchmark": 1.54,
+        "download": 3.356,
+        "grading": 62.618,
+        "postmortem": 0.427,
+        "report": 4.377,
+        "scoring": 14.208,
+        "snapshot": 905.76,
+        "universe": 18.777
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 810,
         "errors": 0,
-        "fetches": 0,
-        "hits": 11059,
+        "fetches": 817,
+        "hits": 10242,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10242,
         "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5526,
+          "without": 5533
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -238778,11 +238968,20 @@
         "scorable_ticker_count": 34,
         "universe_ticker_count": 2471
       },
+      "scorable_count": 34,
       "scored_ticker_count": 34,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.03676612872016227,
       "status": "COMPLETE",
       "trading_date": "2024-03-13",
-      "universe_manifest_hash": "sha256:780b60f32ee9c749f1dc3cf98eaf4d5901d5f12934146e41a3c213cd5c4f6db8",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:7d588042975c13e8f60a56927fe4697b9bc2d3b3ed1386897927f06019e9874b",
       "universe_size": 2471
     },
     {
@@ -265947,6 +266146,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 130,
+        "hits": 0,
+        "tickers_with_zero_articles": 40
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -265958,24 +266163,31 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.486,
-        "download": 2.985,
-        "grading": 63.686,
-        "postmortem": 0.432,
-        "report": 4.008,
-        "scoring": 11.303,
-        "snapshot": 902.939,
-        "universe": 11.711
+        "benchmark": 1.609,
+        "download": 2.859,
+        "grading": 65.642,
+        "postmortem": 0.491,
+        "report": 4.645,
+        "scoring": 14.421,
+        "snapshot": 911.447,
+        "universe": 19.34
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 809,
         "errors": 0,
-        "fetches": 0,
-        "hits": 11051,
+        "fetches": 816,
+        "hits": 10235,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10235,
         "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5518,
+          "without": 5533
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -265984,17 +266196,27 @@
         "scorable_ticker_count": 43,
         "universe_ticker_count": 2468
       },
+      "scorable_count": 43,
       "scored_ticker_count": 43,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.19574781479543205,
       "status": "COMPLETE",
       "trading_date": "2024-03-14",
-      "universe_manifest_hash": "sha256:4cba7c200eacb0d3775cb482d89a7dc94334793c9c978ec4bac9963e248d093f",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:b4f4582f586fc933aba8335c39d05a74944cdf99da0585613b630e30227c73f2",
       "universe_size": 2468
     }
   ],
   "end_date": "2024-03-14",
   "failed_dates": {},
   "file_naming": "dated_v1",
+  "forced_resume": false,
   "massive_plan": {
     "flat_files": true,
     "history_years": 10,
@@ -266003,13 +266225,31 @@
   },
   "max_tickers": null,
   "morning_freeze_time": "09:15:00",
+  "previous_provenance": null,
+  "provenance": {
+    "comparison_policy_paths": [
+      "config/execution_policy_atr.json"
+    ],
+    "cost_model_id": "execution_costs_v1.0",
+    "dataset_version": 4,
+    "feature_registry_id": "feature_registry_alpha_v1.0",
+    "git_sha": "34016593c7ca0bcaaf8c8cd9b96a04adc5020cf5",
+    "metric_count": 25,
+    "rubric_version": "alpha_v1.3_25m",
+    "scout_id": "research_scout_alpha_v1.3"
+  },
+  "reachable_metric_count": 25,
   "reference_cache_summary": {
     "definitive_misses": 8182,
     "errors": 0,
-    "fetches": 0,
-    "hits": 110662,
+    "fetches": 18481,
+    "hits": 92181,
     "listed_after_lagged_date": 0,
     "quarter_reuse_hits": 92181,
+    "sic_code_coverage": {
+      "with": 55428,
+      "without": 55234
+    },
     "transient_retries": 0,
     "unresolved_failures": 0
   },
@@ -266035,6 +266275,13 @@
   "start_date": "2024-03-01",
   "status": "COMPLETE",
   "strategy_capital_usd": 2500.0,
+  "unavailable_metrics": [
+    "call_options_confirmation",
+    "analyst_revision_strength",
+    "positive_social_attention_acceleration",
+    "spread_quality",
+    "order_book_depth_quality"
+  ],
   "universe_policy": {
     "shares_outstanding_lag_days": 120,
     "ticker_overview_cache_policy": "EARLIER_OR_EQUAL_SAME_CALENDAR_QUARTER",
