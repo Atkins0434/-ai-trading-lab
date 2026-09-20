@@ -16,6 +16,7 @@
     "2024-05-14",
     "2024-05-15"
   ],
+  "cost_model_id": "execution_costs_v1.0",
   "current_phase": null,
   "current_trading_date": null,
   "datasets": [
@@ -26256,6 +26257,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 91,
+        "hits": 0,
+        "tickers_with_zero_articles": 20
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -26267,15 +26274,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.176,
-        "download": 5.173,
-        "grading": 64.478,
-        "postmortem": 0.105,
-        "report": 3.494,
-        "scoring": 10.814,
-        "snapshot": 869.011,
-        "universe": 18.922
+        "benchmark": 1.122,
+        "download": 12.904,
+        "grading": 57.674,
+        "postmortem": 0.108,
+        "report": 3.537,
+        "scoring": 12.437,
+        "snapshot": 808.84,
+        "universe": 22.905
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 795,
         "errors": 0,
@@ -26286,6 +26294,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5466,
+          "without": 5557
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9897034596375618,
@@ -26293,11 +26307,20 @@
         "scorable_ticker_count": 25,
         "universe_ticker_count": 2428
       },
+      "scorable_count": 25,
       "scored_ticker_count": 25,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.14343200924340158,
       "status": "COMPLETE",
       "trading_date": "2024-05-01",
-      "universe_manifest_hash": "sha256:c28c11852e0d22c4332b9ead5fa91279933cea6aa6650cdef44addbdd2bdc141",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:20b702c550f67f1c625ba29f505ff18182dc6caa24e19baa593feeaebaa443b8",
       "universe_size": 2428
     },
     {
@@ -52303,6 +52326,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 125,
+        "hits": 0,
+        "tickers_with_zero_articles": 29
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -52314,15 +52343,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.199,
-        "download": 2.595,
-        "grading": 63.422,
+        "benchmark": 1.135,
+        "download": 6.282,
+        "grading": 58.46,
         "postmortem": 0.141,
-        "report": 3.754,
-        "scoring": 11.079,
-        "snapshot": 867.773,
-        "universe": 18.618
+        "report": 3.751,
+        "scoring": 13.072,
+        "snapshot": 803.126,
+        "universe": 24.631
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 799,
         "errors": 0,
@@ -52333,6 +52363,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5461,
+          "without": 5561
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9836668027766435,
@@ -52340,11 +52376,20 @@
         "scorable_ticker_count": 40,
         "universe_ticker_count": 2449
       },
+      "scorable_count": 40,
       "scored_ticker_count": 40,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.6475467172978819,
       "status": "COMPLETE",
       "trading_date": "2024-05-02",
-      "universe_manifest_hash": "sha256:e4129996636586c5874eb85271a5ebbe613c9d3c8645454120194012042cbc4b",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:ede4a1419590c78451c1d88bdca43299ad3f7551398c81c0788069c26b746c53",
       "universe_size": 2449
     },
     {
@@ -78700,6 +78745,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 176,
+        "hits": 0,
+        "tickers_with_zero_articles": 46
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -78711,15 +78762,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.226,
-        "download": 2.588,
-        "grading": 62.695,
-        "postmortem": 0.174,
-        "report": 3.768,
-        "scoring": 11.084,
-        "snapshot": 870.683,
-        "universe": 19.468
+        "benchmark": 1.158,
+        "download": 6.087,
+        "grading": 56.774,
+        "postmortem": 0.17,
+        "report": 3.778,
+        "scoring": 13.7,
+        "snapshot": 806.762,
+        "universe": 23.995
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 795,
         "errors": 0,
@@ -78730,6 +78782,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5460,
+          "without": 5561
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9767346938775511,
@@ -78737,11 +78795,20 @@
         "scorable_ticker_count": 57,
         "universe_ticker_count": 2450
       },
+      "scorable_count": 57,
       "scored_ticker_count": 57,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 1.0633031701087072,
       "status": "COMPLETE",
       "trading_date": "2024-05-03",
-      "universe_manifest_hash": "sha256:50fa3da7e433cae3f114cb64154044b1f279fa728aa0806af92b9da02cbd1938",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:8cbdb6f6972e8ce29350d0f9ecbd5412236a3507514d39dc93409ea3f5a8e861",
       "universe_size": 2450
     },
     {
@@ -105267,6 +105334,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 116,
+        "hits": 0,
+        "tickers_with_zero_articles": 52
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -105278,15 +105351,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.268,
-        "download": 2.559,
-        "grading": 61.256,
-        "postmortem": 0.209,
-        "report": 3.694,
-        "scoring": 11.062,
-        "snapshot": 870.619,
-        "universe": 18.376
+        "benchmark": 1.185,
+        "download": 6.365,
+        "grading": 55.498,
+        "postmortem": 0.2,
+        "report": 3.549,
+        "scoring": 13.227,
+        "snapshot": 804.384,
+        "universe": 23.481
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 798,
         "errors": 0,
@@ -105297,6 +105371,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5454,
+          "without": 5560
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9828501429154757,
@@ -105304,11 +105384,20 @@
         "scorable_ticker_count": 42,
         "universe_ticker_count": 2449
       },
+      "scorable_count": 42,
       "scored_ticker_count": 42,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.393123276418458,
       "status": "COMPLETE",
       "trading_date": "2024-05-06",
-      "universe_manifest_hash": "sha256:b034a7af6229fcfb3c27e20e5ad0c98357f72f3aa519fb47a551e68ac39b0908",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:0377f3c0b099f443d43049434769c2fad0563ee56139e5dbdd65f539a93b4e4e",
       "universe_size": 2449
     },
     {
@@ -132534,6 +132623,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 108,
+        "hits": 0,
+        "tickers_with_zero_articles": 33
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -132545,15 +132640,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.32,
-        "download": 2.836,
-        "grading": 62.884,
-        "postmortem": 0.258,
-        "report": 3.653,
-        "scoring": 11.03,
-        "snapshot": 873.188,
-        "universe": 19.687
+        "benchmark": 1.232,
+        "download": 6.226,
+        "grading": 55.848,
+        "postmortem": 0.235,
+        "report": 3.473,
+        "scoring": 12.915,
+        "snapshot": 807.472,
+        "universe": 22.494
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 798,
         "errors": 0,
@@ -132564,6 +132660,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5453,
+          "without": 5560
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.986975986975987,
@@ -132571,11 +132673,20 @@
         "scorable_ticker_count": 32,
         "universe_ticker_count": 2457
       },
+      "scorable_count": 32,
       "scored_ticker_count": 32,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.14906014673712792,
       "status": "COMPLETE",
       "trading_date": "2024-05-07",
-      "universe_manifest_hash": "sha256:d109c6d39b12cd5b22b249e32df4b92af5941a6067597d2df3b6bc7723407881",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:43ee59f084c820b6e7dfff1b4d3b8fe41fa29cf73a5f9dc79e02dc8a1b019227",
       "universe_size": 2457
     },
     {
@@ -159051,6 +159162,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 128,
+        "hits": 0,
+        "tickers_with_zero_articles": 24
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -159062,15 +159179,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.35,
-        "download": 2.855,
-        "grading": 62.045,
-        "postmortem": 0.285,
-        "report": 3.709,
-        "scoring": 11.293,
-        "snapshot": 873.816,
-        "universe": 24.186
+        "benchmark": 1.25,
+        "download": 6.394,
+        "grading": 55.916,
+        "postmortem": 0.26,
+        "report": 3.508,
+        "scoring": 13.254,
+        "snapshot": 808.018,
+        "universe": 23.241
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 801,
         "errors": 0,
@@ -159081,6 +159199,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5452,
+          "without": 5565
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9828850855745721,
@@ -159088,11 +159212,20 @@
         "scorable_ticker_count": 42,
         "universe_ticker_count": 2454
       },
+      "scorable_count": 42,
       "scored_ticker_count": 42,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.3267973856209036,
       "status": "COMPLETE",
       "trading_date": "2024-05-08",
-      "universe_manifest_hash": "sha256:1d58086f6cb66191b900e844a9093c2f009453f0fa34e1a114e81511ccfe49ad",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:c972af1bb3472279960e3d923dbf8373a90986854252c6eae3c3cc5426ecd140",
       "universe_size": 2454
     },
     {
@@ -185498,6 +185631,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 146,
+        "hits": 0,
+        "tickers_with_zero_articles": 25
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -185509,15 +185648,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.412,
-        "download": 2.604,
-        "grading": 62.53,
-        "postmortem": 0.327,
-        "report": 3.767,
-        "scoring": 11.192,
-        "snapshot": 869.385,
-        "universe": 18.353
+        "benchmark": 1.309,
+        "download": 6.017,
+        "grading": 55.798,
+        "postmortem": 0.299,
+        "report": 3.758,
+        "scoring": 13.491,
+        "snapshot": 803.284,
+        "universe": 24.046
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 800,
         "errors": 0,
@@ -185528,6 +185668,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5447,
+          "without": 5569
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9824704443538524,
@@ -185535,11 +185681,20 @@
         "scorable_ticker_count": 43,
         "universe_ticker_count": 2453
       },
+      "scorable_count": 43,
       "scored_ticker_count": 43,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.0909530346680962,
       "status": "COMPLETE",
       "trading_date": "2024-05-09",
-      "universe_manifest_hash": "sha256:c7e7396251da52e62147638bdd1392d12ab39235dea6cf976a902d92203b1431",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:48e597eb7aa44b841a395bacd3187b48aff9a125c7e23122a3e52867616101af",
       "universe_size": 2453
     },
     {
@@ -211555,6 +211710,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 129,
+        "hits": 0,
+        "tickers_with_zero_articles": 19
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -211566,15 +211727,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.4,
-        "download": 3.735,
-        "grading": 62.454,
-        "postmortem": 0.367,
-        "report": 3.793,
-        "scoring": 11.396,
-        "snapshot": 868.923,
-        "universe": 18.992
+        "benchmark": 1.289,
+        "download": 6.316,
+        "grading": 55.44,
+        "postmortem": 0.324,
+        "report": 3.723,
+        "scoring": 13.393,
+        "snapshot": 801.957,
+        "universe": 22.562
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 783,
         "errors": 0,
@@ -211585,6 +211747,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5444,
+          "without": 5573
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.985353946297803,
@@ -211592,11 +211760,20 @@
         "scorable_ticker_count": 36,
         "universe_ticker_count": 2458
       },
+      "scorable_count": 36,
       "scored_ticker_count": 36,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.2614529865236392,
       "status": "COMPLETE",
       "trading_date": "2024-05-10",
-      "universe_manifest_hash": "sha256:fe386ad33f39151744cdb18c9b50ec3d8ce26a2403a78f105974f319f9f9b016",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:272c72edc18ef677d4b80c6067d8b53ca664ae4de99c83fa15927b93a8ec0148",
       "universe_size": 2458
     },
     {
@@ -237202,6 +237379,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 108,
+        "hits": 0,
+        "tickers_with_zero_articles": 45
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -237213,15 +237396,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.427,
-        "download": 2.791,
-        "grading": 60.647,
-        "postmortem": 0.394,
-        "report": 3.775,
-        "scoring": 11.182,
-        "snapshot": 866.36,
-        "universe": 18.089
+        "benchmark": 1.326,
+        "download": 5.793,
+        "grading": 55.5,
+        "postmortem": 0.357,
+        "report": 3.685,
+        "scoring": 13.125,
+        "snapshot": 800.836,
+        "universe": 23.175
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 787,
         "errors": 0,
@@ -237232,6 +237416,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5441,
+          "without": 5579
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9877200163733115,
@@ -237239,11 +237429,20 @@
         "scorable_ticker_count": 30,
         "universe_ticker_count": 2443
       },
+      "scorable_count": 30,
       "scored_ticker_count": 30,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.34757315106366327,
       "status": "COMPLETE",
       "trading_date": "2024-05-13",
-      "universe_manifest_hash": "sha256:975e8d98528814fb6bf1166265fb2a1a8b49d53c0dbc7b716ade75c0c146954c",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:8814aa5d76c14fbd824aee49cba8ad6cf00a594ec42fabd912ac3df8ddd67142",
       "universe_size": 2443
     },
     {
@@ -263999,6 +264198,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 161,
+        "hits": 0,
+        "tickers_with_zero_articles": 72
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -264010,15 +264215,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.489,
-        "download": 2.83,
-        "grading": 61.478,
-        "postmortem": 0.435,
-        "report": 4.278,
-        "scoring": 11.88,
-        "snapshot": 859.714,
-        "universe": 20.557
+        "benchmark": 1.36,
+        "download": 6.135,
+        "grading": 55.731,
+        "postmortem": 0.381,
+        "report": 3.991,
+        "scoring": 14.016,
+        "snapshot": 797.281,
+        "universe": 21.904
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 787,
         "errors": 0,
@@ -264029,6 +264235,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5436,
+          "without": 5578
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9700819672131148,
@@ -264036,11 +264248,20 @@
         "scorable_ticker_count": 73,
         "universe_ticker_count": 2440
       },
+      "scorable_count": 73,
       "scored_ticker_count": 73,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.0691098270334633,
       "status": "COMPLETE",
       "trading_date": "2024-05-14",
-      "universe_manifest_hash": "sha256:c5ce6e97d325ea793b04f4088910b9ac5d8bb125e5cb4c2f14b8c4c8a122a84e",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:aa573d868501cf7b689277f74e58412fadfac68187fa1933e8f325f54cd67424",
       "universe_size": 2440
     },
     {
@@ -290986,6 +291207,12 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 191,
+        "hits": 0,
+        "tickers_with_zero_articles": 65
+      },
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
@@ -290997,15 +291224,16 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.525,
-        "download": 3.489,
-        "grading": 61.64,
-        "postmortem": 0.466,
-        "report": 4.264,
-        "scoring": 11.806,
-        "snapshot": 861.448,
-        "universe": 18.901
+        "benchmark": 1.399,
+        "download": 6.199,
+        "grading": 55.758,
+        "postmortem": 0.415,
+        "report": 4.074,
+        "scoring": 14.674,
+        "snapshot": 799.219,
+        "universe": 22.431
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 791,
         "errors": 0,
@@ -291016,6 +291244,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5436,
+          "without": 5583
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9693752552062066,
@@ -291023,17 +291257,27 @@
         "scorable_ticker_count": 75,
         "universe_ticker_count": 2449
       },
+      "scorable_count": 75,
       "scored_ticker_count": 75,
       "smoke_mode": false,
+      "spy_premarket_return_pct": 0.544620676476213,
       "status": "COMPLETE",
       "trading_date": "2024-05-15",
-      "universe_manifest_hash": "sha256:b76a4d2f643e89e886b1d827f3cab7e55a6ec27596324813a6c66110dd6c28e4",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:16df6718a150eedd57f975dcbd6eb9334087a25ffd00e93ea3b69e2fcf3727fb",
       "universe_size": 2449
     }
   ],
   "end_date": "2024-05-15",
   "failed_dates": {},
   "file_naming": "dated_v1",
+  "forced_resume": false,
   "massive_plan": {
     "flat_files": true,
     "history_years": 10,
@@ -291042,6 +291286,20 @@
   },
   "max_tickers": null,
   "morning_freeze_time": "09:15:00",
+  "previous_provenance": null,
+  "provenance": {
+    "comparison_policy_paths": [
+      "config/execution_policy_atr.json"
+    ],
+    "cost_model_id": "execution_costs_v1.0",
+    "dataset_version": 5,
+    "feature_registry_id": "feature_registry_alpha_v1.0",
+    "git_sha": "25438eecdfc35640c18df4b90661a1f3530ccbb1",
+    "metric_count": 25,
+    "rubric_version": "alpha_v1.3_25m",
+    "scout_id": "research_scout_alpha_v1.3"
+  },
+  "reachable_metric_count": 25,
   "reference_cache_summary": {
     "definitive_misses": 8734,
     "errors": 0,
@@ -291049,6 +291307,10 @@
     "hits": 112406,
     "listed_after_lagged_date": 0,
     "quarter_reuse_hits": 112406,
+    "sic_code_coverage": {
+      "with": 59950,
+      "without": 61246
+    },
     "transient_retries": 0,
     "unresolved_failures": 0
   },
@@ -291075,6 +291337,13 @@
   "start_date": "2024-05-01",
   "status": "COMPLETE",
   "strategy_capital_usd": 2500.0,
+  "unavailable_metrics": [
+    "call_options_confirmation",
+    "analyst_revision_strength",
+    "positive_social_attention_acceleration",
+    "spread_quality",
+    "order_book_depth_quality"
+  ],
   "universe_policy": {
     "shares_outstanding_lag_days": 120,
     "ticker_overview_cache_policy": "EARLIER_OR_EQUAL_SAME_CALENDAR_QUARTER",

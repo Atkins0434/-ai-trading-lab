@@ -2,15 +2,18 @@
   "benchmark_performance": {
     "average_capture_ratio": null,
     "max_drawdown_pct": null,
-    "realized_pnl_usd": 1.3226045699999938,
-    "realized_return_pct": 0.05290418279999975,
+    "net_realized_pnl_usd": 0.0,
+    "net_realized_return_pct": 0.0,
+    "realized_pnl_usd": 0.0,
+    "realized_return_pct": 0.0,
     "win_rate_pct": null
   },
+  "cost_model_id": "execution_costs_v1.0",
   "execution_policy_review": [
     {
       "cohort_summaries": {
         "SCOUT_SELECTION": {
-          "average_capture_ratio": -0.35690909090909223,
+          "average_capture_ratio": null,
           "delta_vs_champion": {
             "capture_ratio": null,
             "return_pct": null
@@ -19,13 +22,17 @@
             "ENTRY_REJECTED": {},
             "PROFIT_TARGET": 0,
             "SESSION_END": 0,
-            "TRAILING_STOP": 1
+            "TRAILING_STOP": 0
           },
-          "max_drawdown_pct": -1.111646452899151,
-          "net_realized_pnl_usd": -4.815200000000004,
-          "realized_return_pct": -1.0000000000000009,
-          "trades_executed": 1,
-          "win_rate_pct": 0.0
+          "gross_realized_pnl_usd": 0,
+          "max_drawdown_pct": null,
+          "net_average_capture_ratio": null,
+          "net_realized_pnl_usd": 0,
+          "net_realized_return_pct": 0.0,
+          "realized_pnl_usd": 0,
+          "realized_return_pct": 0.0,
+          "trades_executed": 0,
+          "win_rate_pct": null
         },
         "TOP_10_MOVER": {
           "average_capture_ratio": 0.20225420017177,
@@ -39,8 +46,12 @@
             "SESSION_END": 0,
             "TRAILING_STOP": 5
           },
+          "gross_realized_pnl_usd": 132.95606199999995,
           "max_drawdown_pct": -3.1104199066873894,
-          "net_realized_pnl_usd": 132.95606199999995,
+          "net_average_capture_ratio": 0.13960630839670068,
+          "net_realized_pnl_usd": 87.60280278999996,
+          "net_realized_return_pct": 3.5216662681925146,
+          "realized_pnl_usd": 132.95606199999995,
           "realized_return_pct": 5.343476069615662,
           "trades_executed": 5,
           "win_rate_pct": 60.0
@@ -53,22 +64,26 @@
     {
       "cohort_summaries": {
         "SCOUT_SELECTION": {
-          "average_capture_ratio": -1.1364919637597828,
+          "average_capture_ratio": null,
           "delta_vs_champion": {
-            "capture_ratio": -0.7795828728506906,
-            "return_pct": -2.184261742577069
+            "capture_ratio": null,
+            "return_pct": 0.0
           },
           "exit_reason_counts": {
             "ENTRY_REJECTED": {},
             "PROFIT_TARGET": 0,
             "SESSION_END": 0,
-            "TRAILING_STOP": 1
+            "TRAILING_STOP": 0
           },
-          "max_drawdown_pct": -3.195049011463691,
-          "net_realized_pnl_usd": -15.332857142857108,
-          "realized_return_pct": -3.18426174257707,
-          "trades_executed": 1,
-          "win_rate_pct": 0.0
+          "gross_realized_pnl_usd": 0,
+          "max_drawdown_pct": null,
+          "net_average_capture_ratio": null,
+          "net_realized_pnl_usd": 0,
+          "net_realized_return_pct": 0.0,
+          "realized_pnl_usd": 0,
+          "realized_return_pct": 0.0,
+          "trades_executed": 0,
+          "win_rate_pct": null
         },
         "TOP_10_MOVER": {
           "average_capture_ratio": 0.5317941367914578,
@@ -84,8 +99,12 @@
             "SESSION_END": 1,
             "TRAILING_STOP": 3
           },
+          "gross_realized_pnl_usd": 183.7073357142857,
           "max_drawdown_pct": -3.409090909090917,
-          "net_realized_pnl_usd": 183.7073357142857,
+          "net_average_capture_ratio": 0.502516424781553,
+          "net_realized_pnl_usd": 163.0945445214286,
+          "net_realized_return_pct": 14.548690488800043,
+          "realized_pnl_usd": 183.7073357142857,
           "realized_return_pct": 16.01911709645789,
           "trades_executed": 5,
           "win_rate_pct": 100.0
@@ -102,7 +121,7 @@
     "challenger_won_on_selection": false,
     "champion_policy_id": "execution_policy_v1.0",
     "sample_size": {
-      "SCOUT_SELECTION": 1,
+      "SCOUT_SELECTION": 0,
       "TOP_10_MOVER": 10
     }
   },
@@ -111,7 +130,7 @@
     {
       "description": "A visible benchmark mover remained below the research selection threshold.",
       "evidence": [
-        "LAZR score=39.47%"
+        "LAZR score=40.00%"
       ],
       "failure_type": "THRESHOLD",
       "feature_id": "selection_threshold"
@@ -129,6 +148,7 @@
       "alpha12_score_pct": 31.25,
       "alpha12_total_score": 15,
       "benchmark_rank": 1,
+      "benchmark_symbol": "IWM",
       "component_scores": [
         {
           "calculation_version": "research_alpha_extended_v1.0",
@@ -142,6 +162,34 @@
           "metric_id": "average_daily_dollar_volume_quality",
           "raw_value": 11864679.80825,
           "score": 2,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "broad_market_regime_alignment",
+          "raw_value": -0.88305605698395,
+          "score": 0,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_freshness_relevance",
+          "raw_value": 121.61666666666666,
+          "score": 3,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_quality",
+          "raw_value": "GUIDANCE",
+          "score": 4,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_verification_confidence",
+          "raw_value": "SINGLE_SOURCE",
+          "score": 1,
           "status": "SCORED"
         },
         {
@@ -253,6 +301,20 @@
           "status": "OBSERVED"
         },
         {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "sector_strength",
+          "raw_value": -0.1710896877506619,
+          "score": 0,
+          "status": "SCORED"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "stock_leadership_vs_sector",
+          "raw_value": 6.47232756291644,
+          "score": 2,
+          "status": "SCORED"
+        },
+        {
           "calculation_version": "research_alpha_price_volume_v1.0",
           "metric_id": "volume_slope_15m",
           "raw_value": 0.3311695920300298,
@@ -279,6 +341,9 @@
       ],
       "maximum_capturable_move_pct": 36.47058823529412,
       "miss_classification": "VISIBLE_SCORED_LOW",
+      "net_realized_benchmark_pnl_usd": -19.965768000000015,
+      "net_realized_benchmark_return_pct": -3.9944318181818215,
+      "net_scout_realized_return_pct": 0.0,
       "opening_range": {
         "day_high_timestamp": "2024-05-08T12:10:00-04:00",
         "high_0930_1000_pct": 7.954545454545459,
@@ -292,10 +357,12 @@
       "realized_benchmark_pnl_usd": -4.998400000000017,
       "realized_benchmark_return_pct": -1.0000000000000036,
       "reversal_score_pct": 39.58333333333333,
-      "rubric_version": "alpha_v1.1_19m",
+      "rubric_version": "alpha_v1.3_25m",
+      "score_pct_fixed120": 33.33333333333333,
+      "score_pct_reachable": 40.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
-      "scout_score_pct": 39.473684210526315,
+      "scout_score_pct": 40.0,
       "scout_selected": false,
       "ticker": "LAZR",
       "was_in_scout_output": true
@@ -304,6 +371,7 @@
       "alpha12_score_pct": 0.0,
       "alpha12_total_score": 0,
       "benchmark_rank": 2,
+      "benchmark_symbol": "IWM",
       "component_scores": [
         {
           "calculation_version": "research_alpha_extended_v1.0",
@@ -315,6 +383,34 @@
         {
           "calculation_version": "research_alpha_extended_v1.0",
           "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "broad_market_regime_alignment",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_freshness_relevance",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_verification_confidence",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -413,6 +509,20 @@
         {
           "calculation_version": "research_alpha_v1.0",
           "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "sector_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "stock_leadership_vs_sector",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -444,6 +554,9 @@
       ],
       "maximum_capturable_move_pct": 30.456852791878177,
       "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": 46.881828,
+      "net_realized_benchmark_return_pct": 9.443604060913707,
+      "net_scout_realized_return_pct": 0.0,
       "opening_range": {
         "day_high_timestamp": "2024-05-08T10:17:00-04:00",
         "high_0930_1000_pct": 26.649746192893396,
@@ -457,7 +570,9 @@
       "realized_benchmark_pnl_usd": 57.4056,
       "realized_benchmark_return_pct": 11.563451776649746,
       "reversal_score_pct": null,
-      "rubric_version": "alpha_v1.1_19m",
+      "rubric_version": "alpha_v1.3_25m",
+      "score_pct_fixed120": 0.0,
+      "score_pct_reachable": 0.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
       "scout_score_pct": 0.0,
@@ -469,6 +584,7 @@
       "alpha12_score_pct": 0.0,
       "alpha12_total_score": 0,
       "benchmark_rank": 3,
+      "benchmark_symbol": "IWM",
       "component_scores": [
         {
           "calculation_version": "research_alpha_extended_v1.0",
@@ -480,6 +596,34 @@
         {
           "calculation_version": "research_alpha_extended_v1.0",
           "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "broad_market_regime_alignment",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_freshness_relevance",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_verification_confidence",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -578,6 +722,20 @@
         {
           "calculation_version": "research_alpha_v1.0",
           "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "sector_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "stock_leadership_vs_sector",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -609,6 +767,9 @@
       ],
       "maximum_capturable_move_pct": 33.86837881219902,
       "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": -10.875495400000018,
+      "net_realized_benchmark_return_pct": -2.1965816485225544,
+      "net_scout_realized_return_pct": 0.0,
       "opening_range": {
         "day_high_timestamp": "2024-05-08T15:41:00-04:00",
         "high_0930_1000_pct": 20.37325038880249,
@@ -622,7 +783,9 @@
       "realized_benchmark_pnl_usd": -4.951100000000019,
       "realized_benchmark_return_pct": -1.0000000000000038,
       "reversal_score_pct": null,
-      "rubric_version": "alpha_v1.1_19m",
+      "rubric_version": "alpha_v1.3_25m",
+      "score_pct_fixed120": 0.0,
+      "score_pct_reachable": 0.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
       "scout_score_pct": 0.0,
@@ -634,6 +797,7 @@
       "alpha12_score_pct": 0.0,
       "alpha12_total_score": 0,
       "benchmark_rank": 4,
+      "benchmark_symbol": "IWM",
       "component_scores": [
         {
           "calculation_version": "research_alpha_extended_v1.0",
@@ -645,6 +809,34 @@
         {
           "calculation_version": "research_alpha_extended_v1.0",
           "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "broad_market_regime_alignment",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_freshness_relevance",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_verification_confidence",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -743,6 +935,20 @@
         {
           "calculation_version": "research_alpha_v1.0",
           "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "sector_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "stock_leadership_vs_sector",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -774,6 +980,9 @@
       ],
       "maximum_capturable_move_pct": 28.57142857142858,
       "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": 17.031338000000034,
+      "net_realized_benchmark_return_pct": 3.4268285714285778,
+      "net_scout_realized_return_pct": 0.0,
       "opening_range": {
         "day_high_timestamp": "2024-05-08T13:45:00-04:00",
         "high_0930_1000_pct": 5.714285714285716,
@@ -787,7 +996,9 @@
       "realized_benchmark_pnl_usd": 23.146000000000036,
       "realized_benchmark_return_pct": 4.657142857142865,
       "reversal_score_pct": null,
-      "rubric_version": "alpha_v1.1_19m",
+      "rubric_version": "alpha_v1.3_25m",
+      "score_pct_fixed120": 0.0,
+      "score_pct_reachable": 0.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
       "scout_score_pct": 0.0,
@@ -799,6 +1010,7 @@
       "alpha12_score_pct": 0.0,
       "alpha12_total_score": 0,
       "benchmark_rank": 5,
+      "benchmark_symbol": "IWM",
       "component_scores": [
         {
           "calculation_version": "research_alpha_extended_v1.0",
@@ -810,6 +1022,34 @@
         {
           "calculation_version": "research_alpha_extended_v1.0",
           "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "broad_market_regime_alignment",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_freshness_relevance",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_verification_confidence",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -908,6 +1148,20 @@
         {
           "calculation_version": "research_alpha_v1.0",
           "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "sector_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "stock_leadership_vs_sector",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -939,6 +1193,9 @@
       ],
       "maximum_capturable_move_pct": 23.778501628664507,
       "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": 54.530900189999954,
+      "net_realized_benchmark_return_pct": 10.928912175324665,
+      "net_scout_realized_return_pct": 0.0,
       "opening_range": {
         "day_high_timestamp": "2024-05-08T14:21:00-04:00",
         "high_0930_1000_pct": 19.152597402597404,
@@ -952,7 +1209,9 @@
       "realized_benchmark_pnl_usd": 62.35396199999995,
       "realized_benchmark_return_pct": 12.496785714285705,
       "reversal_score_pct": null,
-      "rubric_version": "alpha_v1.1_19m",
+      "rubric_version": "alpha_v1.3_25m",
+      "score_pct_fixed120": 0.0,
+      "score_pct_reachable": 0.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
       "scout_score_pct": 0.0,
@@ -964,6 +1223,7 @@
       "alpha12_score_pct": 0.0,
       "alpha12_total_score": 0,
       "benchmark_rank": 6,
+      "benchmark_symbol": "IWM",
       "component_scores": [
         {
           "calculation_version": "research_alpha_extended_v1.0",
@@ -975,6 +1235,34 @@
         {
           "calculation_version": "research_alpha_extended_v1.0",
           "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "broad_market_regime_alignment",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_freshness_relevance",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_verification_confidence",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -1073,6 +1361,20 @@
         {
           "calculation_version": "research_alpha_v1.0",
           "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "sector_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "stock_leadership_vs_sector",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -1104,6 +1406,9 @@
       ],
       "maximum_capturable_move_pct": 21.759259259259256,
       "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": null,
+      "net_realized_benchmark_return_pct": null,
+      "net_scout_realized_return_pct": 0.0,
       "opening_range": {
         "day_high_timestamp": "2024-05-08T10:39:00-04:00",
         "high_0930_1000_pct": null,
@@ -1117,7 +1422,9 @@
       "realized_benchmark_pnl_usd": null,
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
-      "rubric_version": "alpha_v1.1_19m",
+      "rubric_version": "alpha_v1.3_25m",
+      "score_pct_fixed120": 0.0,
+      "score_pct_reachable": 0.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
       "scout_score_pct": 0.0,
@@ -1129,6 +1436,7 @@
       "alpha12_score_pct": 0.0,
       "alpha12_total_score": 0,
       "benchmark_rank": 7,
+      "benchmark_symbol": "IWM",
       "component_scores": [
         {
           "calculation_version": "research_alpha_extended_v1.0",
@@ -1140,6 +1448,34 @@
         {
           "calculation_version": "research_alpha_extended_v1.0",
           "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "broad_market_regime_alignment",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_freshness_relevance",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_verification_confidence",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -1238,6 +1574,20 @@
         {
           "calculation_version": "research_alpha_v1.0",
           "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "sector_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "stock_leadership_vs_sector",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -1269,6 +1619,9 @@
       ],
       "maximum_capturable_move_pct": 19.11764705882353,
       "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": null,
+      "net_realized_benchmark_return_pct": null,
+      "net_scout_realized_return_pct": 0.0,
       "opening_range": {
         "day_high_timestamp": "2024-05-08T09:43:00-04:00",
         "high_0930_1000_pct": 19.11764705882353,
@@ -1282,7 +1635,9 @@
       "realized_benchmark_pnl_usd": null,
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
-      "rubric_version": "alpha_v1.1_19m",
+      "rubric_version": "alpha_v1.3_25m",
+      "score_pct_fixed120": 0.0,
+      "score_pct_reachable": 0.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
       "scout_score_pct": 0.0,
@@ -1294,6 +1649,7 @@
       "alpha12_score_pct": 0.0,
       "alpha12_total_score": 0,
       "benchmark_rank": 8,
+      "benchmark_symbol": "IWM",
       "component_scores": [
         {
           "calculation_version": "research_alpha_extended_v1.0",
@@ -1305,6 +1661,34 @@
         {
           "calculation_version": "research_alpha_extended_v1.0",
           "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "broad_market_regime_alignment",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_freshness_relevance",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_verification_confidence",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -1403,6 +1787,20 @@
         {
           "calculation_version": "research_alpha_v1.0",
           "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "sector_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "stock_leadership_vs_sector",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -1434,6 +1832,9 @@
       ],
       "maximum_capturable_move_pct": 19.39348722900025,
       "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": null,
+      "net_realized_benchmark_return_pct": null,
+      "net_scout_realized_return_pct": 0.0,
       "opening_range": {
         "day_high_timestamp": "2024-05-08T15:29:00-04:00",
         "high_0930_1000_pct": 13.760869565217382,
@@ -1447,7 +1848,9 @@
       "realized_benchmark_pnl_usd": null,
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
-      "rubric_version": "alpha_v1.1_19m",
+      "rubric_version": "alpha_v1.3_25m",
+      "score_pct_fixed120": 0.0,
+      "score_pct_reachable": 0.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
       "scout_score_pct": 0.0,
@@ -1459,6 +1862,7 @@
       "alpha12_score_pct": 0.0,
       "alpha12_total_score": 0,
       "benchmark_rank": 9,
+      "benchmark_symbol": "IWM",
       "component_scores": [
         {
           "calculation_version": "research_alpha_extended_v1.0",
@@ -1470,6 +1874,34 @@
         {
           "calculation_version": "research_alpha_extended_v1.0",
           "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "broad_market_regime_alignment",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_freshness_relevance",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_verification_confidence",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -1568,6 +2000,20 @@
         {
           "calculation_version": "research_alpha_v1.0",
           "metric_id": "relative_volume",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "sector_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "stock_leadership_vs_sector",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -1599,6 +2045,9 @@
       ],
       "maximum_capturable_move_pct": 22.26027397260275,
       "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": null,
+      "net_realized_benchmark_return_pct": null,
+      "net_scout_realized_return_pct": 0.0,
       "opening_range": {
         "day_high_timestamp": "2024-05-08T15:53:00-04:00",
         "high_0930_1000_pct": 17.322368421052637,
@@ -1612,7 +2061,9 @@
       "realized_benchmark_pnl_usd": null,
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
-      "rubric_version": "alpha_v1.1_19m",
+      "rubric_version": "alpha_v1.3_25m",
+      "score_pct_fixed120": 0.0,
+      "score_pct_reachable": 0.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
       "scout_score_pct": 0.0,
@@ -1624,6 +2075,7 @@
       "alpha12_score_pct": 0.0,
       "alpha12_total_score": 0,
       "benchmark_rank": 10,
+      "benchmark_symbol": "IWM",
       "component_scores": [
         {
           "calculation_version": "research_alpha_extended_v1.0",
@@ -1635,6 +2087,34 @@
         {
           "calculation_version": "research_alpha_extended_v1.0",
           "metric_id": "average_daily_dollar_volume_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "broad_market_regime_alignment",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_freshness_relevance",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_quality",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "research_catalyst_v1.0",
+          "metric_id": "catalyst_verification_confidence",
           "raw_value": null,
           "score": null,
           "status": "MISSING"
@@ -1738,6 +2218,20 @@
           "status": "MISSING"
         },
         {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "sector_strength",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
+          "calculation_version": "sector_context_v1.0",
+          "metric_id": "stock_leadership_vs_sector",
+          "raw_value": null,
+          "score": null,
+          "status": "MISSING"
+        },
+        {
           "calculation_version": "research_alpha_v1.0",
           "metric_id": "volume_slope_15m",
           "raw_value": null,
@@ -1764,6 +2258,9 @@
       ],
       "maximum_capturable_move_pct": 16.833073322932933,
       "miss_classification": "INVISIBLE_AT_FREEZE",
+      "net_realized_benchmark_pnl_usd": null,
+      "net_realized_benchmark_return_pct": null,
+      "net_scout_realized_return_pct": 0.0,
       "opening_range": {
         "day_high_timestamp": "2024-05-08T14:56:00-04:00",
         "high_0930_1000_pct": null,
@@ -1777,7 +2274,9 @@
       "realized_benchmark_pnl_usd": null,
       "realized_benchmark_return_pct": null,
       "reversal_score_pct": null,
-      "rubric_version": "alpha_v1.1_19m",
+      "rubric_version": "alpha_v1.3_25m",
+      "score_pct_fixed120": 0.0,
+      "score_pct_reachable": 0.0,
       "scout_exit_reason": null,
       "scout_realized_return_pct": 0.0,
       "scout_score_pct": 0.0,
@@ -1786,6 +2285,346 @@
       "was_in_scout_output": true
     }
   ],
+  "net_result": "TIE",
+  "net_result_code": "SCOUT_TIED",
+  "net_scout_won": false,
+  "news_coverage": {
+    "by_event_type": {
+      "ANALYST_ACTION": 3,
+      "EARNINGS": 53,
+      "GUIDANCE": 19,
+      "OFFERING_DILUTION": 7,
+      "OTHER": 20
+    },
+    "by_price_tier": {
+      "10_to_25": {
+        "by_event_type": {
+          "ANALYST_ACTION": 1,
+          "EARNINGS": 16,
+          "GUIDANCE": 6,
+          "OFFERING_DILUTION": 3,
+          "OTHER": 4
+        },
+        "by_source_tier": {
+          "HIGH_QUALITY_WIRE": 9,
+          "OTHER": 21
+        },
+        "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 183.5,
+          "p50": 884.9,
+          "p75": 1442.4333333333334
+        },
+        "freshest_relevant_event_ages_minutes": [
+          31.866666666666667,
+          109.95,
+          121.61666666666666,
+          121.61666666666666,
+          121.61666666666666,
+          135.0,
+          232.0,
+          316.96666666666664,
+          644.75,
+          704.7666666666667,
+          854.7333333333333,
+          884.9,
+          1060.0,
+          1138.0,
+          1149.0,
+          1224.0,
+          1419.9333333333334,
+          1464.9333333333334,
+          2314.9666666666667,
+          2621.95,
+          2621.95,
+          2734.0,
+          2958.266666666667
+        ],
+        "scorable_count": 36,
+        "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.2777777777777778,
+        "share_with_relevant_event_under_24h": 0.4722222222222222,
+        "top_10_movers_with_admitted_event": 0,
+        "with_admitted_event": 30,
+        "with_any_article": 31
+      },
+      "25_plus": {
+        "by_event_type": {
+          "ANALYST_ACTION": 1,
+          "EARNINGS": 7,
+          "GUIDANCE": 5,
+          "OFFERING_DILUTION": 1,
+          "OTHER": 3
+        },
+        "by_source_tier": {
+          "HIGH_QUALITY_WIRE": 4,
+          "OTHER": 13
+        },
+        "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 102.71249999999999,
+          "p50": 264.8416666666667,
+          "p75": 927.45
+        },
+        "freshest_relevant_event_ages_minutes": [
+          31.866666666666667,
+          39.95,
+          46.0,
+          121.61666666666666,
+          121.61666666666666,
+          124.93333333333334,
+          404.75,
+          909.8833333333333,
+          914.95,
+          964.95,
+          1680.4,
+          3003.1666666666665
+        ],
+        "scorable_count": 20,
+        "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.35,
+        "share_with_relevant_event_under_24h": 0.5,
+        "top_10_movers_with_admitted_event": 0,
+        "with_admitted_event": 17,
+        "with_any_article": 17
+      },
+      "2_to_5": {
+        "by_event_type": {
+          "ANALYST_ACTION": 1,
+          "EARNINGS": 13,
+          "GUIDANCE": 3,
+          "OFFERING_DILUTION": 1,
+          "OTHER": 5
+        },
+        "by_source_tier": {
+          "HIGH_QUALITY_WIRE": 4,
+          "OTHER": 19
+        },
+        "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 895.0,
+          "p50": 1081.1833333333334,
+          "p75": 2359.9333333333334
+        },
+        "freshest_relevant_event_ages_minutes": [
+          130.0,
+          587.7666666666667,
+          664.0,
+          864.9333333333333,
+          895.0,
+          904.8833333333333,
+          944.8666666666667,
+          947.3666666666667,
+          1081.1833333333334,
+          1224.0,
+          1261.0,
+          1294.0,
+          2359.9333333333334,
+          2629.0,
+          2736.0,
+          2914.0,
+          2953.0
+        ],
+        "scorable_count": 27,
+        "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.1111111111111111,
+        "share_with_relevant_event_under_24h": 0.4444444444444444,
+        "top_10_movers_with_admitted_event": 0,
+        "with_admitted_event": 23,
+        "with_any_article": 23
+      },
+      "5_to_10": {
+        "by_event_type": {
+          "EARNINGS": 10,
+          "GUIDANCE": 4,
+          "OFFERING_DILUTION": 2,
+          "OTHER": 5
+        },
+        "by_source_tier": {
+          "HIGH_QUALITY_WIRE": 5,
+          "OTHER": 16
+        },
+        "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 67.90833333333333,
+          "p50": 589.8333333333333,
+          "p75": 1132.3166666666666
+        },
+        "freshest_relevant_event_ages_minutes": [
+          19.933333333333334,
+          34.95,
+          49.88333333333333,
+          49.88333333333333,
+          73.91666666666667,
+          121.61666666666666,
+          121.61666666666666,
+          284.76666666666665,
+          894.9,
+          899.9333333333333,
+          959.9333333333333,
+          1030.0,
+          1439.2666666666667,
+          1439.2666666666667,
+          1439.6333333333334,
+          2961.0
+        ],
+        "scorable_count": 31,
+        "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.25806451612903225,
+        "share_with_relevant_event_under_24h": 0.4838709677419355,
+        "top_10_movers_with_admitted_event": 0,
+        "with_admitted_event": 21,
+        "with_any_article": 22
+      },
+      "UNKNOWN": {
+        "by_event_type": {},
+        "by_source_tier": {},
+        "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": null,
+          "p50": null,
+          "p75": null
+        },
+        "freshest_relevant_event_ages_minutes": [],
+        "scorable_count": 0,
+        "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": null,
+        "share_with_relevant_event_under_24h": null,
+        "top_10_movers_with_admitted_event": 0,
+        "with_admitted_event": 0,
+        "with_any_article": 0
+      },
+      "under_2": {
+        "by_event_type": {
+          "EARNINGS": 7,
+          "GUIDANCE": 1,
+          "OTHER": 3
+        },
+        "by_source_tier": {
+          "HIGH_QUALITY_WIRE": 1,
+          "OTHER": 10
+        },
+        "fetch_errors": 0,
+        "freshest_relevant_event_age_minutes": {
+          "p25": 821.1041666666666,
+          "p50": 934.7916666666666,
+          "p75": 1236.75
+        },
+        "freshest_relevant_event_ages_minutes": [
+          121.61666666666666,
+          719.7166666666667,
+          854.9,
+          909.9,
+          959.6833333333333,
+          1228.0,
+          1263.0,
+          1569.9333333333334
+        ],
+        "scorable_count": 14,
+        "selections_with_admitted_event": 0,
+        "share_with_relevant_event_under_12h": 0.14285714285714285,
+        "share_with_relevant_event_under_24h": 0.5,
+        "top_10_movers_with_admitted_event": 1,
+        "with_admitted_event": 11,
+        "with_any_article": 11
+      }
+    },
+    "by_source_tier": {
+      "HIGH_QUALITY_WIRE": 23,
+      "OTHER": 79
+    },
+    "fetch_errors": 0,
+    "freshest_relevant_event_age_minutes": {
+      "p25": 128.73333333333335,
+      "p50": 907.3833333333333,
+      "p75": 1325.4833333333333
+    },
+    "freshest_relevant_event_ages_minutes": [
+      19.933333333333334,
+      31.866666666666667,
+      31.866666666666667,
+      34.95,
+      39.95,
+      46.0,
+      49.88333333333333,
+      49.88333333333333,
+      73.91666666666667,
+      109.95,
+      121.61666666666666,
+      121.61666666666666,
+      121.61666666666666,
+      121.61666666666666,
+      121.61666666666666,
+      121.61666666666666,
+      121.61666666666666,
+      121.61666666666666,
+      124.93333333333334,
+      130.0,
+      135.0,
+      232.0,
+      284.76666666666665,
+      316.96666666666664,
+      404.75,
+      587.7666666666667,
+      644.75,
+      664.0,
+      704.7666666666667,
+      719.7166666666667,
+      854.7333333333333,
+      854.9,
+      864.9333333333333,
+      884.9,
+      894.9,
+      895.0,
+      899.9333333333333,
+      904.8833333333333,
+      909.8833333333333,
+      909.9,
+      914.95,
+      944.8666666666667,
+      947.3666666666667,
+      959.6833333333333,
+      959.9333333333333,
+      964.95,
+      1030.0,
+      1060.0,
+      1081.1833333333334,
+      1138.0,
+      1149.0,
+      1224.0,
+      1224.0,
+      1228.0,
+      1261.0,
+      1263.0,
+      1294.0,
+      1419.9333333333334,
+      1439.2666666666667,
+      1439.2666666666667,
+      1439.6333333333334,
+      1464.9333333333334,
+      1569.9333333333334,
+      1680.4,
+      2314.9666666666667,
+      2359.9333333333334,
+      2621.95,
+      2621.95,
+      2629.0,
+      2734.0,
+      2736.0,
+      2914.0,
+      2953.0,
+      2958.266666666667,
+      2961.0,
+      3003.1666666666665
+    ],
+    "scorable_count": 128,
+    "selections_with_admitted_event": 0,
+    "share_with_relevant_event_under_12h": 0.234375,
+    "share_with_relevant_event_under_24h": 0.4765625,
+    "top_10_movers_with_admitted_event": 1,
+    "with_admitted_event": 102,
+    "with_any_article": 104
+  },
   "notes": [
     "WIN/TIE/MISS uses the deterministic random-draw return baseline, not top-10 capture.",
     "Top-10 capture is diagnostic only.",
@@ -1803,14 +2642,19 @@
     "visible_reversal_candidate": 0,
     "visible_scored_low": 1
   },
+  "reachable_metric_count": 25,
   "replay_id": "2024-05-08-0915-flatfile-replay",
   "research_evidence": true,
-  "result": "MISS",
+  "result": "TIE",
   "reversal_cohort": {
     "candidate_count": 0,
     "candidates": [],
     "close_above_open_share": null,
     "mean_day_mfe_pct": null,
+    "net_policy_returns": {
+      "execution_policy_atr_v1.0": 0.0,
+      "execution_policy_v1.0": 0.0
+    },
     "policy_returns": {
       "execution_policy_atr_v1.0": 0.0,
       "execution_policy_v1.0": 0.0
@@ -1818,18 +2662,28 @@
     "selected_count": 0
   },
   "scout_performance": {
-    "average_capture_ratio": -0.35690909090909223,
-    "max_drawdown_pct": -1.111646452899151,
-    "realized_pnl_usd": -4.815200000000004,
-    "realized_return_pct": -0.19260800000000017,
-    "win_rate_pct": 0.0
+    "average_capture_ratio": null,
+    "max_drawdown_pct": null,
+    "net_average_capture_ratio": null,
+    "net_realized_pnl_usd": 0,
+    "net_realized_return_pct": 0.0,
+    "realized_pnl_usd": 0,
+    "realized_return_pct": 0.0,
+    "win_rate_pct": null
   },
-  "scout_version": "research_scout_alpha_v1.1",
+  "scout_version": "research_scout_alpha_v1.3",
   "shadow_scores": [],
   "trading_date": "2024-05-08",
   "trainer_version": "scout_trainer_v1.1",
+  "unavailable_metrics": [
+    "call_options_confirmation",
+    "analyst_revision_strength",
+    "positive_social_attention_acceleration",
+    "spread_quality",
+    "order_book_depth_quality"
+  ],
   "universe_coverage": "complete",
-  "universe_manifest_hash": "sha256:1d58086f6cb66191b900e844a9093c2f009453f0fa34e1a114e81511ccfe49ad",
+  "universe_manifest_hash": "sha256:c972af1bb3472279960e3d923dbf8373a90986854252c6eae3c3cc5426ecd140",
   "universe_mode": "historical_research",
   "universe_scorability": {
     "eligible_count": 2454,
