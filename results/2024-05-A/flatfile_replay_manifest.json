@@ -4,21 +4,12 @@
     "config/execution_policy_atr.json"
   ],
   "completed_dates": [
-    "2024-05-01",
-    "2024-05-02",
-    "2024-05-03",
-    "2024-05-06",
-    "2024-05-07",
     "2024-05-08",
-    "2024-05-09",
-    "2024-05-10",
-    "2024-05-13",
-    "2024-05-14",
-    "2024-05-15"
+    "2024-05-09"
   ],
   "cost_model_id": "execution_costs_v1.0",
-  "current_phase": null,
-  "current_trading_date": null,
+  "current_phase": "orb",
+  "current_trading_date": "2024-05-15",
   "datasets": [
     "us_stocks_sip/minute_aggs_v1",
     "us_stocks_sip/day_aggs_v1"
@@ -31,9 +22,6 @@
         "eligible_outcomes": "days/2024-05-01/eligible_outcomes_2024-05-01.csv",
         "end_of_day_outcome": "days/2024-05-01/end_of_day_outcome_2024-05-01.json",
         "historical_snapshot": "days/2024-05-01/historical_snapshot_2024-05-01.json",
-        "postmortem": "days/2024-05-01/postmortem_2024-05-01.json",
-        "postmortem_report": "days/2024-05-01/postmortem_report_2024-05-01.pdf",
-        "replay_report": "days/2024-05-01/replay_report_2024-05-01.pdf",
         "scorable_outcomes": "days/2024-05-01/scorable_outcomes_2024-05-01.csv",
         "scout_output": "days/2024-05-01/research_alpha_output_2024-05-01.json",
         "scout_report": "days/2024-05-01/research_alpha_report_2024-05-01.pdf"
@@ -25831,8 +25819,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
       "excluded_tickers": [
         {
           "close_change_pct": -82.72024948614359,
@@ -26137,7 +26125,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "c4d3f84dd44718376539d1d9b7cd055d",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-16.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-16.csv.gz",
@@ -26147,7 +26135,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "f85f5767d98373cf4c28e0546ee2c9b1",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-17.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-17.csv.gz",
@@ -26157,7 +26145,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "75032faca6ac763c497a10b7eb9cefeb",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-18.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-18.csv.gz",
@@ -26167,7 +26155,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "ab2c65487cea22270e3ea34fa0e69ec9",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-19.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-19.csv.gz",
@@ -26177,7 +26165,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "3ab7a4b7f0aa45d505960b86d737c6e7",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-22.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-22.csv.gz",
@@ -26187,7 +26175,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "8fdd45e4a6dc4346cf7dec60bdb45377",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-23.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-23.csv.gz",
@@ -26197,7 +26185,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "04140abb37de3f06ed95cfbebc5a36aa",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-24.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-24.csv.gz",
@@ -26207,7 +26195,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "4ecdb596bb8f20f735cfd3b323505138",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-25.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-25.csv.gz",
@@ -26217,7 +26205,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "cb0fa340e1de371fbb68fa397f53802c",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-26.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-26.csv.gz",
@@ -26227,7 +26215,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "956c5ca36b6ec45e66f1b26963f3d154",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-29.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-29.csv.gz",
@@ -26237,7 +26225,7 @@
         },
         {
           "dataset": "us_stocks_sip/minute_aggs_v1",
-          "downloaded": false,
+          "downloaded": true,
           "etag": "957a07f7601e4926ab9c965188f93669",
           "local_path": "data/flatfiles/us_stocks_sip/minute_aggs_v1/2024/2024-04-30.csv.gz",
           "object_key": "us_stocks_sip/minute_aggs_v1/2024/04/2024-04-30.csv.gz",
@@ -26263,25 +26251,28 @@
         "hits": 0,
         "tickers_with_zero_articles": 20
       },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.122,
-        "download": 12.904,
-        "grading": 57.674,
-        "postmortem": 0.108,
-        "report": 3.537,
-        "scoring": 12.437,
-        "snapshot": 808.84,
-        "universe": 22.905
+        "benchmark": 1.015,
+        "download": 15.102,
+        "grading": 51.32,
+        "orb": 153.532,
+        "postmortem": null,
+        "report": null,
+        "scoring": 11.237,
+        "snapshot": 706.583,
+        "universe": 24.376
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -26311,7 +26302,7 @@
       "scored_ticker_count": 25,
       "smoke_mode": false,
       "spy_premarket_return_pct": -0.14343200924340158,
-      "status": "COMPLETE",
+      "status": "FAILED",
       "trading_date": "2024-05-01",
       "unavailable_metrics": [
         "call_options_confirmation",
@@ -26330,9 +26321,6 @@
         "eligible_outcomes": "days/2024-05-02/eligible_outcomes_2024-05-02.csv",
         "end_of_day_outcome": "days/2024-05-02/end_of_day_outcome_2024-05-02.json",
         "historical_snapshot": "days/2024-05-02/historical_snapshot_2024-05-02.json",
-        "postmortem": "days/2024-05-02/postmortem_2024-05-02.json",
-        "postmortem_report": "days/2024-05-02/postmortem_report_2024-05-02.pdf",
-        "replay_report": "days/2024-05-02/replay_report_2024-05-02.pdf",
         "scorable_outcomes": "days/2024-05-02/scorable_outcomes_2024-05-02.csv",
         "scout_output": "days/2024-05-02/research_alpha_output_2024-05-02.json",
         "scout_report": "days/2024-05-02/research_alpha_report_2024-05-02.pdf"
@@ -51900,8 +51888,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "KeyError: 'first_candle_open'",
       "excluded_tickers": [
         {
           "close_change_pct": -83.21042444352274,
@@ -52332,25 +52320,28 @@
         "hits": 0,
         "tickers_with_zero_articles": 29
       },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.135,
-        "download": 6.282,
-        "grading": 58.46,
-        "postmortem": 0.141,
-        "report": 3.751,
-        "scoring": 13.072,
-        "snapshot": 803.126,
-        "universe": 24.631
+        "benchmark": 1.025,
+        "download": 4.1,
+        "grading": 49.932,
+        "orb": 150.97,
+        "postmortem": null,
+        "report": null,
+        "scoring": 11.824,
+        "snapshot": 706.594,
+        "universe": 28.57
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -52380,7 +52371,7 @@
       "scored_ticker_count": 40,
       "smoke_mode": false,
       "spy_premarket_return_pct": 0.6475467172978819,
-      "status": "COMPLETE",
+      "status": "FAILED",
       "trading_date": "2024-05-02",
       "unavailable_metrics": [
         "call_options_confirmation",
@@ -52399,9 +52390,6 @@
         "eligible_outcomes": "days/2024-05-03/eligible_outcomes_2024-05-03.csv",
         "end_of_day_outcome": "days/2024-05-03/end_of_day_outcome_2024-05-03.json",
         "historical_snapshot": "days/2024-05-03/historical_snapshot_2024-05-03.json",
-        "postmortem": "days/2024-05-03/postmortem_2024-05-03.json",
-        "postmortem_report": "days/2024-05-03/postmortem_report_2024-05-03.pdf",
-        "replay_report": "days/2024-05-03/replay_report_2024-05-03.pdf",
         "scorable_outcomes": "days/2024-05-03/scorable_outcomes_2024-05-03.csv",
         "scout_output": "days/2024-05-03/research_alpha_output_2024-05-03.json",
         "scout_report": "days/2024-05-03/research_alpha_report_2024-05-03.pdf"
@@ -78319,8 +78307,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "KeyError: 'first_candle_open'",
       "excluded_tickers": [
         {
           "close_change_pct": -83.42904019688268,
@@ -78751,25 +78739,28 @@
         "hits": 0,
         "tickers_with_zero_articles": 46
       },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.158,
-        "download": 6.087,
-        "grading": 56.774,
-        "postmortem": 0.17,
-        "report": 3.778,
-        "scoring": 13.7,
-        "snapshot": 806.762,
-        "universe": 23.995
+        "benchmark": 1.051,
+        "download": 4.314,
+        "grading": 49.435,
+        "orb": 152.537,
+        "postmortem": null,
+        "report": null,
+        "scoring": 12.186,
+        "snapshot": 708.613,
+        "universe": 22.29
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -78799,7 +78790,7 @@
       "scored_ticker_count": 57,
       "smoke_mode": false,
       "spy_premarket_return_pct": 1.0633031701087072,
-      "status": "COMPLETE",
+      "status": "FAILED",
       "trading_date": "2024-05-03",
       "unavailable_metrics": [
         "call_options_confirmation",
@@ -78818,9 +78809,6 @@
         "eligible_outcomes": "days/2024-05-06/eligible_outcomes_2024-05-06.csv",
         "end_of_day_outcome": "days/2024-05-06/end_of_day_outcome_2024-05-06.json",
         "historical_snapshot": "days/2024-05-06/historical_snapshot_2024-05-06.json",
-        "postmortem": "days/2024-05-06/postmortem_2024-05-06.json",
-        "postmortem_report": "days/2024-05-06/postmortem_report_2024-05-06.pdf",
-        "replay_report": "days/2024-05-06/replay_report_2024-05-06.pdf",
         "scorable_outcomes": "days/2024-05-06/scorable_outcomes_2024-05-06.csv",
         "scout_output": "days/2024-05-06/research_alpha_output_2024-05-06.json",
         "scout_report": "days/2024-05-06/research_alpha_report_2024-05-06.pdf"
@@ -104908,8 +104896,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.01669698544698,
@@ -105340,25 +105328,28 @@
         "hits": 0,
         "tickers_with_zero_articles": 52
       },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.185,
-        "download": 6.365,
-        "grading": 55.498,
-        "postmortem": 0.2,
-        "report": 3.549,
-        "scoring": 13.227,
-        "snapshot": 804.384,
-        "universe": 23.481
+        "benchmark": 1.094,
+        "download": 5.837,
+        "grading": 48.23,
+        "orb": 156.378,
+        "postmortem": null,
+        "report": null,
+        "scoring": 13.792,
+        "snapshot": 704.98,
+        "universe": 21.706
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -105388,7 +105379,7 @@
       "scored_ticker_count": 42,
       "smoke_mode": false,
       "spy_premarket_return_pct": 0.393123276418458,
-      "status": "COMPLETE",
+      "status": "FAILED",
       "trading_date": "2024-05-06",
       "unavailable_metrics": [
         "call_options_confirmation",
@@ -105407,9 +105398,6 @@
         "eligible_outcomes": "days/2024-05-07/eligible_outcomes_2024-05-07.csv",
         "end_of_day_outcome": "days/2024-05-07/end_of_day_outcome_2024-05-07.json",
         "historical_snapshot": "days/2024-05-07/historical_snapshot_2024-05-07.json",
-        "postmortem": "days/2024-05-07/postmortem_2024-05-07.json",
-        "postmortem_report": "days/2024-05-07/postmortem_report_2024-05-07.pdf",
-        "replay_report": "days/2024-05-07/replay_report_2024-05-07.pdf",
         "scorable_outcomes": "days/2024-05-07/scorable_outcomes_2024-05-07.csv",
         "scout_output": "days/2024-05-07/research_alpha_output_2024-05-07.json",
         "scout_report": "days/2024-05-07/research_alpha_report_2024-05-07.pdf"
@@ -132197,8 +132185,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
       "excluded_tickers": [
         {
           "close_change_pct": -83.88001304206064,
@@ -132629,25 +132617,28 @@
         "hits": 0,
         "tickers_with_zero_articles": 33
       },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.232,
-        "download": 6.226,
-        "grading": 55.848,
-        "postmortem": 0.235,
-        "report": 3.473,
-        "scoring": 12.915,
-        "snapshot": 807.472,
-        "universe": 22.494
+        "benchmark": 1.125,
+        "download": 6.177,
+        "grading": 48.716,
+        "orb": 152.27,
+        "postmortem": null,
+        "report": null,
+        "scoring": 12.611,
+        "snapshot": 710.805,
+        "universe": 26.22
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -132677,7 +132668,7 @@
       "scored_ticker_count": 32,
       "smoke_mode": false,
       "spy_premarket_return_pct": 0.14906014673712792,
-      "status": "COMPLETE",
+      "status": "FAILED",
       "trading_date": "2024-05-07",
       "unavailable_metrics": [
         "call_options_confirmation",
@@ -132696,6 +132687,7 @@
         "eligible_outcomes": "days/2024-05-08/eligible_outcomes_2024-05-08.csv",
         "end_of_day_outcome": "days/2024-05-08/end_of_day_outcome_2024-05-08.json",
         "historical_snapshot": "days/2024-05-08/historical_snapshot_2024-05-08.json",
+        "orb_outcomes": "days/2024-05-08/orb_outcomes_2024-05-08.csv",
         "postmortem": "days/2024-05-08/postmortem_2024-05-08.json",
         "postmortem_report": "days/2024-05-08/postmortem_report_2024-05-08.pdf",
         "replay_report": "days/2024-05-08/replay_report_2024-05-08.pdf",
@@ -159168,10 +159160,12 @@
         "hits": 0,
         "tickers_with_zero_articles": 24
       },
+      "orb_universe_count": 834,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
+        "orb": "COMPLETE",
         "postmortem": "COMPLETE",
         "report": "COMPLETE",
         "scoring": "COMPLETE",
@@ -159179,14 +159173,15 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.25,
-        "download": 6.394,
-        "grading": 55.916,
-        "postmortem": 0.26,
-        "report": 3.508,
-        "scoring": 13.254,
-        "snapshot": 808.018,
-        "universe": 23.241
+        "benchmark": 1.141,
+        "download": 6.277,
+        "grading": 48.325,
+        "orb": 223.233,
+        "postmortem": 0.362,
+        "report": 3.496,
+        "scoring": 12.454,
+        "snapshot": 704.854,
+        "universe": 28.458
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -159235,6 +159230,7 @@
         "eligible_outcomes": "days/2024-05-09/eligible_outcomes_2024-05-09.csv",
         "end_of_day_outcome": "days/2024-05-09/end_of_day_outcome_2024-05-09.json",
         "historical_snapshot": "days/2024-05-09/historical_snapshot_2024-05-09.json",
+        "orb_outcomes": "days/2024-05-09/orb_outcomes_2024-05-09.csv",
         "postmortem": "days/2024-05-09/postmortem_2024-05-09.json",
         "postmortem_report": "days/2024-05-09/postmortem_report_2024-05-09.pdf",
         "replay_report": "days/2024-05-09/replay_report_2024-05-09.pdf",
@@ -185637,10 +185633,12 @@
         "hits": 0,
         "tickers_with_zero_articles": 25
       },
+      "orb_universe_count": 844,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
+        "orb": "COMPLETE",
         "postmortem": "COMPLETE",
         "report": "COMPLETE",
         "scoring": "COMPLETE",
@@ -185648,14 +185646,15 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.309,
-        "download": 6.017,
-        "grading": 55.798,
-        "postmortem": 0.299,
-        "report": 3.758,
-        "scoring": 13.491,
-        "snapshot": 803.284,
-        "universe": 24.046
+        "benchmark": 1.187,
+        "download": 6.488,
+        "grading": 48.949,
+        "orb": 230.502,
+        "postmortem": 0.417,
+        "report": 3.645,
+        "scoring": 12.384,
+        "snapshot": 712.61,
+        "universe": 27.034
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -185704,9 +185703,6 @@
         "eligible_outcomes": "days/2024-05-10/eligible_outcomes_2024-05-10.csv",
         "end_of_day_outcome": "days/2024-05-10/end_of_day_outcome_2024-05-10.json",
         "historical_snapshot": "days/2024-05-10/historical_snapshot_2024-05-10.json",
-        "postmortem": "days/2024-05-10/postmortem_2024-05-10.json",
-        "postmortem_report": "days/2024-05-10/postmortem_report_2024-05-10.pdf",
-        "replay_report": "days/2024-05-10/replay_report_2024-05-10.pdf",
         "scorable_outcomes": "days/2024-05-10/scorable_outcomes_2024-05-10.csv",
         "scout_output": "days/2024-05-10/research_alpha_output_2024-05-10.json",
         "scout_report": "days/2024-05-10/research_alpha_report_2024-05-10.pdf"
@@ -211284,8 +211280,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.2908089586385,
@@ -211716,25 +211712,28 @@
         "hits": 0,
         "tickers_with_zero_articles": 19
       },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.289,
-        "download": 6.316,
-        "grading": 55.44,
-        "postmortem": 0.324,
-        "report": 3.723,
-        "scoring": 13.393,
-        "snapshot": 801.957,
-        "universe": 22.562
+        "benchmark": 1.193,
+        "download": 4.036,
+        "grading": 48.79,
+        "orb": 151.872,
+        "postmortem": null,
+        "report": null,
+        "scoring": 12.257,
+        "snapshot": 711.215,
+        "universe": 26.743
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -211764,7 +211763,7 @@
       "scored_ticker_count": 36,
       "smoke_mode": false,
       "spy_premarket_return_pct": 0.2614529865236392,
-      "status": "COMPLETE",
+      "status": "FAILED",
       "trading_date": "2024-05-10",
       "unavailable_metrics": [
         "call_options_confirmation",
@@ -211783,9 +211782,6 @@
         "eligible_outcomes": "days/2024-05-13/eligible_outcomes_2024-05-13.csv",
         "end_of_day_outcome": "days/2024-05-13/end_of_day_outcome_2024-05-13.json",
         "historical_snapshot": "days/2024-05-13/historical_snapshot_2024-05-13.json",
-        "postmortem": "days/2024-05-13/postmortem_2024-05-13.json",
-        "postmortem_report": "days/2024-05-13/postmortem_report_2024-05-13.pdf",
-        "replay_report": "days/2024-05-13/replay_report_2024-05-13.pdf",
         "scorable_outcomes": "days/2024-05-13/scorable_outcomes_2024-05-13.csv",
         "scout_output": "days/2024-05-13/research_alpha_output_2024-05-13.json",
         "scout_report": "days/2024-05-13/research_alpha_report_2024-05-13.pdf"
@@ -236953,8 +236949,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "KeyError: 'first_candle_open'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.45380833812169,
@@ -237385,25 +237381,28 @@
         "hits": 0,
         "tickers_with_zero_articles": 45
       },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.326,
-        "download": 5.793,
-        "grading": 55.5,
-        "postmortem": 0.357,
-        "report": 3.685,
-        "scoring": 13.125,
-        "snapshot": 800.836,
-        "universe": 23.175
+        "benchmark": 1.222,
+        "download": 6.279,
+        "grading": 47.981,
+        "orb": 155.698,
+        "postmortem": null,
+        "report": null,
+        "scoring": 11.745,
+        "snapshot": 706.537,
+        "universe": 26.855
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -237433,7 +237432,7 @@
       "scored_ticker_count": 30,
       "smoke_mode": false,
       "spy_premarket_return_pct": 0.34757315106366327,
-      "status": "COMPLETE",
+      "status": "FAILED",
       "trading_date": "2024-05-13",
       "unavailable_metrics": [
         "call_options_confirmation",
@@ -237452,9 +237451,6 @@
         "eligible_outcomes": "days/2024-05-14/eligible_outcomes_2024-05-14.csv",
         "end_of_day_outcome": "days/2024-05-14/end_of_day_outcome_2024-05-14.json",
         "historical_snapshot": "days/2024-05-14/historical_snapshot_2024-05-14.json",
-        "postmortem": "days/2024-05-14/postmortem_2024-05-14.json",
-        "postmortem_report": "days/2024-05-14/postmortem_report_2024-05-14.pdf",
-        "replay_report": "days/2024-05-14/replay_report_2024-05-14.pdf",
         "scorable_outcomes": "days/2024-05-14/scorable_outcomes_2024-05-14.csv",
         "scout_output": "days/2024-05-14/research_alpha_output_2024-05-14.json",
         "scout_report": "days/2024-05-14/research_alpha_report_2024-05-14.pdf"
@@ -263772,8 +263768,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "KeyError: 'first_candle_open'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.26317814544055,
@@ -264204,25 +264200,28 @@
         "hits": 0,
         "tickers_with_zero_articles": 72
       },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.36,
-        "download": 6.135,
-        "grading": 55.731,
-        "postmortem": 0.381,
-        "report": 3.991,
-        "scoring": 14.016,
-        "snapshot": 797.281,
-        "universe": 21.904
+        "benchmark": 1.246,
+        "download": 6.458,
+        "grading": 48.479,
+        "orb": 157.538,
+        "postmortem": null,
+        "report": null,
+        "scoring": 14.506,
+        "snapshot": 704.041,
+        "universe": 24.558
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -264252,7 +264251,7 @@
       "scored_ticker_count": 73,
       "smoke_mode": false,
       "spy_premarket_return_pct": 0.0691098270334633,
-      "status": "COMPLETE",
+      "status": "FAILED",
       "trading_date": "2024-05-14",
       "unavailable_metrics": [
         "call_options_confirmation",
@@ -264271,9 +264270,6 @@
         "eligible_outcomes": "days/2024-05-15/eligible_outcomes_2024-05-15.csv",
         "end_of_day_outcome": "days/2024-05-15/end_of_day_outcome_2024-05-15.json",
         "historical_snapshot": "days/2024-05-15/historical_snapshot_2024-05-15.json",
-        "postmortem": "days/2024-05-15/postmortem_2024-05-15.json",
-        "postmortem_report": "days/2024-05-15/postmortem_report_2024-05-15.pdf",
-        "replay_report": "days/2024-05-15/replay_report_2024-05-15.pdf",
         "scorable_outcomes": "days/2024-05-15/scorable_outcomes_2024-05-15.csv",
         "scout_output": "days/2024-05-15/research_alpha_output_2024-05-15.json",
         "scout_report": "days/2024-05-15/research_alpha_report_2024-05-15.pdf"
@@ -290781,8 +290777,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "KeyError: 'first_candle_open'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.34229954419979,
@@ -291213,25 +291209,28 @@
         "hits": 0,
         "tickers_with_zero_articles": 65
       },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.399,
-        "download": 6.199,
-        "grading": 55.758,
-        "postmortem": 0.415,
-        "report": 4.074,
-        "scoring": 14.674,
-        "snapshot": 799.219,
-        "universe": 22.431
+        "benchmark": 1.313,
+        "download": 6.413,
+        "grading": 48.618,
+        "orb": 159.376,
+        "postmortem": null,
+        "report": null,
+        "scoring": 13.718,
+        "snapshot": 704.36,
+        "universe": 24.864
       },
       "reachable_metric_count": 25,
       "reference_cache": {
@@ -291261,7 +291260,7 @@
       "scored_ticker_count": 75,
       "smoke_mode": false,
       "spy_premarket_return_pct": 0.544620676476213,
-      "status": "COMPLETE",
+      "status": "FAILED",
       "trading_date": "2024-05-15",
       "unavailable_metrics": [
         "call_options_confirmation",
@@ -291275,7 +291274,17 @@
     }
   ],
   "end_date": "2024-05-15",
-  "failed_dates": {},
+  "failed_dates": {
+    "2024-05-01": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
+    "2024-05-02": "KeyError: 'first_candle_open'",
+    "2024-05-03": "KeyError: 'first_candle_open'",
+    "2024-05-06": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
+    "2024-05-07": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
+    "2024-05-10": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
+    "2024-05-13": "KeyError: 'first_candle_open'",
+    "2024-05-14": "KeyError: 'first_candle_open'",
+    "2024-05-15": "KeyError: 'first_candle_open'"
+  },
   "file_naming": "dated_v1",
   "forced_resume": false,
   "massive_plan": {
@@ -291286,16 +291295,18 @@
   },
   "max_tickers": null,
   "morning_freeze_time": "09:15:00",
+  "orb_version": "orb_v1.0",
   "previous_provenance": null,
   "provenance": {
     "comparison_policy_paths": [
       "config/execution_policy_atr.json"
     ],
     "cost_model_id": "execution_costs_v1.0",
-    "dataset_version": 5,
+    "dataset_version": 6,
     "feature_registry_id": "feature_registry_alpha_v1.0",
-    "git_sha": "25438eecdfc35640c18df4b90661a1f3530ccbb1",
+    "git_sha": "d8fd71ad8a64ebe6d4d9a3cad9a670e3de9ec954",
     "metric_count": 25,
+    "orb_config_hash": "sha256:174a2cbdbb74ad2e2da32e75755179eaf713f91ea9df3f7d3d6a0b3ca3409007",
     "rubric_version": "alpha_v1.3_25m",
     "scout_id": "research_scout_alpha_v1.3"
   },
@@ -291314,7 +291325,17 @@
     "transient_retries": 0,
     "unresolved_failures": 0
   },
-  "remaining_dates": [],
+  "remaining_dates": [
+    "2024-05-01",
+    "2024-05-02",
+    "2024-05-03",
+    "2024-05-06",
+    "2024-05-07",
+    "2024-05-10",
+    "2024-05-13",
+    "2024-05-14",
+    "2024-05-15"
+  ],
   "requested_dates": [
     "2024-05-01",
     "2024-05-02",
@@ -291335,7 +291356,7 @@
   },
   "smoke_mode": false,
   "start_date": "2024-05-01",
-  "status": "COMPLETE",
+  "status": "PARTIAL",
   "strategy_capital_usd": 2500.0,
   "unavailable_metrics": [
     "call_options_confirmation",
