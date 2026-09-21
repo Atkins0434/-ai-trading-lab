@@ -1,11 +1,31 @@
 import json
 from pathlib import Path
+import subprocess
+import sys
 
 import pytest
 
 from trainer.flatfile_replay import _new_day_record, run_flatfile_replay
 from trainer.replay_provenance import current_provenance, provenance_differences
 from trainer.replay_scheduled import prepare_resume
+
+
+def test_replay_provenance_import_does_not_require_jsonschema():
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import sys; "
+                "sys.modules['jsonschema'] = None; "
+                "import trainer.replay_provenance"
+            ),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr
 
 
 def runner(calls):
@@ -109,3 +129,40 @@ def test_workflow_output_keys_are_versioned_without_changing_data_keys():
                 assert "provenance_key" not in line and "scout_id" not in line
     for workflow in (root / ".github/workflows").glob("*.yml"):
         assert "--force-resume" not in workflow.read_text()
+
+
+def test_replay_workflows_install_before_cache_resolution_and_guard_tail():
+    root = Path(__file__).resolve().parents[1]
+    for kind in ("day", "range", "scheduled"):
+        source = (
+            root / f".github/workflows/flat-file-replay-{kind}.yml"
+        ).read_text(encoding="utf-8")
+        setup = source.index("uses: actions/setup-python@v5")
+        install = source.index("pip install -r requirements.txt")
+        resolve = source.index("name: Resolve replay cache version")
+        assert setup < install < resolve
+        resolve_body = source[resolve:source.index("\n      - ", resolve + 1)]
+        commands = [
+            line.strip()
+            for line in resolve_body.splitlines()
+            if line.startswith("          ") and line.strip()
+        ]
+        assert commands[0].startswith(
+            'cache_version="$(jq -er .cache_version '
+        )
+        assert 'echo "replay did not start; see earlier step"' in source
+        assert "steps.replay.outputs.output_root != ''" in source
+        assert "steps.replay_output.outputs.exists == 'true'" in source
+
+
+def test_tests_workflow_has_replay_import_smoke_job():
+    source = (
+        Path(__file__).resolve().parents[1]
+        / ".github/workflows/tests.yml"
+    ).read_text(encoding="utf-8")
+    assert "workflow-smoke:" in source
+    assert "name: Resolve replay cache version" in source
+    assert (
+        'python -c "import trainer.replay_provenance; '
+        'import trainer.flatfile_replay"'
+    ) in source

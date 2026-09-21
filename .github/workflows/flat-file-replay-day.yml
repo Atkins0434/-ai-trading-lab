@@ -24,6 +24,10 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
       - name: Resolve replay cache version
         id: cache_config
         shell: bash
@@ -48,11 +52,6 @@ jobs:
           key: massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}
           restore-keys: |
             massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: pip install -r requirements.txt
-
       - name: Validate replay date and resolve paths
         id: replay
         shell: bash
@@ -163,8 +162,12 @@ jobs:
           fi
           "${replay_command[@]}" | tee "$OUTPUT_ROOT/replay_stdout.json"
 
+      - name: Report replay did not start
+        if: always() && steps.replay.outputs.output_root == ''
+        run: echo "replay did not start; see earlier step"
+
       - name: Print replay summary
-        if: always()
+        if: always() && steps.replay.outputs.output_root != ''
         shell: bash
         env:
           TRADING_DATE: ${{ steps.replay.outputs.trading_date }}
@@ -487,14 +490,14 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Generate cumulative replay report
-        if: always()
+        if: always() && steps.replay.outputs.output_root != ''
         shell: bash
         env:
           OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
         run: python -m trainer.replay_report --output-root "$OUTPUT_ROOT"
 
       - name: Verify required replay artifacts
-        if: always()
+        if: always() && steps.replay.outputs.output_root != ''
         shell: bash
         env:
           TRADING_DATE: ${{ steps.replay.outputs.trading_date }}
@@ -554,8 +557,20 @@ jobs:
           path: ${{ steps.replay.outputs.output_root }}/
           key: replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.cache_config.outputs.scout_id }}-${{ steps.cache_config.outputs.metric_count }}-${{ steps.cache_config.outputs.dataset_version }}-${{ steps.cache_config.outputs.provenance_key }}-${{ steps.replay.outputs.max_tickers }}-${{ steps.replay.outputs.trading_date }}-${{ github.run_id }}
 
+      - name: Check replay output root
+        id: replay_output
+        if: always() && steps.replay.outputs.output_root != ''
+        env:
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          if [ -d "$OUTPUT_ROOT" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.replay.outputs.output_root != '' && steps.replay_output.outputs.exists == 'true'
         with:
           name: flat-file-replay-${{ steps.replay.outputs.trading_date }}-${{ github.run_id }}
           if-no-files-found: error

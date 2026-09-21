@@ -36,6 +36,14 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
 
+      - name: Resolve replay cache version
+        id: cache_config
+        shell: bash
+        run: |
+          cache_version="$(jq -er .cache_version config/flatfile_replay.json)"
+          echo "version=$cache_version" >> "$GITHUB_OUTPUT"
+          python -m trainer.replay_provenance >> "$GITHUB_OUTPUT"
+
       - name: Open isolated results branch
         shell: bash
         run: |
@@ -83,7 +91,6 @@ jobs:
                   for key in ('id', 'start', 'end', 'status', 'last_run_id'):
                       out.write(f"{key}={unit.get(key) or ''}\n")
                   out.write(f"output_root=reports/flatfile_replay/{unit['id']}\n")
-                  out.write(f"cache_version={json.loads(Path('config/flatfile_replay.json').read_text())['cache_version']}\n")
           PY
 
       - name: Restore exact prior paused-run artifact
@@ -133,9 +140,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: data/flatfiles/
-          key: massive-flatfiles-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: massive-flatfiles-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            massive-flatfiles-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-
+            massive-flatfiles-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
       - name: Restore reference cache
         if: steps.unit.outputs.id != ''
         continue-on-error: true
@@ -145,9 +152,9 @@ jobs:
             data/reference_cache/
             data/news_cache/
             data/opening_volume_cache/
-          key: massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-
+            massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-
 
       - name: Warm ORB opening-volume baseline
         if: steps.unit.outputs.id != ''
@@ -170,29 +177,46 @@ jobs:
           OUTPUT_ROOT: ${{ steps.unit.outputs.output_root }}
         run: |
           set -o pipefail
+          echo "output_root=$OUTPUT_ROOT" >> "$GITHUB_OUTPUT"
           python -m trainer.flatfile_replay --start "$START" --end "$END" \
             --output-root "$OUTPUT_ROOT" --max-wall-seconds 16200 \
             2> >(tee "$OUTPUT_ROOT/replay_stderr.log" >&2) | tee "$OUTPUT_ROOT/replay_stdout.json"
 
+      - name: Report replay did not start
+        if: always() && steps.replay.outputs.output_root == ''
+        run: echo "replay did not start; see earlier step"
+
       - name: Regenerate reports
         id: reports
-        if: always() && steps.unit.outputs.id != ''
+        if: always() && steps.replay.outputs.output_root != ''
         continue-on-error: true
         env:
           OUTPUT_ROOT: ${{ steps.unit.outputs.output_root }}
         run: python -m trainer.replay_report --output-root "$OUTPUT_ROOT"
 
       - name: Mirror range summary
-        if: always() && steps.unit.outputs.id != ''
+        if: always() && steps.replay.outputs.output_root != ''
         continue-on-error: true
         env:
           OUTPUT_ROOT: ${{ steps.unit.outputs.output_root }}
         run: |
           python -m trainer.flatfile_range_summary --output-root "$OUTPUT_ROOT" | tee -a "$GITHUB_STEP_SUMMARY"
 
+      - name: Check replay output root
+        id: replay_output
+        if: always() && steps.replay.outputs.output_root != ''
+        env:
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          if [ -d "$OUTPUT_ROOT" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload full replay artifact
         id: artifact
-        if: always() && steps.unit.outputs.id != ''
+        if: always() && steps.replay.outputs.output_root != '' && steps.replay_output.outputs.exists == 'true'
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
@@ -242,7 +266,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: data/flatfiles/
-          key: massive-flatfiles-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: massive-flatfiles-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Save reference cache
         if: always() && steps.unit.outputs.id != ''
         continue-on-error: true
@@ -252,7 +276,7 @@ jobs:
             data/reference_cache/
             data/news_cache/
             data/opening_volume_cache/
-          key: massive-reference-${{ github.repository }}-${{ steps.unit.outputs.cache_version }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: massive-reference-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: Fail job for failed replay
         if: always() && steps.unit.outputs.id != '' && steps.finalize.outputs.status != 'COMPLETE' && steps.finalize.outputs.status != 'PAUSED'
         run: exit 1

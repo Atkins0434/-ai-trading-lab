@@ -31,6 +31,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: pip install -r requirements.txt
 
       - name: Resolve replay cache version
         id: cache_config
@@ -116,8 +117,6 @@ jobs:
           restore-keys: |
             replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.cache_config.outputs.scout_id }}-${{ steps.cache_config.outputs.metric_count }}-${{ steps.cache_config.outputs.dataset_version }}-${{ steps.cache_config.outputs.provenance_key }}-${{ steps.replay.outputs.max_tickers }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-
 
-      - run: pip install -r requirements.txt
-
       - name: Warm ORB opening-volume baseline
         shell: bash
         env:
@@ -195,15 +194,19 @@ jobs:
           fi
           "${replay_command[@]}" | tee "$OUTPUT_ROOT/replay_stdout.json"
 
+      - name: Report replay did not start
+        if: always() && steps.replay.outputs.output_root == ''
+        run: echo "replay did not start; see earlier step"
+
       - name: Generate cumulative replay report
-        if: always()
+        if: always() && steps.replay.outputs.output_root != ''
         shell: bash
         env:
           OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
         run: python -m trainer.replay_report --output-root "$OUTPUT_ROOT"
 
       - name: Print replay range summary
-        if: always()
+        if: always() && steps.replay.outputs.output_root != ''
         shell: bash
         env:
           OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
@@ -219,7 +222,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Verify required replay artifacts
-        if: always()
+        if: always() && steps.replay.outputs.output_root != ''
         shell: bash
         env:
           OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
@@ -299,14 +302,26 @@ jobs:
           done
 
       - name: Save replay output
-        if: always()
+        if: always() && steps.replay.outputs.output_root != ''
         uses: actions/cache/save@v4
         with:
           path: ${{ steps.replay.outputs.output_root }}/
           key: replay-output-${{ github.repository }}-${{ steps.cache_config.outputs.version }}-${{ steps.cache_config.outputs.scout_id }}-${{ steps.cache_config.outputs.metric_count }}-${{ steps.cache_config.outputs.dataset_version }}-${{ steps.cache_config.outputs.provenance_key }}-${{ steps.replay.outputs.max_tickers }}-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-${{ github.run_id }}
 
+      - name: Check replay output root
+        id: replay_output
+        if: always() && steps.replay.outputs.output_root != ''
+        env:
+          OUTPUT_ROOT: ${{ steps.replay.outputs.output_root }}
+        run: |
+          if [ -d "$OUTPUT_ROOT" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Upload replay range artifact
-        if: always()
+        if: always() && steps.replay.outputs.output_root != '' && steps.replay_output.outputs.exists == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: flat-file-replay-range-${{ steps.replay.outputs.start_date }}-to-${{ steps.replay.outputs.end_date }}-${{ github.run_id }}

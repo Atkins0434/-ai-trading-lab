@@ -9,6 +9,33 @@ on:
       - main
 
 jobs:
+  workflow-smoke:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Resolve replay cache version
+        id: cache_config
+        shell: bash
+        run: |
+          cache_version="$(jq -er .cache_version config/flatfile_replay.json)"
+          echo "version=$cache_version" >> "$GITHUB_OUTPUT"
+          python -m trainer.replay_provenance >> "$GITHUB_OUTPUT"
+
+      - name: Import replay entry points
+        run: python -c "import trainer.replay_provenance; import trainer.flatfile_replay"
+
   test:
     if: github.event_name != 'push' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest

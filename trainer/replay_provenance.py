@@ -8,12 +8,14 @@ from pathlib import Path
 import subprocess
 import sys
 
-from trainer.orb import orb_config_hash
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def current_provenance(comparison_policy_paths=None) -> dict:
+    # Keep module import usable before optional replay dependencies are installed.
+    # trainer.orb reaches contract validation/jsonschema through execution costs.
+    from trainer.orb import orb_config_hash
+
     def config(name):
         return json.loads((ROOT / "config" / name).read_text())
 
