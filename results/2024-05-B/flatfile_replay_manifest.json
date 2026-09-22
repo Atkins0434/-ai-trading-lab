@@ -5,20 +5,12 @@
   ],
   "completed_dates": [
     "2024-05-16",
-    "2024-05-17",
-    "2024-05-20",
-    "2024-05-21",
-    "2024-05-22",
-    "2024-05-23",
-    "2024-05-24",
-    "2024-05-28",
     "2024-05-29",
-    "2024-05-30",
-    "2024-05-31"
+    "2024-05-30"
   ],
   "cost_model_id": "execution_costs_v1.0",
-  "current_phase": null,
-  "current_trading_date": null,
+  "current_phase": "orb",
+  "current_trading_date": "2024-05-31",
   "datasets": [
     "us_stocks_sip/minute_aggs_v1",
     "us_stocks_sip/day_aggs_v1"
@@ -31,6 +23,7 @@
         "eligible_outcomes": "days/2024-05-16/eligible_outcomes_2024-05-16.csv",
         "end_of_day_outcome": "days/2024-05-16/end_of_day_outcome_2024-05-16.json",
         "historical_snapshot": "days/2024-05-16/historical_snapshot_2024-05-16.json",
+        "orb_outcomes": "days/2024-05-16/orb_outcomes_2024-05-16.csv",
         "postmortem": "days/2024-05-16/postmortem_2024-05-16.json",
         "postmortem_report": "days/2024-05-16/postmortem_report_2024-05-16.pdf",
         "replay_report": "days/2024-05-16/replay_report_2024-05-16.pdf",
@@ -25757,7 +25750,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "030bdb7795229b76f41f24ff0d8a49b0",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-05-01.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/05/2024-05-01.csv.gz",
@@ -25767,7 +25760,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "e427474816444d908774ecdab3bba42c",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-05-02.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/05/2024-05-02.csv.gz",
@@ -25777,7 +25770,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "acebb85e59537a0517c756fe2142809b",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-05-03.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/05/2024-05-03.csv.gz",
@@ -25787,7 +25780,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "fa9c0a241abf2819e2982dba35ada24d",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-05-06.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/05/2024-05-06.csv.gz",
@@ -25797,7 +25790,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "82321bba3f6e48295aa3ea13688fe071",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-05-07.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/05/2024-05-07.csv.gz",
@@ -25807,7 +25800,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "8b72e29007d4828dbc21bc8fb84e4451",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-05-08.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/05/2024-05-08.csv.gz",
@@ -25817,7 +25810,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "912f581388cbf2f8bd7929e8615e0ba0",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-05-09.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/05/2024-05-09.csv.gz",
@@ -25827,7 +25820,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "676a97cd683bfb42411aae894782cdf4",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-05-10.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/05/2024-05-10.csv.gz",
@@ -25837,7 +25830,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "010a9b80d82eea44608908841eb5a767",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-05-13.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/05/2024-05-13.csv.gz",
@@ -25847,7 +25840,7 @@
         },
         {
           "dataset": "us_stocks_sip/day_aggs_v1",
-          "downloaded": true,
+          "downloaded": false,
           "etag": "524302eab4bc0be9fe5db4ec2a20e76b",
           "local_path": "data/flatfiles/us_stocks_sip/day_aggs_v1/2024/2024-05-14.csv.gz",
           "object_key": "us_stocks_sip/day_aggs_v1/2024/05/2024-05-14.csv.gz",
@@ -26077,10 +26070,18 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 114,
+        "hits": 0,
+        "tickers_with_zero_articles": 33
+      },
+      "orb_universe_count": 863,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
+        "orb": "COMPLETE",
         "postmortem": "COMPLETE",
         "report": "COMPLETE",
         "scoring": "COMPLETE",
@@ -26088,15 +26089,17 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.202,
-        "download": 19.787,
-        "grading": 60.609,
-        "postmortem": 0.114,
-        "report": 3.457,
-        "scoring": 11.043,
-        "snapshot": 863.642,
-        "universe": 24.745
+        "benchmark": 1.131,
+        "download": 16.146,
+        "grading": 54.92,
+        "orb": 248.937,
+        "postmortem": 0.256,
+        "report": 3.376,
+        "scoring": 12.884,
+        "snapshot": 801.463,
+        "universe": 26.223
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 791,
         "errors": 0,
@@ -26107,6 +26110,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5433,
+          "without": 5586
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9840816326530613,
@@ -26114,11 +26123,20 @@
         "scorable_ticker_count": 39,
         "universe_ticker_count": 2450
       },
+      "scorable_count": 39,
       "scored_ticker_count": 39,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.0018875759749312742,
       "status": "COMPLETE",
       "trading_date": "2024-05-16",
-      "universe_manifest_hash": "sha256:3ab32b35f4042335b9d2bd9f45d99a19ccf77344272a31e85db0c092dcd64331",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:f195cb8c5d3ba844a488ef04b3d6133063669b36d39520b6596220f8a6bca099",
       "universe_size": 2450
     },
     {
@@ -26128,9 +26146,6 @@
         "eligible_outcomes": "days/2024-05-17/eligible_outcomes_2024-05-17.csv",
         "end_of_day_outcome": "days/2024-05-17/end_of_day_outcome_2024-05-17.json",
         "historical_snapshot": "days/2024-05-17/historical_snapshot_2024-05-17.json",
-        "postmortem": "days/2024-05-17/postmortem_2024-05-17.json",
-        "postmortem_report": "days/2024-05-17/postmortem_report_2024-05-17.pdf",
-        "replay_report": "days/2024-05-17/replay_report_2024-05-17.pdf",
         "scorable_outcomes": "days/2024-05-17/scorable_outcomes_2024-05-17.csv",
         "scout_output": "days/2024-05-17/research_alpha_output_2024-05-17.json",
         "scout_report": "days/2024-05-17/research_alpha_report_2024-05-17.pdf"
@@ -51548,8 +51563,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.33420365535248,
@@ -51974,26 +51989,36 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 99,
+        "hits": 0,
+        "tickers_with_zero_articles": 28
+      },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.211,
-        "download": 6.414,
-        "grading": 59.387,
-        "postmortem": 0.144,
-        "report": 3.555,
-        "scoring": 10.917,
-        "snapshot": 862.605,
-        "universe": 24.635
+        "benchmark": 1.088,
+        "download": 4.091,
+        "grading": 53.446,
+        "orb": 164.227,
+        "postmortem": null,
+        "report": null,
+        "scoring": 12.867,
+        "snapshot": 817.29,
+        "universe": 23.232
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 792,
         "errors": 0,
@@ -52004,6 +52029,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5429,
+          "without": 5591
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9869174161896974,
@@ -52011,11 +52042,20 @@
         "scorable_ticker_count": 32,
         "universe_ticker_count": 2446
       },
+      "scorable_count": 32,
       "scored_ticker_count": 32,
       "smoke_mode": false,
-      "status": "COMPLETE",
+      "spy_premarket_return_pct": 0.0813331063572131,
+      "status": "FAILED",
       "trading_date": "2024-05-17",
-      "universe_manifest_hash": "sha256:4c279f453ca4c357bf91f58a10eee708564ba29eae14904b6701573dab179c20",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:46339e1e8c66a0c4c55afe51697661072a1cc3ea558fe2eb96bdb077caf9eee5",
       "universe_size": 2446
     },
     {
@@ -52025,9 +52065,6 @@
         "eligible_outcomes": "days/2024-05-20/eligible_outcomes_2024-05-20.csv",
         "end_of_day_outcome": "days/2024-05-20/end_of_day_outcome_2024-05-20.json",
         "historical_snapshot": "days/2024-05-20/historical_snapshot_2024-05-20.json",
-        "postmortem": "days/2024-05-20/postmortem_2024-05-20.json",
-        "postmortem_report": "days/2024-05-20/postmortem_report_2024-05-20.pdf",
-        "replay_report": "days/2024-05-20/replay_report_2024-05-20.pdf",
         "scorable_outcomes": "days/2024-05-20/scorable_outcomes_2024-05-20.csv",
         "scout_output": "days/2024-05-20/research_alpha_output_2024-05-20.json",
         "scout_report": "days/2024-05-20/research_alpha_report_2024-05-20.pdf"
@@ -77345,8 +77382,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "KeyError: 'first_candle_open'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.14051779935275,
@@ -77771,26 +77808,36 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 122,
+        "hits": 0,
+        "tickers_with_zero_articles": 63
+      },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.269,
-        "download": 6.69,
-        "grading": 59.805,
-        "postmortem": 0.181,
-        "report": 3.382,
-        "scoring": 10.994,
-        "snapshot": 865.355,
-        "universe": 24.759
+        "benchmark": 1.141,
+        "download": 6.852,
+        "grading": 55.031,
+        "orb": 164.337,
+        "postmortem": null,
+        "report": null,
+        "scoring": 13.306,
+        "snapshot": 801.092,
+        "universe": 23.701
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 795,
         "errors": 0,
@@ -77801,6 +77848,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5423,
+          "without": 5597
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.988997555012225,
@@ -77808,11 +77861,20 @@
         "scorable_ticker_count": 27,
         "universe_ticker_count": 2454
       },
+      "scorable_count": 27,
       "scored_ticker_count": 27,
       "smoke_mode": false,
-      "status": "COMPLETE",
+      "spy_premarket_return_pct": 0.0453300594957048,
+      "status": "FAILED",
       "trading_date": "2024-05-20",
-      "universe_manifest_hash": "sha256:cca8195422f7002486ede18542653a5b904c0f73155024b08db13e1d10a1b92e",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:3c768ba64763d39bdb5f383facd9a32b8afd1b1e34b4f0b357a16f8278f2a444",
       "universe_size": 2454
     },
     {
@@ -77822,9 +77884,6 @@
         "eligible_outcomes": "days/2024-05-21/eligible_outcomes_2024-05-21.csv",
         "end_of_day_outcome": "days/2024-05-21/end_of_day_outcome_2024-05-21.json",
         "historical_snapshot": "days/2024-05-21/historical_snapshot_2024-05-21.json",
-        "postmortem": "days/2024-05-21/postmortem_2024-05-21.json",
-        "postmortem_report": "days/2024-05-21/postmortem_report_2024-05-21.pdf",
-        "replay_report": "days/2024-05-21/replay_report_2024-05-21.pdf",
         "scorable_outcomes": "days/2024-05-21/scorable_outcomes_2024-05-21.csv",
         "scout_output": "days/2024-05-21/research_alpha_output_2024-05-21.json",
         "scout_report": "days/2024-05-21/research_alpha_report_2024-05-21.pdf"
@@ -104412,8 +104471,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "KeyError: 'first_candle_open'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.4155844155844,
@@ -104838,26 +104897,36 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 127,
+        "hits": 0,
+        "tickers_with_zero_articles": 69
+      },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.292,
-        "download": 6.591,
-        "grading": 59.068,
-        "postmortem": 0.214,
-        "report": 3.478,
-        "scoring": 10.994,
-        "snapshot": 858.407,
-        "universe": 26.681
+        "benchmark": 1.167,
+        "download": 3.876,
+        "grading": 54.828,
+        "orb": 162.372,
+        "postmortem": null,
+        "report": null,
+        "scoring": 13.189,
+        "snapshot": 802.981,
+        "universe": 23.42
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 795,
         "errors": 0,
@@ -104868,6 +104937,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5417,
+          "without": 5599
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9836266884977487,
@@ -104875,11 +104950,20 @@
         "scorable_ticker_count": 40,
         "universe_ticker_count": 2443
       },
+      "scorable_count": 40,
       "scored_ticker_count": 40,
       "smoke_mode": false,
-      "status": "COMPLETE",
+      "spy_premarket_return_pct": -0.12640078481680547,
+      "status": "FAILED",
       "trading_date": "2024-05-21",
-      "universe_manifest_hash": "sha256:b1b9cc3f49da16b6a17394fa5eb02ff5650f6b9fcb0605adee667bff9579297e",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:cb90f7e71e265c622d775a262ebce6bfe1b6e39785f75d10bffbd236aa1d43fd",
       "universe_size": 2443
     },
     {
@@ -104889,9 +104973,6 @@
         "eligible_outcomes": "days/2024-05-22/eligible_outcomes_2024-05-22.csv",
         "end_of_day_outcome": "days/2024-05-22/end_of_day_outcome_2024-05-22.json",
         "historical_snapshot": "days/2024-05-22/historical_snapshot_2024-05-22.json",
-        "postmortem": "days/2024-05-22/postmortem_2024-05-22.json",
-        "postmortem_report": "days/2024-05-22/postmortem_report_2024-05-22.pdf",
-        "replay_report": "days/2024-05-22/replay_report_2024-05-22.pdf",
         "scorable_outcomes": "days/2024-05-22/scorable_outcomes_2024-05-22.csv",
         "scout_output": "days/2024-05-22/research_alpha_output_2024-05-22.json",
         "scout_report": "days/2024-05-22/research_alpha_report_2024-05-22.pdf"
@@ -130549,8 +130630,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "KeyError: 'first_candle_open'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.45502509329559,
@@ -130975,26 +131056,36 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 108,
+        "hits": 0,
+        "tickers_with_zero_articles": 44
+      },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.346,
-        "download": 6.575,
-        "grading": 61.445,
-        "postmortem": 0.251,
-        "report": 3.567,
-        "scoring": 10.901,
-        "snapshot": 863.389,
-        "universe": 26.902
+        "benchmark": 1.238,
+        "download": 6.078,
+        "grading": 55.421,
+        "orb": 161.108,
+        "postmortem": null,
+        "report": null,
+        "scoring": 12.863,
+        "snapshot": 796.214,
+        "universe": 24.434
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 799,
         "errors": 0,
@@ -131005,6 +131096,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5415,
+          "without": 5604
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9868959868959869,
@@ -131012,11 +131109,20 @@
         "scorable_ticker_count": 32,
         "universe_ticker_count": 2442
       },
+      "scorable_count": 32,
       "scored_ticker_count": 32,
       "smoke_mode": false,
-      "status": "COMPLETE",
+      "spy_premarket_return_pct": -0.16373080397470727,
+      "status": "FAILED",
       "trading_date": "2024-05-22",
-      "universe_manifest_hash": "sha256:50c97a424c484da9651c0d9c9addfd4fcdc711cf0d3e4288b17b4d009c64cb67",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:464a4d62e5dc9e4c5cd31f722b87cd9e703f9499c10193ffbad14fbedf3536f5",
       "universe_size": 2442
     },
     {
@@ -131026,9 +131132,6 @@
         "eligible_outcomes": "days/2024-05-23/eligible_outcomes_2024-05-23.csv",
         "end_of_day_outcome": "days/2024-05-23/end_of_day_outcome_2024-05-23.json",
         "historical_snapshot": "days/2024-05-23/historical_snapshot_2024-05-23.json",
-        "postmortem": "days/2024-05-23/postmortem_2024-05-23.json",
-        "postmortem_report": "days/2024-05-23/postmortem_report_2024-05-23.pdf",
-        "replay_report": "days/2024-05-23/replay_report_2024-05-23.pdf",
         "scorable_outcomes": "days/2024-05-23/scorable_outcomes_2024-05-23.csv",
         "scout_output": "days/2024-05-23/research_alpha_output_2024-05-23.json",
         "scout_report": "days/2024-05-23/research_alpha_report_2024-05-23.pdf"
@@ -158086,8 +158189,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.41148510770932,
@@ -158512,26 +158615,36 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 123,
+        "hits": 0,
+        "tickers_with_zero_articles": 49
+      },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.364,
-        "download": 6.478,
-        "grading": 61.021,
-        "postmortem": 0.297,
-        "report": 3.671,
-        "scoring": 11.007,
-        "snapshot": 858.592,
-        "universe": 25.852
+        "benchmark": 1.243,
+        "download": 6.305,
+        "grading": 57.711,
+        "orb": 162.735,
+        "postmortem": null,
+        "report": null,
+        "scoring": 13.271,
+        "snapshot": 797.923,
+        "universe": 23.617
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 788,
         "errors": 0,
@@ -158542,6 +158655,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5411,
+          "without": 5603
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9844262295081967,
@@ -158549,11 +158668,20 @@
         "scorable_ticker_count": 38,
         "universe_ticker_count": 2440
       },
+      "scorable_count": 38,
       "scored_ticker_count": 38,
       "smoke_mode": false,
-      "status": "COMPLETE",
+      "spy_premarket_return_pct": 0.6605892456070814,
+      "status": "FAILED",
       "trading_date": "2024-05-23",
-      "universe_manifest_hash": "sha256:09ab6aa90e9cca4663ec212de85146645f45bece940387e840b69d11ecc64f4d",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:3a2950337bc70be3f8b3d2370cdc59a795fb4ed9d76a66766595be1207a344c1",
       "universe_size": 2440
     },
     {
@@ -158563,9 +158691,6 @@
         "eligible_outcomes": "days/2024-05-24/eligible_outcomes_2024-05-24.csv",
         "end_of_day_outcome": "days/2024-05-24/end_of_day_outcome_2024-05-24.json",
         "historical_snapshot": "days/2024-05-24/historical_snapshot_2024-05-24.json",
-        "postmortem": "days/2024-05-24/postmortem_2024-05-24.json",
-        "postmortem_report": "days/2024-05-24/postmortem_report_2024-05-24.pdf",
-        "replay_report": "days/2024-05-24/replay_report_2024-05-24.pdf",
         "scorable_outcomes": "days/2024-05-24/scorable_outcomes_2024-05-24.csv",
         "scout_output": "days/2024-05-24/research_alpha_output_2024-05-24.json",
         "scout_report": "days/2024-05-24/research_alpha_report_2024-05-24.pdf"
@@ -184273,8 +184398,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.562197092084,
@@ -184699,26 +184824,36 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 93,
+        "hits": 0,
+        "tickers_with_zero_articles": 32
+      },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.369,
-        "download": 6.497,
-        "grading": 57.149,
-        "postmortem": 0.326,
-        "report": 3.432,
-        "scoring": 10.794,
-        "snapshot": 859.811,
-        "universe": 24.841
+        "benchmark": 1.244,
+        "download": 6.396,
+        "grading": 52.659,
+        "orb": 154.91,
+        "postmortem": null,
+        "report": null,
+        "scoring": 12.591,
+        "snapshot": 793.806,
+        "universe": 23.396
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 782,
         "errors": 0,
@@ -184729,6 +184864,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5406,
+          "without": 5609
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9896907216494846,
@@ -184736,11 +184877,20 @@
         "scorable_ticker_count": 25,
         "universe_ticker_count": 2425
       },
+      "scorable_count": 25,
       "scored_ticker_count": 25,
       "smoke_mode": false,
-      "status": "COMPLETE",
+      "spy_premarket_return_pct": 0.2794889345197189,
+      "status": "FAILED",
       "trading_date": "2024-05-24",
-      "universe_manifest_hash": "sha256:161ce383bdfb485a2be3270bbe55230a59ea6843da4c28e6255ea82a6ca8c63c",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:851cbde1be1b0fae08e5b22635c666246c9df1d5eb63b7a06e833a69e55d40fc",
       "universe_size": 2425
     },
     {
@@ -184750,9 +184900,6 @@
         "eligible_outcomes": "days/2024-05-28/eligible_outcomes_2024-05-28.csv",
         "end_of_day_outcome": "days/2024-05-28/end_of_day_outcome_2024-05-28.json",
         "historical_snapshot": "days/2024-05-28/historical_snapshot_2024-05-28.json",
-        "postmortem": "days/2024-05-28/postmortem_2024-05-28.json",
-        "postmortem_report": "days/2024-05-28/postmortem_report_2024-05-28.pdf",
-        "replay_report": "days/2024-05-28/replay_report_2024-05-28.pdf",
         "scorable_outcomes": "days/2024-05-28/scorable_outcomes_2024-05-28.csv",
         "scout_output": "days/2024-05-28/research_alpha_output_2024-05-28.json",
         "scout_report": "days/2024-05-28/research_alpha_report_2024-05-28.pdf"
@@ -210480,8 +210627,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.19132021373647,
@@ -210906,26 +211053,36 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 112,
+        "hits": 0,
+        "tickers_with_zero_articles": 76
+      },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.447,
-        "download": 6.777,
-        "grading": 62.55,
-        "postmortem": 0.357,
-        "report": 3.861,
-        "scoring": 11.136,
-        "snapshot": 860.1,
-        "universe": 25.947
+        "benchmark": 1.328,
+        "download": 3.943,
+        "grading": 57.032,
+        "orb": 162.515,
+        "postmortem": null,
+        "report": null,
+        "scoring": 13.399,
+        "snapshot": 801.777,
+        "universe": 23.409
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 772,
         "errors": 0,
@@ -210936,6 +211093,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5405,
+          "without": 5612
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9843814221126181,
@@ -210943,11 +211106,20 @@
         "scorable_ticker_count": 38,
         "universe_ticker_count": 2433
       },
+      "scorable_count": 38,
       "scored_ticker_count": 38,
       "smoke_mode": false,
-      "status": "COMPLETE",
+      "spy_premarket_return_pct": 0.15480507706254212,
+      "status": "FAILED",
       "trading_date": "2024-05-28",
-      "universe_manifest_hash": "sha256:d89beedaf6d77919a5db131a91db4bd23d4b62e80fb38e183557d263d0cb9682",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:a5fe63d7ca1b187fb5589780800365fd03b1eb7fd55872c6157143dfe42070b9",
       "universe_size": 2433
     },
     {
@@ -210957,6 +211129,7 @@
         "eligible_outcomes": "days/2024-05-29/eligible_outcomes_2024-05-29.csv",
         "end_of_day_outcome": "days/2024-05-29/end_of_day_outcome_2024-05-29.json",
         "historical_snapshot": "days/2024-05-29/historical_snapshot_2024-05-29.json",
+        "orb_outcomes": "days/2024-05-29/orb_outcomes_2024-05-29.csv",
         "postmortem": "days/2024-05-29/postmortem_2024-05-29.json",
         "postmortem_report": "days/2024-05-29/postmortem_report_2024-05-29.pdf",
         "replay_report": "days/2024-05-29/replay_report_2024-05-29.pdf",
@@ -237573,10 +237746,18 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 122,
+        "hits": 0,
+        "tickers_with_zero_articles": 60
+      },
+      "orb_universe_count": 759,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
+        "orb": "COMPLETE",
         "postmortem": "COMPLETE",
         "report": "COMPLETE",
         "scoring": "COMPLETE",
@@ -237584,15 +237765,17 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.54,
-        "download": 6.883,
-        "grading": 61.867,
-        "postmortem": 0.435,
-        "report": 3.917,
-        "scoring": 11.498,
-        "snapshot": 862.321,
-        "universe": 24.247
+        "benchmark": 1.37,
+        "download": 6.242,
+        "grading": 55.454,
+        "orb": 224.918,
+        "postmortem": 0.552,
+        "report": 3.81,
+        "scoring": 13.126,
+        "snapshot": 799.563,
+        "universe": 26.414
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 769,
         "errors": 0,
@@ -237603,6 +237786,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5395,
+          "without": 5614
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9848173984407058,
@@ -237610,11 +237799,20 @@
         "scorable_ticker_count": 37,
         "universe_ticker_count": 2437
       },
+      "scorable_count": 37,
       "scored_ticker_count": 37,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.7172382552235622,
       "status": "COMPLETE",
       "trading_date": "2024-05-29",
-      "universe_manifest_hash": "sha256:4cee358154db6099be25c59d38251c31a4e400d55735a234d8acfd71a287d3ff",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:89ee64e0c05407cec333b0fbb88d5df5a63614871029f29f9c08932fc61394de",
       "universe_size": 2437
     },
     {
@@ -237624,6 +237822,7 @@
         "eligible_outcomes": "days/2024-05-30/eligible_outcomes_2024-05-30.csv",
         "end_of_day_outcome": "days/2024-05-30/end_of_day_outcome_2024-05-30.json",
         "historical_snapshot": "days/2024-05-30/historical_snapshot_2024-05-30.json",
+        "orb_outcomes": "days/2024-05-30/orb_outcomes_2024-05-30.csv",
         "postmortem": "days/2024-05-30/postmortem_2024-05-30.json",
         "postmortem_report": "days/2024-05-30/postmortem_report_2024-05-30.pdf",
         "replay_report": "days/2024-05-30/replay_report_2024-05-30.pdf",
@@ -264259,10 +264458,18 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 117,
+        "hits": 0,
+        "tickers_with_zero_articles": 50
+      },
+      "orb_universe_count": 750,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
+        "orb": "COMPLETE",
         "postmortem": "COMPLETE",
         "report": "COMPLETE",
         "scoring": "COMPLETE",
@@ -264270,15 +264477,17 @@
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.538,
-        "download": 6.957,
-        "grading": 59.994,
-        "postmortem": 0.433,
-        "report": 3.698,
-        "scoring": 10.979,
-        "snapshot": 862.312,
-        "universe": 26.058
+        "benchmark": 1.427,
+        "download": 4.479,
+        "grading": 54.925,
+        "orb": 223.317,
+        "postmortem": 0.611,
+        "report": 3.861,
+        "scoring": 13.129,
+        "snapshot": 798.734,
+        "universe": 24.014
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 767,
         "errors": 0,
@@ -264289,6 +264498,12 @@
         "transient_retries": 0,
         "unresolved_failures": 0
       },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5396,
+          "without": 5613
+        }
+      },
       "research_evidence": true,
       "scorability_statistics": {
         "not_scorable_share": 0.9851607584501236,
@@ -264296,11 +264511,20 @@
         "scorable_ticker_count": 36,
         "universe_ticker_count": 2426
       },
+      "scorable_count": 36,
       "scored_ticker_count": 36,
       "smoke_mode": false,
+      "spy_premarket_return_pct": -0.36875118798708506,
       "status": "COMPLETE",
       "trading_date": "2024-05-30",
-      "universe_manifest_hash": "sha256:37af3147bc4a29bc399f9d301e05b500cfcc704502ebe28e7dac3a63cf960e89",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:227d360f12297d6a248c478a19afd45974cd105d2c2aeebc86e860ddb45bb70b",
       "universe_size": 2426
     },
     {
@@ -264310,9 +264534,6 @@
         "eligible_outcomes": "days/2024-05-31/eligible_outcomes_2024-05-31.csv",
         "end_of_day_outcome": "days/2024-05-31/end_of_day_outcome_2024-05-31.json",
         "historical_snapshot": "days/2024-05-31/historical_snapshot_2024-05-31.json",
-        "postmortem": "days/2024-05-31/postmortem_2024-05-31.json",
-        "postmortem_report": "days/2024-05-31/postmortem_report_2024-05-31.pdf",
-        "replay_report": "days/2024-05-31/replay_report_2024-05-31.pdf",
         "scorable_outcomes": "days/2024-05-31/scorable_outcomes_2024-05-31.csv",
         "scout_output": "days/2024-05-31/research_alpha_output_2024-05-31.json",
         "scout_report": "days/2024-05-31/research_alpha_report_2024-05-31.pdf"
@@ -290330,8 +290551,8 @@
         "unresolved_bar_row_count": 0,
         "unresolved_bar_rows": {}
       },
-      "current_phase": null,
-      "error": null,
+      "current_phase": "orb",
+      "error": "KeyError: 'first_candle_open'",
       "excluded_tickers": [
         {
           "close_change_pct": -84.01436762670534,
@@ -290756,26 +290977,36 @@
         }
       ],
       "max_tickers": null,
+      "news_cache": {
+        "errors": 0,
+        "fetches": 133,
+        "hits": 0,
+        "tickers_with_zero_articles": 47
+      },
+      "orb_universe_count": 0,
       "phase_status": {
         "benchmark": "COMPLETE",
         "download": "COMPLETE",
         "grading": "COMPLETE",
-        "postmortem": "COMPLETE",
-        "report": "COMPLETE",
+        "orb": "FAILED",
+        "postmortem": "PENDING",
+        "report": "PENDING",
         "scoring": "COMPLETE",
         "snapshot": "COMPLETE",
         "universe": "COMPLETE"
       },
       "phase_wall_time_seconds": {
-        "benchmark": 1.555,
-        "download": 6.13,
-        "grading": 60.763,
-        "postmortem": 0.464,
-        "report": 3.965,
-        "scoring": 11.085,
-        "snapshot": 865.09,
-        "universe": 52.052
+        "benchmark": 1.465,
+        "download": 6.031,
+        "grading": 56.033,
+        "orb": 156.732,
+        "postmortem": null,
+        "report": null,
+        "scoring": 14.476,
+        "snapshot": 800.439,
+        "universe": 23.399
       },
+      "reachable_metric_count": 25,
       "reference_cache": {
         "definitive_misses": 758,
         "errors": 0,
@@ -290783,8 +291014,14 @@
         "hits": 10241,
         "listed_after_lagged_date": 0,
         "quarter_reuse_hits": 10241,
-        "transient_retries": 4,
+        "transient_retries": 0,
         "unresolved_failures": 0
+      },
+      "reference_cache_summary": {
+        "sic_code_coverage": {
+          "with": 5395,
+          "without": 5618
+        }
       },
       "research_evidence": true,
       "scorability_statistics": {
@@ -290793,16 +291030,34 @@
         "scorable_ticker_count": 42,
         "universe_ticker_count": 2436
       },
+      "scorable_count": 42,
       "scored_ticker_count": 42,
       "smoke_mode": false,
-      "status": "COMPLETE",
+      "spy_premarket_return_pct": 0.40948317100705806,
+      "status": "FAILED",
       "trading_date": "2024-05-31",
-      "universe_manifest_hash": "sha256:8304e87e1dcf691506508c33a463def4a0270ff971eedc188bb859a0c5cb8e41",
+      "unavailable_metrics": [
+        "call_options_confirmation",
+        "analyst_revision_strength",
+        "positive_social_attention_acceleration",
+        "spread_quality",
+        "order_book_depth_quality"
+      ],
+      "universe_manifest_hash": "sha256:1a1ffe0b3cf42d25b5e12deb0940260f10540fa36c2ecbf5bb7efd8a04186bcb",
       "universe_size": 2436
     }
   ],
   "end_date": "2024-05-31",
-  "failed_dates": {},
+  "failed_dates": {
+    "2024-05-17": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
+    "2024-05-20": "KeyError: 'first_candle_open'",
+    "2024-05-21": "KeyError: 'first_candle_open'",
+    "2024-05-22": "KeyError: 'first_candle_open'",
+    "2024-05-23": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
+    "2024-05-24": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
+    "2024-05-28": "TypeError: float() argument must be a string or a real number, not 'NoneType'",
+    "2024-05-31": "KeyError: 'first_candle_open'"
+  },
   "file_naming": "dated_v1",
   "forced_resume": false,
   "massive_plan": {
@@ -290813,19 +291068,22 @@
   },
   "max_tickers": null,
   "morning_freeze_time": "09:15:00",
+  "orb_version": "orb_v1.0",
   "previous_provenance": null,
   "provenance": {
     "comparison_policy_paths": [
       "config/execution_policy_atr.json"
     ],
     "cost_model_id": "execution_costs_v1.0",
-    "dataset_version": 2,
+    "dataset_version": 6,
     "feature_registry_id": "feature_registry_alpha_v1.0",
-    "git_sha": "e50b1dc6837af20c9d3fd45ced01df6606ae0258",
-    "metric_count": 19,
-    "rubric_version": "alpha_v1.1_19m",
-    "scout_id": "research_scout_alpha_v1.1"
+    "git_sha": "73603e364f5ec24308159b46beabf34a1443027f",
+    "metric_count": 25,
+    "orb_config_hash": "sha256:174a2cbdbb74ad2e2da32e75755179eaf713f91ea9df3f7d3d6a0b3ca3409007",
+    "rubric_version": "alpha_v1.3_25m",
+    "scout_id": "research_scout_alpha_v1.3"
   },
+  "reachable_metric_count": 25,
   "reference_cache_summary": {
     "definitive_misses": 8608,
     "errors": 0,
@@ -290833,10 +291091,23 @@
     "hits": 112484,
     "listed_after_lagged_date": 0,
     "quarter_reuse_hits": 112484,
-    "transient_retries": 4,
+    "sic_code_coverage": {
+      "with": 59525,
+      "without": 61646
+    },
+    "transient_retries": 0,
     "unresolved_failures": 0
   },
-  "remaining_dates": [],
+  "remaining_dates": [
+    "2024-05-17",
+    "2024-05-20",
+    "2024-05-21",
+    "2024-05-22",
+    "2024-05-23",
+    "2024-05-24",
+    "2024-05-28",
+    "2024-05-31"
+  ],
   "requested_dates": [
     "2024-05-16",
     "2024-05-17",
@@ -290857,8 +291128,15 @@
   },
   "smoke_mode": false,
   "start_date": "2024-05-16",
-  "status": "COMPLETE",
+  "status": "PARTIAL",
   "strategy_capital_usd": 2500.0,
+  "unavailable_metrics": [
+    "call_options_confirmation",
+    "analyst_revision_strength",
+    "positive_social_attention_acceleration",
+    "spread_quality",
+    "order_book_depth_quality"
+  ],
   "universe_policy": {
     "shares_outstanding_lag_days": 120,
     "ticker_overview_cache_policy": "EARLIER_OR_EQUAL_SAME_CALENDAR_QUARTER",

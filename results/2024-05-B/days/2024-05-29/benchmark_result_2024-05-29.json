@@ -484,7 +484,7 @@
   },
   "trading_date": "2024-05-29",
   "universe_coverage": "complete",
-  "universe_manifest_hash": "sha256:4cee358154db6099be25c59d38251c31a4e400d55735a234d8acfd71a287d3ff",
+  "universe_manifest_hash": "sha256:89ee64e0c05407cec333b0fbb88d5df5a63614871029f29f9c08932fc61394de",
   "universe_mode": "historical_research",
   "universe_version": "1.0"
 }

@@ -51,16 +51,16 @@
       "id": "2024-05-B",
       "start": "2024-05-16",
       "end": "2024-05-31",
-      "status": "IN_PROGRESS",
+      "status": "FAILED",
       "code_sha": "73603e364f5ec24308159b46beabf34a1443027f",
       "dataset_version_run": 6,
       "attempts": 2,
       "last_run_id": "35686329868",
       "started_at": "2026-09-22T04:17:55.700756+00:00",
       "completed_at": null,
-      "days_completed": 0,
+      "days_completed": 3,
       "days_requested": 11,
-      "last_error": null
+      "last_error": "{\"2024-05-17\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-05-20\": \"KeyError: 'first_candle_open'\", \"2024-05-21\": \"KeyError: 'first_candle_open'\", \"2024-05-22\": \"KeyError: 'first_candle_open'\", \"2024-05-23\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-05-24\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-05-28\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-05-31\": \"KeyError: 'first_candle_open'\"}"
     },
     {
       "id": "2024-06-A",
