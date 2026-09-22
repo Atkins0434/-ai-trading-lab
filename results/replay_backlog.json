@@ -81,7 +81,16 @@
       "id": "2024-06-B",
       "start": "2024-06-16",
       "end": "2024-06-30",
-      "status": "PENDING"
+      "status": "IN_PROGRESS",
+      "code_sha": "73603e364f5ec24308159b46beabf34a1443027f",
+      "dataset_version_run": 6,
+      "attempts": 1,
+      "last_run_id": "35755676416",
+      "started_at": "2026-09-22T16:40:54.134056+00:00",
+      "completed_at": null,
+      "days_completed": 0,
+      "days_requested": 9,
+      "last_error": null
     },
     {
       "id": "2024-07-A",
