@@ -66,16 +66,16 @@
       "id": "2024-06-A",
       "start": "2024-06-01",
       "end": "2024-06-15",
-      "status": "IN_PROGRESS",
+      "status": "FAILED",
       "code_sha": "73603e364f5ec24308159b46beabf34a1443027f",
       "dataset_version_run": 6,
       "attempts": 1,
       "last_run_id": "35720714077",
       "started_at": "2026-09-22T11:18:48.895255+00:00",
       "completed_at": null,
-      "days_completed": 0,
+      "days_completed": 2,
       "days_requested": 10,
-      "last_error": null
+      "last_error": "{\"2024-06-03\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-06-06\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-06-07\": \"KeyError: 'first_candle_open'\", \"2024-06-10\": \"KeyError: 'first_candle_open'\", \"2024-06-11\": \"ClientError: An error occurred (403) when calling the ListObjectsV2 operation: Forbidden\", \"2024-06-12\": \"ClientError: An error occurred (403) when calling the ListObjectsV2 operation: Forbidden\", \"2024-06-13\": \"ClientError: An error occurred (403) when calling the ListObjectsV2 operation: Forbidden\", \"2024-06-14\": \"ClientError: An error occurred (403) when calling the ListObjectsV2 operation: Forbidden\"}"
     },
     {
       "id": "2024-06-B",

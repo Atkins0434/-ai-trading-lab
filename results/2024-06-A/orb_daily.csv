@@ -1,0 +1,9 @@
+orb_version,trading_date,variant,cohort,net_realized_return_pct,gross_realized_return_pct,equity_index
+orb_v1.0,2024-06-04,cash,long_only,0.0,0.0,1.0
+orb_v1.0,2024-06-04,cash,long_plus_short,0.0,0.0,1.0
+orb_v1.0,2024-06-04,paper,long_only,-4.324444174399978,-2.348395199999978,0.9567555582560002
+orb_v1.0,2024-06-04,paper,long_plus_short,-14.405037706799964,-9.409070457142823,0.8559496229320004
+orb_v1.0,2024-06-05,cash,long_only,0.0,0.0,1.0
+orb_v1.0,2024-06-05,cash,long_plus_short,0.0,0.0,1.0
+orb_v1.0,2024-06-05,paper,long_only,-14.07916048177135,-10.980432514285635,0.8220524077908706
+orb_v1.0,2024-06-05,paper,long_plus_short,-14.92528245857139,-11.379378228571388,0.7281967240063226
