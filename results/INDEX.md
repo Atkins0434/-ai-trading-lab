@@ -11,7 +11,7 @@ Research diagnostics only; this branch is never merged into main.
 | 2024-06-A | FAILED | 2/10 | 0/0/2 | 0.000000% | 0.000000% | -29.330320% | 0.000000% | bars_0=5, bars_10_29=2, bars_1_9=5, opening_range_reachable_count=1, picked=0, visible_guardrail_rejected=1, visible_reversal_candidate=0, visible_scored_low=7 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35720714077](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35720714077) |
 | 2024-06-B | FAILED | 0/9 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | 73603e364f5ec24308159b46beabf34a1443027f | [run 35755676416](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35755676416) |
 | 2024-07-A | FAILED | 8/10 | 0/0/8 | 0.000000% | 0.000000% | -68.705465% | -9.295968% | bars_0=22, bars_10_29=15, bars_1_9=20, opening_range_reachable_count=0, picked=0, visible_guardrail_rejected=1, visible_reversal_candidate=0, visible_scored_low=22 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35784552337](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35784552337) |
-| 2024-07-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
+| 2024-07-B | FAILED | 9/12 | 0/1/8 | -0.197344% | -3.954921% | -77.673813% | -2.702625% | bars_0=34, bars_10_29=13, bars_1_9=28, opening_range_reachable_count=2, picked=0, visible_guardrail_rejected=4, visible_reversal_candidate=0, visible_scored_low=11 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35817554110](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35817554110) |
 | 2024-08-A | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
 | 2024-08-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
 | 2024-09-A | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
@@ -19,4 +19,4 @@ Research diagnostics only; this branch is never merged into main.
 | 2024-03-A | PENDING | 0/10 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | 25438eecdfc35640c18df4b90661a1f3530ccbb1 | [run 35488532975](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35488532975) |
 | 2024-03-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
 
-Across-unit ORB net return sums: paper long+short=-207.713139%; cash long-only=-9.274787%.
+Across-unit ORB net return sums: paper long+short=-285.386952%; cash long-only=-11.977413%.

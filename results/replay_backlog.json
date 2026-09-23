@@ -111,16 +111,16 @@
       "id": "2024-07-B",
       "start": "2024-07-16",
       "end": "2024-07-31",
-      "status": "IN_PROGRESS",
+      "status": "FAILED",
       "code_sha": "73603e364f5ec24308159b46beabf34a1443027f",
       "dataset_version_run": 6,
       "attempts": 1,
       "last_run_id": "35817554110",
       "started_at": "2026-09-23T04:15:19.263907+00:00",
       "completed_at": null,
-      "days_completed": 0,
+      "days_completed": 9,
       "days_requested": 12,
-      "last_error": null
+      "last_error": "{\"2024-07-26\": \"KeyError: 'first_candle_open'\", \"2024-07-30\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-07-31\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\"}"
     },
     {
       "id": "2024-08-A",
