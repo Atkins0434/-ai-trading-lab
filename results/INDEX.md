@@ -12,7 +12,7 @@ Research diagnostics only; this branch is never merged into main.
 | 2024-06-B | FAILED | 0/9 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | 73603e364f5ec24308159b46beabf34a1443027f | [run 35755676416](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35755676416) |
 | 2024-07-A | FAILED | 8/10 | 0/0/8 | 0.000000% | 0.000000% | -68.705465% | -9.295968% | bars_0=22, bars_10_29=15, bars_1_9=20, opening_range_reachable_count=0, picked=0, visible_guardrail_rejected=1, visible_reversal_candidate=0, visible_scored_low=22 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35784552337](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35784552337) |
 | 2024-07-B | FAILED | 9/12 | 0/1/8 | -0.197344% | -3.954921% | -77.673813% | -2.702625% | bars_0=34, bars_10_29=13, bars_1_9=28, opening_range_reachable_count=2, picked=0, visible_guardrail_rejected=4, visible_reversal_candidate=0, visible_scored_low=11 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35817554110](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35817554110) |
-| 2024-08-A | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
+| 2024-08-A | FAILED | 0/11 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | 73603e364f5ec24308159b46beabf34a1443027f | [run 35853178655](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35853178655) |
 | 2024-08-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
 | 2024-09-A | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
 | 2024-09-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
