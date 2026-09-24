@@ -15,8 +15,8 @@ Research diagnostics only; this branch is never merged into main.
 | 2024-08-A | FAILED | 0/11 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | 73603e364f5ec24308159b46beabf34a1443027f | [run 35853178655](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35853178655) |
 | 2024-08-B | FAILED | 8/11 | 0/0/8 | 0.000000% | 0.000000% | -100.053531% | -3.900055% | bars_0=37, bars_10_29=13, bars_1_9=21, opening_range_reachable_count=4, picked=0, visible_guardrail_rejected=1, visible_reversal_candidate=0, visible_scored_low=8 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35889674176](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35889674176) |
 | 2024-09-A | COMPLETE | 9/9 | 0/0/9 | 0.000000% | 2.673797% | -77.585948% | 4.410498% | bars_0=36, bars_10_29=14, bars_1_9=20, opening_range_reachable_count=10, picked=0, visible_guardrail_rejected=4, visible_reversal_candidate=0, visible_scored_low=16 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35921819113](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35921819113) |
-| 2024-09-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
+| 2024-09-B | COMPLETE | 11/11 | 0/0/11 | 0.000000% | 2.726564% | -88.024145% | -2.491714% | bars_0=41, bars_10_29=14, bars_1_9=39, opening_range_reachable_count=4, picked=0, visible_guardrail_rejected=3, visible_reversal_candidate=0, visible_scored_low=13 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35954506419](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35954506419) |
 | 2024-03-A | PENDING | 0/10 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | 25438eecdfc35640c18df4b90661a1f3530ccbb1 | [run 35488532975](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35488532975) |
 | 2024-03-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
 
-Across-unit ORB net return sums: paper long+short=-463.026431%; cash long-only=-11.466969%.
+Across-unit ORB net return sums: paper long+short=-551.050576%; cash long-only=-13.958683%.
