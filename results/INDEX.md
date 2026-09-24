@@ -14,9 +14,9 @@ Research diagnostics only; this branch is never merged into main.
 | 2024-07-B | FAILED | 9/12 | 0/1/8 | -0.197344% | -3.954921% | -77.673813% | -2.702625% | bars_0=34, bars_10_29=13, bars_1_9=28, opening_range_reachable_count=2, picked=0, visible_guardrail_rejected=4, visible_reversal_candidate=0, visible_scored_low=11 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35817554110](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35817554110) |
 | 2024-08-A | FAILED | 0/11 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | 73603e364f5ec24308159b46beabf34a1443027f | [run 35853178655](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35853178655) |
 | 2024-08-B | FAILED | 8/11 | 0/0/8 | 0.000000% | 0.000000% | -100.053531% | -3.900055% | bars_0=37, bars_10_29=13, bars_1_9=21, opening_range_reachable_count=4, picked=0, visible_guardrail_rejected=1, visible_reversal_candidate=0, visible_scored_low=8 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35889674176](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35889674176) |
-| 2024-09-A | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
+| 2024-09-A | COMPLETE | 9/9 | 0/0/9 | 0.000000% | 2.673797% | -77.585948% | 4.410498% | bars_0=36, bars_10_29=14, bars_1_9=20, opening_range_reachable_count=10, picked=0, visible_guardrail_rejected=4, visible_reversal_candidate=0, visible_scored_low=16 | 73603e364f5ec24308159b46beabf34a1443027f | [run 35921819113](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35921819113) |
 | 2024-09-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
 | 2024-03-A | PENDING | 0/10 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | 25438eecdfc35640c18df4b90661a1f3530ccbb1 | [run 35488532975](https://github.com/Atkins0434/-ai-trading-lab/actions/runs/35488532975) |
 | 2024-03-B | PENDING | 0/0 | 0/0/0 | 0.000000% | 0.000000% | 0.000000% | 0.000000% | — | — | — |
 
-Across-unit ORB net return sums: paper long+short=-385.440483%; cash long-only=-15.877467%.
+Across-unit ORB net return sums: paper long+short=-463.026431%; cash long-only=-11.466969%.
