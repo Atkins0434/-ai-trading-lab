@@ -186,16 +186,16 @@
       "id": "2024-03-A",
       "start": "2024-03-01",
       "end": "2024-03-14",
-      "status": "IN_PROGRESS",
+      "status": "FAILED",
       "code_sha": "73603e364f5ec24308159b46beabf34a1443027f",
       "dataset_version_run": 6,
       "attempts": 4,
       "last_run_id": "35993161661",
       "started_at": "2026-09-24T11:28:12.912470+00:00",
       "completed_at": null,
-      "days_completed": 0,
+      "days_completed": 1,
       "days_requested": 10,
-      "last_error": null
+      "last_error": "{\"2024-03-01\": \"KeyError: 'first_candle_open'\", \"2024-03-04\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-03-05\": \"KeyError: 'first_candle_open'\", \"2024-03-06\": \"KeyError: 'first_candle_open'\", \"2024-03-07\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-03-08\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-03-11\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-03-12\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\", \"2024-03-13\": \"TypeError: float() argument must be a string or a real number, not 'NoneType'\"}"
     },
     {
       "id": "2024-03-B",
